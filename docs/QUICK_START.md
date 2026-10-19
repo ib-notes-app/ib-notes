@@ -35,6 +35,9 @@ unobserved price path is complete.
 
 ## Read the session
 
+See [Read the four dashboard buttons](READING_THE_DASHBOARD.md) for forecast
+targets, map labels, level history, review tools and missing-data wording.
+
 - **Structure:** current recorded conditions and the structure map.
 - **Levels:** nearby references, Above/Below/All filters, tiers and level history.
 - **Review:** saved entries, timeline, summaries and local statistics.

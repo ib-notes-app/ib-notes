@@ -5,7 +5,9 @@
 [![Support IB Notes on Ko-fi](docs/images/support-ko-fi.svg)](https://ko-fi.com/ibnotes)
 [![Follow IBFieldNotes on X](docs/images/follow-x.svg)](https://x.com/IBFieldNotes)
 
-**[Getting started](docs/QUICK_START.md) · [Import your own CSV](docs/CSV_IMPORT.md) · [Create and track levels](docs/LEVELS.md)**
+**[Getting started](docs/QUICK_START.md) · [Read the dashboard](docs/READING_THE_DASHBOARD.md)**
+
+**[Import your own CSV](docs/CSV_IMPORT.md) · [Create and track levels](docs/LEVELS.md)**
 
 IB Notes is a free journal for studying the Initial Balance: the first hour of
 the regular trading session. Record prices, build a map of the session, track
@@ -43,6 +45,7 @@ learning history and are unavailable in the empty edition.
 3. See the [screenshots](docs/SCREENSHOTS.md) and [review checklist](docs/REVIEW.md).
 4. Follow the [CSV import guide](docs/CSV_IMPORT.md) to prepare and use your own permitted history.
 5. Learn to [create levels and read their tracking history](docs/LEVELS.md).
+6. Read [Forecast, Structure, Levels and Review](docs/READING_THE_DASHBOARD.md) to understand the four dashboard buttons.
 
 <img src="docs/images/dashboard-empty.png" alt="IB Notes empty dashboard with phase navigation, Record price and four corner controls" width="320">
 

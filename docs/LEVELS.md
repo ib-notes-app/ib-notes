@@ -1,6 +1,6 @@
 # Create and track your own levels
 
-[Back to IB Notes](../README.md) · [First-session guide](QUICK_START.md) · [CSV imports](CSV_IMPORT.md)
+[Back to IB Notes](../README.md) · [Read the dashboard](READING_THE_DASHBOARD.md) · [CSV imports](CSV_IMPORT.md)
 
 A level is a price or zone you want to remember and observe. You can add a
 prior high, a low, a gap or another reference without importing a data pack.
