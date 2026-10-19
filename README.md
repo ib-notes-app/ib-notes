@@ -3,6 +3,9 @@
 **Observe. Record. Learn.**
 
 [![Support IB Notes on Ko-fi](docs/images/support-ko-fi.svg)](https://ko-fi.com/ibnotes)
+[![Follow IBFieldNotes on X](docs/images/follow-x.svg)](https://x.com/IBFieldNotes)
+
+**[Getting started](docs/QUICK_START.md) · [Import your own CSV](docs/CSV_IMPORT.md) · [Create and track levels](docs/LEVELS.md)**
 
 IB Notes is a free journal for studying the Initial Balance: the first hour of
 the regular trading session. Record prices, build a map of the session, track
@@ -38,6 +41,8 @@ learning history and are unavailable in the empty edition.
 1. Read [installation and preview instructions](docs/INSTALLATION.md).
 2. Follow the [first-session guide](docs/QUICK_START.md).
 3. See the [screenshots](docs/SCREENSHOTS.md) and [review checklist](docs/REVIEW.md).
+4. Follow the [CSV import guide](docs/CSV_IMPORT.md) to prepare and use your own permitted history.
+5. Learn to [create levels and read their tracking history](docs/LEVELS.md).
 
 <img src="docs/images/dashboard-empty.png" alt="IB Notes empty dashboard with phase navigation, Record price and four corner controls" width="320">
 
@@ -45,12 +50,14 @@ Your journal is stored locally in your browser on that device. Export a SQLite
 backup before changing app addresses, clearing browser data or moving devices.
 There is no automatic journal synchronization.
 
-## Support
+## Support and updates
 
 Problems or feedback: **ibnotes.support@icloud.com**. Settings also includes
 **Report a problem**, where you can review and copy a report.
 
 The app is free to use. Optional support: [IB Notes on Ko-fi](https://ko-fi.com/ibnotes).
+
+Updates and announcements: [@IBFieldNotes on X](https://x.com/IBFieldNotes).
 
 Structure journal only. No trade recommendations.
 

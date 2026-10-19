@@ -56,4 +56,15 @@ copying or downloading it. Nothing is automatically posted.
 Export SQLite regularly from **Settings → Backups & storage**. Your journal
 lives in that browser on that device.
 
+## Bring your own history
+
+The [CSV import guide](CSV_IMPORT.md) covers the supported daily format,
+required columns, import preview, comparison and learning settings, and data
+rights. Ordinary minute-bar or broker exports need preparation first.
+
+## Track your own levels
+
+The [levels guide](LEVELS.md) explains adding prices or zones, finding them
+above/below CP, and reading visits, role changes and LBAF history.
+
 Questions or problems: **ibnotes.support@icloud.com**.
