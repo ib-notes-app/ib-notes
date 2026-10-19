@@ -5,6 +5,9 @@
 Short answers for the public version. Start with one price and build your
 journal as you go.
 
+Step-by-step help: [Backups and recovery](BACKUPS_AND_RECOVERY.md) ·
+[Troubleshooting](TROUBLESHOOTING.md) · [Privacy and your data](PRIVACY.md).
+
 [Getting started](#getting-started) · [Data and backups](#data-and-backups) ·
 [Recording prices](#recording-prices) · [Forecasts and structure](#forecasts-and-structure) ·
 [Levels](#levels) · [CSV imports](#csv-imports) · [Sharing and help](#sharing-and-help)
@@ -63,6 +66,7 @@ also need internet access. Physical-phone offline checks are still pending.
 Your journal is stored in your browser on your device. GitHub serves the app's
 files; calculations run locally. Recording prices and notes does not upload
 your journal to GitHub or the developer.
+See [Privacy and your data](PRIVACY.md) for hosting requests and voluntary sharing.
 
 ### Will my phone and computer stay in sync?
 
@@ -73,12 +77,14 @@ is no automatic cloud sync or live merge between journals.
 
 Open **⋯ → Settings → Backups & storage → Export SQLite**. Save the file somewhere
 you control and repeat regularly. Browser storage is not a substitute for a backup.
+Follow [Backups and recovery](BACKUPS_AND_RECOVERY.md) to save and check a restorable copy.
 
 ### How do I move to another phone, browser or app address?
 
 Export SQLite from the original journal, open the app at the destination and
 use **Restore SQLite**. Restore replaces all instrument journals there; back
 up the destination first. It does not merge two devices' entries.
+Use the [moving and restore steps](BACKUPS_AND_RECOVERY.md#move-to-another-phone-browser-or-app-address).
 
 ### Should I export SQLite or JSON?
 
@@ -90,6 +96,7 @@ your records. Keep SQLite when preparing to restore or move your journal.
 Check the instrument, date, exact app address, browser and device. Another
 browser or address can have a separate empty journal. Do not clear storage or
 reinstall as a first fix; preserve the original data and seek help.
+See [Troubleshooting](TROUBLESHOOTING.md#the-app-is-empty-or-records-seem-missing).
 
 ## Recording prices
 

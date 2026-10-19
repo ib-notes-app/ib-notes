@@ -76,6 +76,9 @@ new device or app address. Different addresses and browser profiles have
 separate journals.
 
 Do not clear browser data as a troubleshooting step before exporting a backup.
+Follow [Backups and recovery](BACKUPS_AND_RECOVERY.md) for checking a backup,
+restoring and moving devices. See [Troubleshooting](TROUBLESHOOTING.md) if loading,
+installation or an update fails.
 
 The downloaded ZIP's README records its original preparation status. The live
 address and current test status are maintained here and in [test status](REVIEW.md).

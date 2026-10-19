@@ -58,6 +58,8 @@ copying or downloading it. Nothing is automatically posted.
 
 Export SQLite regularly from **Settings → Backups & storage**. Your journal
 lives in that browser on that device.
+Follow [Backups and recovery](BACKUPS_AND_RECOVERY.md) for checking a file and
+restoring safely. [Privacy and your data](PRIVACY.md) explains hosting and sharing.
 
 ## Bring your own history
 

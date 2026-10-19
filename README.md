@@ -13,6 +13,8 @@
 
 **[Frequently asked questions](docs/FAQ.md)**
 
+**[Backups & recovery](docs/BACKUPS_AND_RECOVERY.md) · [Troubleshooting](docs/TROUBLESHOOTING.md) · [Privacy & your data](docs/PRIVACY.md)**
+
 IB Notes is a free journal for studying the Initial Balance: the first hour of
 the regular trading session. Record prices, build a map of the session, track
 breaks and returns, and review what happened.
@@ -61,11 +63,15 @@ learning history and are unavailable in the empty edition.
 Your journal is stored locally in your browser on that device. Export a SQLite
 backup before changing app addresses, clearing browser data or moving devices.
 There is no automatic journal synchronization.
+See [Backups and recovery](docs/BACKUPS_AND_RECOVERY.md) for export, verification
+and restore steps, and [Privacy and your data](docs/PRIVACY.md) for what stays local
+and what happens when you share.
 
 ## Support and updates
 
 Problems or feedback: **ibnotes.support@icloud.com**. Settings also includes
 **Report a problem**, where you can review and copy a report.
+Check [Troubleshooting](docs/TROUBLESHOOTING.md) for common problems and safe recovery steps.
 
 The app is free to use. Optional support: [IB Notes on Ko-fi](https://ko-fi.com/ibnotes).
 
