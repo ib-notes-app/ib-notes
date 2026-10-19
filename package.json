@@ -1,0 +1,52 @@
+{
+  "name": "ib-field-notes",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace @ib-field-notes/web",
+    "dev:workspace": "npm run dev --workspace @ib-field-notes/web -- --host 127.0.0.1 --port 4176 --strictPort",
+    "start": "npm run build && npm run preview --workspace @ib-field-notes/web -- --host 127.0.0.1",
+    "build": "npm run build --workspace @ib-field-notes/web",
+    "build:public": "npm run typecheck && node scripts/build-public.mjs",
+    "typecheck": "tsc --noEmit -p apps/web/tsconfig.json",
+    "rehearse:beta": "npm run typecheck && node scripts/rehearse-beta.mjs",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "pack:build": "node scripts/build-study-pack.mjs",
+    "pack:month": "node scripts/build-monthly-pack.mjs",
+    "pack:resistances": "node scripts/build-resistance-pack.mjs",
+    "pack:calendar": "node scripts/build-planning-context.mjs",
+    "history:build": "python3 scripts/research/build_price_history.py",
+    "pack:prices": "node scripts/build-price-pack.mjs",
+    "pack:context": "node scripts/build-context-pack.mjs",
+    "pack:fbd": "node scripts/build-fbd-pack.mjs",
+    "forecast:audit": "node scripts/research/audit-forecast-calibration.mjs",
+    "preview:phone": "node scripts/workspace-phone.mjs"
+  },
+  "license": "MPL-2.0",
+  "engines": {
+    "node": ">=20.19"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
+    "@playwright/test": "^1.63.0",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
+    "@types/node": "^22.20.5",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "@vitest/coverage-v8": "^5.0.3",
+    "jsdom": "^30.1.2",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.3",
+    "vite-plugin-pwa": "^2.0.0",
+    "vitest": "^5.0.3"
+  }
+}

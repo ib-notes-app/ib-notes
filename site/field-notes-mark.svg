@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" role="img" aria-label="IB Field Notes">
+  <rect width="192" height="192" rx="36" fill="#173a34"/>
+  <path d="M45 42h102v108H45z" fill="#efe9dc" stroke="#d99a48" stroke-width="8"/>
+  <path d="M68 72h56M68 96h40M68 120h54" stroke="#173a34" stroke-width="8" stroke-linecap="round"/>
+</svg>
