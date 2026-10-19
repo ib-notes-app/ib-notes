@@ -1,7 +1,11 @@
 {
   "buildId": "public-blank-20261019T171130584Z",
   "distribution": "public-blank",
-  "status": "Private review; no live installation address yet.",
+  "status": "Early public version; physical-device checks pending.",
+  "appUrl": "https://ib-notes-app.github.io/ib-notes/",
+  "deployedAt": "2026-10-19",
+  "deploymentCommit": "653f8a7649ba6c4a5864e03789f1fd615921fdb2",
+  "deploymentRun": "https://github.com/ib-notes-app/ib-notes/actions/runs/39309721593",
   "archive": "downloads/IB-Notes-blank-slate.zip",
   "archiveBytes": 4118834,
   "archiveSha256": "7a2084fdb6f446453e16c3d165eb878b05f17c7632a6ca3c257d95b3b8d29a17",
@@ -17,7 +21,14 @@
     },
     "chromiumJourneys": 21,
     "finalArtifactRechecks": 3,
-    "physicalPublicOriginInstall": "Pending"
+    "physicalPublicOriginInstall": "Pending",
+    "livePublicOrigin": {
+      "checkedAt": "2026-10-19",
+      "matchedWebsiteFiles": 38,
+      "chromiumJourneys": 3,
+      "firefox": "Not rerun: Playwright browser bundle unavailable.",
+      "webkit": "Not rerun: Playwright browser bundle unavailable."
+    }
   },
   "dataStorage": "Local SQLite in the browser; no account or journal synchronization.",
   "screenshots": "Empty application and isolated development observations; no market-history records."

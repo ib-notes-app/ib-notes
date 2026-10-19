@@ -1,6 +1,6 @@
 # Website publishing and updates
 
-The intended app address is **https://ib-notes-app.github.io/ib-notes/**.
+The live app address is **https://ib-notes-app.github.io/ib-notes/**.
 See [installation instructions](INSTALLATION.md) for current availability and
 phone-testing status.
 

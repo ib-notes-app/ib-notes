@@ -5,6 +5,8 @@
 [![Support IB Notes on Ko-fi](docs/images/support-ko-fi.svg)](https://ko-fi.com/ibnotes)
 [![Follow IBFieldNotes on X](docs/images/follow-x.svg)](https://x.com/IBFieldNotes)
 
+**[Open / Install IB Notes](https://ib-notes-app.github.io/ib-notes/)**
+
 **[Getting started](docs/QUICK_START.md) · [Read the dashboard](docs/READING_THE_DASHBOARD.md)**
 
 **[Import your own CSV](docs/CSV_IMPORT.md) · [Create and track levels](docs/LEVELS.md)**
@@ -17,12 +19,16 @@ Built around an ES study workflow, with configurable instruments, session times
 and display timezones. It runs in your browser and can be added to your phone's
 Home Screen from a hosted HTTPS address.
 
-## Private review
+## Open or install
 
-This is the IB Notes organization’s private review copy. There is no public
-installation address yet. The prepared package is available under [downloads](downloads/).
-The public address and phone-install instructions will be confirmed before
-inviting testers.
+Open **https://ib-notes-app.github.io/ib-notes/** in your browser. On a phone,
+follow the [installation steps](docs/INSTALLATION.md) to add it to your Home Screen.
+The app is free and starts with an empty journal.
+
+This is an early public version. Automated checks pass on the live address;
+physical iPhone/Safari and Android installation checks remain pending.
+See the [test status](docs/REVIEW.md). The prepared website package is also
+available under [downloads](downloads/).
 
 ## What you can do
 
@@ -70,6 +76,7 @@ Structure journal only. No trade recommendations.
 - [Build identity and checks](release-info.json).
 - `site/` contains the reviewed static PWA files.
 - `apps/`, `packages/` and `scripts/` contain the data-free application source.
+- [Website publishing and updates](docs/HOSTING.md).
 
 Source code: [MPL 2.0](LICENSE). Dependencies retain their own licenses; see
 [third-party notices](site/THIRD-PARTY-NOTICES.txt). Branding and artwork are

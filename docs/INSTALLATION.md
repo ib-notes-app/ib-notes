@@ -2,18 +2,35 @@
 
 ## Phone installation
 
-The public app address is pending review. Downloading this repository or its
-website ZIP does not install it on a phone. The package needs static HTTPS
-hosting so browser storage, workers and offline installation can work.
+Open **https://ib-notes-app.github.io/ib-notes/**. This is the live blank edition;
+your journal starts empty. Downloading this repository or its website ZIP does
+not install it on a phone.
 
-Once the app address is available:
+On iPhone or iPad:
 
-1. Open it in Safari on iPhone or Chrome on Android.
-2. Use the browser's Add to Home Screen / Install app option.
-3. Open IB Notes from its icon and record your own observations.
+1. Open the address in **Safari**.
+2. Open **Share**, then **Add to Home Screen**. If offered, enable **Open as Web App**.
+3. Press **Add**, then open IB Notes from its icon.
 
-These phone paths still need hands-on verification at the eventual public
-address. There is no native installer in this package.
+See [Apple's installation guide](https://support.apple.com/guide/iphone/iphea86e5236/ios).
+
+On Android:
+
+1. Open the address in **Chrome**.
+2. Open the browser menu and choose **Add to home screen → Install**, or
+   **Install app**, according to the options offered on your device.
+3. Follow the prompt, then open IB Notes from its icon.
+
+See [Chrome's web-app guide](https://support.google.com/chrome/answer/9658361?co=GENIE.Platform%3DAndroid&hl=en).
+
+These steps still need hands-on verification on actual devices at this public
+address. There is no APK, App Store installer, live feed or bundled market
+history. Do not import proprietary data unless your rights permit that use.
+
+The first online load downloads the app. Offline use was checked in Chromium
+after the service worker was ready and the page was reloaded; the first visit
+still needs connectivity. Export SQLite backups regularly. Installed-app
+keyboard behavior and updates on physical phones remain pending.
 
 ## Inspect the prepared build on a desktop
 
@@ -59,3 +76,6 @@ new device or app address. Different addresses and browser profiles have
 separate journals.
 
 Do not clear browser data as a troubleshooting step before exporting a backup.
+
+The downloaded ZIP's README records its original preparation status. The live
+address and current test status are maintained here and in [test status](REVIEW.md).
