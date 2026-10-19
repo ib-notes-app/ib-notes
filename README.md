@@ -11,6 +11,8 @@
 
 **[Import your own CSV](docs/CSV_IMPORT.md) · [Create and track levels](docs/LEVELS.md)**
 
+**[Frequently asked questions](docs/FAQ.md)**
+
 IB Notes is a free journal for studying the Initial Balance: the first hour of
 the regular trading session. Record prices, build a map of the session, track
 breaks and returns, and review what happened.
@@ -52,6 +54,7 @@ learning history and are unavailable in the empty edition.
 4. Follow the [CSV import guide](docs/CSV_IMPORT.md) to prepare and use your own permitted history.
 5. Learn to [create levels and read their tracking history](docs/LEVELS.md).
 6. Read [Forecast, Structure, Levels and Review](docs/READING_THE_DASHBOARD.md) to understand the four dashboard buttons.
+7. Find short answers in the [FAQ](docs/FAQ.md) for setup, backups, entry times, forecasts and common problems.
 
 <img src="docs/images/dashboard-empty.png" alt="IB Notes empty dashboard with phase navigation, Record price and four corner controls" width="320">
 

@@ -70,4 +70,4 @@ rights. Ordinary minute-bar or broker exports need preparation first.
 The [levels guide](LEVELS.md) explains adding prices or zones, finding them
 above/below CP, and reading visits, role changes and LBAF history.
 
-Questions or problems: **ibnotes.support@icloud.com**.
+Questions? Check the [FAQ](FAQ.md), or contact **ibnotes.support@icloud.com**.
