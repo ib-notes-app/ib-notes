@@ -33,8 +33,9 @@ for security purposes, including visitors without a GitHub account. See
 and [GitHub's privacy statement](https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement).
 
 That hosting traffic is separate from your locally stored prices and notes.
-Reading guides or posting an issue on `github.com` uses GitHub's services and
-their privacy rules; a public issue or attachment is visible to others.
+Reading guides or posting an issue or discussion on `github.com` uses GitHub's
+services and their privacy rules. Our issues, discussions and their attachments
+are public. Posting requires a GitHub account; using the app does not.
 
 ## When you choose to export, share or ask for help
 
@@ -43,6 +44,7 @@ their privacy rules; a public issue or attachment is visible to others.
 | **Export SQLite / Export JSON** | The app creates a local download containing your records. It does not send the file to the developer. |
 | **Share preview** | You review the selected recap text or image locally. Copy/download saves it or places it on the clipboard; a native share action hands it to a service you choose. |
 | **Report a problem** | You review a report, open an email draft or copy its text. You decide whether and where to send it. |
+| **Post in GitHub Issues or Discussions** | GitHub receives the text and attachments you submit, associated with your GitHub account. The post is public; journal data is not attached automatically. |
 | **Open an external link** | The destination, such as GitHub, Ko-fi or X, handles your visit under its own policies. |
 
 Exports can contain much more than a share card: SQLite includes all instrument
@@ -91,7 +93,11 @@ downloads, backups, shared images or emails you already sent.
 
 ## Questions
 
-Contact **ibnotes.support@icloud.com** about this app's data behavior or a
-message you sent to support. The developer cannot erase a journal on your
-device remotely. For information held by a hosting, email, donation or social
-provider, use that provider's own privacy information and contact process.
+General questions about this app's data behavior can go in
+[GitHub Discussions](https://github.com/ib-notes-app/ib-notes/discussions).
+For private matters, a message you sent to support, or without a GitHub account,
+contact **ibnotes.support@icloud.com**. Do not post private records in a public
+thread. The developer cannot erase a journal on your device remotely.
+
+For information held by a hosting, email, donation or social provider, use that
+provider's own privacy information and contact process.

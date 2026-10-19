@@ -175,7 +175,11 @@ format, year, numeric values, accepted outcome labels and duplicate dates.
 `locked_IBH - locked_IBL` must match the supplied width. The importer cannot
 verify the truth of every source measurement or grant permission to use it.
 
-Help: **ibnotes.support@icloud.com**. Share the error and header names first;
-do not send proprietary rows unless you are permitted to share them.
+Questions: [GitHub Discussions](https://github.com/ib-notes-app/ib-notes/discussions).
+Reproducible import bugs: [GitHub Issues](https://github.com/ib-notes-app/ib-notes/issues).
+Share the error and header names first; posts are public, so omit proprietary
+rows and private records. Posting requires a GitHub account. For private matters
+or without an account, use **ibnotes.support@icloud.com**; email does not grant
+permission to share proprietary files either.
 
 Structure journal only. Do not use this guide or the app for trading decisions.

@@ -69,8 +69,16 @@ and what happens when you share.
 
 ## Support and updates
 
-Problems or feedback: **ibnotes.support@icloud.com**. Settings also includes
-**Report a problem**, where you can review and copy a report.
+Questions, ideas and feedback: **[GitHub Discussions](https://github.com/ib-notes-app/ib-notes/discussions)**.
+Found a bug? Use **[GitHub Issues](https://github.com/ib-notes-app/ib-notes/issues)**.
+Search existing posts first so useful answers and fixes stay together.
+
+Settings includes **Report a problem**. Review it, choose **Copy report**, and
+paste it into your GitHub issue. Posting requires a GitHub account, and posts
+and attachments are public. Keep private records and backups out of them.
+
+For private matters or if you do not have a GitHub account, email
+**ibnotes.support@icloud.com**. The app itself needs no account.
 Check [Troubleshooting](docs/TROUBLESHOOTING.md) for common problems and safe recovery steps.
 
 The app is free to use. Optional support: [IB Notes on Ko-fi](https://ko-fi.com/ibnotes).

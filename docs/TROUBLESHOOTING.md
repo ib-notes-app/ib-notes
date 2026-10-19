@@ -144,13 +144,26 @@ and contact support before trying further restores in your only journal.
 
 ## Send a useful report
 
+Use [GitHub Discussions](https://github.com/ib-notes-app/ib-notes/discussions)
+for questions, ideas and general help. Use [GitHub Issues](https://github.com/ib-notes-app/ib-notes/issues)
+for bugs that need tracking. Search existing posts first; add your reproduction
+details to a matching issue instead of opening a duplicate.
+
+GitHub posts and attachments are public, and posting requires a GitHub account.
+Keep journal backups, private notes and proprietary data out of public reports.
+Use **ibnotes.support@icloud.com** for private matters or if you do not have an
+account. Using IB Notes itself does not require an account.
+
 Open **Settings → Report a problem**, or use it on a recovery screen. Include
 what happened, what you expected and the shortest steps that repeat it.
 **Include app details** adds build, browser, device/OS category, display mode,
 timezone and screen; you can turn it off and review the exact report.
 
-**Open email draft** prepares an email to **ibnotes.support@icloud.com**;
-**Copy report** lets you paste it yourself. Neither sends automatically. If
-copying is unavailable, select the preview text manually. Attach a screenshot
-only after checking it for private information. Do not send a whole database
-or proprietary rows as the first troubleshooting step.
+Choose **Copy report** and paste the reviewed text into the relevant GitHub
+issue or discussion. If copying is unavailable, select the preview text manually.
+Check any screenshot for private information before attaching it.
+
+The app also offers **Open email draft** for the email fallback. Copying a
+report or opening a draft does not send anything automatically; you still
+post the report on GitHub or send the email yourself. Do not send a whole
+database or proprietary rows as the first troubleshooting step.

@@ -74,7 +74,9 @@ confirmation screen after the file picker.**
 If restoration reports an error, keep its exact wording and both backup files.
 Do not assume the destination was unchanged or repeatedly try different files
 in your only working journal. Use the [recovery steps](TROUBLESHOOTING.md#restore-failed)
-or contact **ibnotes.support@icloud.com**.
+or ask in [GitHub Discussions](https://github.com/ib-notes-app/ib-notes/discussions)
+without attaching your backup. Posts are public and require an account; use
+**ibnotes.support@icloud.com** for private matters or without a GitHub account.
 
 ## Move to another phone, browser or app address
 

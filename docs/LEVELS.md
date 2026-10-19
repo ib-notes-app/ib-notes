@@ -172,4 +172,9 @@ Only enter or share reference information you have permission to use; the
 applies to proprietary source data too. Notes stay local unless you explicitly
 include them in a supported export/share workflow.
 
+Questions or ideas: [GitHub Discussions](https://github.com/ib-notes-app/ib-notes/discussions).
+Found a bug? Use [GitHub Issues](https://github.com/ib-notes-app/ib-notes/issues).
+See [how to report a problem](TROUBLESHOOTING.md#send-a-useful-report) before
+posting; reports are public, so keep private or proprietary information out.
+
 Structure journal only. No trade recommendations.

@@ -72,4 +72,7 @@ rights. Ordinary minute-bar or broker exports need preparation first.
 The [levels guide](LEVELS.md) explains adding prices or zones, finding them
 above/below CP, and reading visits, role changes and LBAF history.
 
-Questions? Check the [FAQ](FAQ.md), or contact **ibnotes.support@icloud.com**.
+Questions? Check the [FAQ](FAQ.md) or ask in [GitHub Discussions](https://github.com/ib-notes-app/ib-notes/discussions).
+Report bugs in [GitHub Issues](https://github.com/ib-notes-app/ib-notes/issues).
+GitHub posts are public and require an account; use **ibnotes.support@icloud.com**
+for private matters or if you do not have an account.

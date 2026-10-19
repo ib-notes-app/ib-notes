@@ -217,5 +217,10 @@ correct mistakes, and compare saved forecasts with recorded outcomes.
 You can use the journal, map and manual levels while historical odds are
 unavailable. Export SQLite regularly through **Settings → Backups & storage**.
 
+For questions or ideas, use [GitHub Discussions](https://github.com/ib-notes-app/ib-notes/discussions).
+For bugs, use [GitHub Issues](https://github.com/ib-notes-app/ib-notes/issues).
+See [reporting steps and the email fallback](TROUBLESHOOTING.md#send-a-useful-report);
+GitHub posts are public.
+
 Structure journal only. No trade recommendations. Do not use these estimates
 for trading decisions.

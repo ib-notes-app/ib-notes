@@ -226,9 +226,17 @@ rights before sending it.
 
 ### How do I report a bug?
 
-Use **Settings → Report a problem** to review and copy a report, or email
-**ibnotes.support@icloud.com**. Include your device, browser, app build, steps
-and any error message. Remove private information from screenshots first.
+Search [GitHub Issues](https://github.com/ib-notes-app/ib-notes/issues), then add
+details to a matching report or open a new issue. **Settings → Report a problem
+→ Copy report** prepares text you can paste. Include steps and the error;
+remove private information from public posts and screenshots.
+
+### Where can I ask questions, suggest something or get help?
+
+Use [GitHub Discussions](https://github.com/ib-notes-app/ib-notes/discussions)
+for public questions, ideas and feedback. Search first; someone may already
+have answered. Posting needs a GitHub account, but using the app does not.
+For private matters or without an account, email **ibnotes.support@icloud.com**.
 
 ### Where can I follow updates or support the project?
 
