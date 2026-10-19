@@ -2,6 +2,8 @@
 
 **Observe. Record. Learn.**
 
+[![Support IB Notes on Ko-fi](docs/images/support-ko-fi.svg)](https://ko-fi.com/ibnotes)
+
 IB Notes is a free journal for studying the Initial Balance: the first hour of
 the regular trading session. Record prices, build a map of the session, track
 breaks and returns, and review what happened.
