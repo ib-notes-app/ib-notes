@@ -21,7 +21,15 @@
     "safeUpdateChecks": 2,
     "publicDataAudit": "Passed: full Git history, candidate tree and nested archives; no restricted data or private records found.",
     "physicalPublicOriginInstall": "Pending",
-    "livePublicOrigin": "Pending deployment"
+    "livePublicOrigin": {
+      "checkedAt": "2026-10-21",
+      "matchedWebsiteFiles": 38,
+      "excludedPrivateFileProbes404": 8,
+      "chromiumJourneys": 3,
+      "firefox": "Not rerun",
+      "webkit": "Not rerun",
+      "physicalDevice": "Pending"
+    }
   },
   "dataStorage": "Local SQLite in the browser; no account or journal synchronization.",
   "screenshots": "Empty application and isolated development observations; no market-history records.",
@@ -29,5 +37,8 @@
   "changes": [
     "IB forecast width estimates display at the configured instrument tick size.",
     "Post-IB Structure shows the full recorded RTH range with the locked IB and break history as reference."
-  ]
+  ],
+  "deployedAt": "2026-10-21",
+  "deploymentCommit": "2ec71ba891d8580b5e2c45adcf021cce24df4a3d",
+  "deploymentRun": "https://github.com/ib-notes-app/ib-notes/actions/runs/39653455589"
 }

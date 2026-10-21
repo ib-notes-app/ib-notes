@@ -36,6 +36,14 @@ tests are excluded from the distributed package. No journal data is supplied.
 Firefox and WebKit automation were not rerun: their Playwright browser bundles
 are unavailable. Physical Safari was not tested for this correction.
 
+## Live public address — October 21
+
+The deployment succeeded. All 38 website files match the tested public package
+by SHA-256; eight excluded private-file URLs return 404. Three Chromium journeys
+pass against the live address: empty startup, manual recording and RTH/IB level
+placement, and subpath/offline/PNG/SQLite restore. These checks use disposable
+browser storage. Physical-device acceptance remains pending.
+
 ## Still pending
 
 - Physical iPhone/Safari and Android install, keyboard entry and offline use.
