@@ -1,14 +1,11 @@
 {
-  "buildId": "public-blank-20261019T171130584Z",
+  "buildId": "public-blank-20261021T182121617Z",
   "distribution": "public-blank",
   "status": "Early public version; physical-device checks pending.",
   "appUrl": "https://ib-notes-app.github.io/ib-notes/",
-  "deployedAt": "2026-10-19",
-  "deploymentCommit": "653f8a7649ba6c4a5864e03789f1fd615921fdb2",
-  "deploymentRun": "https://github.com/ib-notes-app/ib-notes/actions/runs/39309721593",
   "archive": "downloads/IB-Notes-blank-slate.zip",
-  "archiveBytes": 4118834,
-  "archiveSha256": "7a2084fdb6f446453e16c3d165eb878b05f17c7632a6ca3c257d95b3b8d29a17",
+  "archiveBytes": 4119971,
+  "archiveSha256": "396d95265d494e229c91614802b7573c0d7c017a68c2bc18f8bd84232d5d1cad",
   "bundledMarketHistory": false,
   "bundledJournalRecords": false,
   "automaticNewsLookup": false,
@@ -16,20 +13,21 @@
   "verification": {
     "typecheck": "Passed",
     "unitTests": {
-      "passed": 673,
+      "passed": 677,
       "skipped": 1
     },
-    "chromiumJourneys": 21,
-    "finalArtifactRechecks": 3,
+    "privateChromiumJourneys": 10,
+    "publicChromiumJourneys": 3,
+    "safeUpdateChecks": 2,
+    "publicDataAudit": "Passed: full Git history, candidate tree and nested archives; no restricted data or private records found.",
     "physicalPublicOriginInstall": "Pending",
-    "livePublicOrigin": {
-      "checkedAt": "2026-10-19",
-      "matchedWebsiteFiles": 38,
-      "chromiumJourneys": 3,
-      "firefox": "Not rerun: Playwright browser bundle unavailable.",
-      "webkit": "Not rerun: Playwright browser bundle unavailable."
-    }
+    "livePublicOrigin": "Pending deployment"
   },
   "dataStorage": "Local SQLite in the browser; no account or journal synchronization.",
-  "screenshots": "Empty application and isolated development observations; no market-history records."
+  "screenshots": "Empty application and isolated development observations; no market-history records.",
+  "preparedAt": "2026-10-21",
+  "changes": [
+    "IB forecast width estimates display at the configured instrument tick size.",
+    "Post-IB Structure shows the full recorded RTH range with the locked IB and break history as reference."
+  ]
 }

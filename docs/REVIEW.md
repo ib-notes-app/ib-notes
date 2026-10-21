@@ -15,32 +15,26 @@ Physical-device checks remain pending; this is not a claim of release readiness.
 The exact prepared build is identified in [release-info.json](../release-info.json).
 The download checksum is in [downloads/SHA256SUMS.txt](../downloads/SHA256SUMS.txt).
 
-## Checks completed for this candidate
+## October 21 correction
 
-TypeScript/build checks, 673 unit tests with one existing skip, 21 Chromium
-journeys and three final-package rechecks passed during preparation. Those
-checks covered empty startup, date/phase navigation, entry validation, saving,
-level placement, recorded breaks, return navigation, reload persistence,
-offline use, PNG export and SQLite export/restore.
+IB width forecasts now display on the selected instrument's tick size (quarter
+points for ES). During post-IB RTH, Structure shows the full recorded regular
+session range, including the IB hour. The locked IB and recorded breaks remain
+separate references. Stored prices and forecast calculations are unchanged.
 
-The stripped source also rebuilt without private data files. Automated mobile
-viewports do not establish physical keyboard or Safari behavior.
+## Verification
 
-## Checks on the live public address
+The October 21 source passed TypeScript and 677 unit tests, with one existing
+skip. Ten private-build Chromium journeys passed, covering formation and RTH
+forecasts, all-phase Structure, recorded breaks, reload persistence, period
+editing, statistics and sharing. Three public-package journeys and two safe-update/offline checks also pass.
+The public package passed the history, file and nested-archive data audit.
+Live deployment results are recorded in [release-info.json](../release-info.json) as completed.
 
-All 38 website files match the reviewed package by SHA-256, including the app,
-workers, manifest and icons. Three Chromium journeys passed on October 19:
-
-- Empty startup, no seeded data and truthful unavailable forecasts.
-- Manual period/CP recording, correct level positions after CP crosses the IB,
-  recorded break display and reload persistence.
-- Correct subpath/manifest/icon loading, saving, PNG export, offline reload,
-  and SQLite export/restore.
-
-The checks used disposable browser storage and fictional test observations.
-They did not add records to the distributed package or an existing journal.
-Firefox and WebKit automation were not rerun on this address because their
-Playwright browser bundles were unavailable. Physical Safari was not tested.
+Tests use disposable browser storage. Fictional observations used by the browser
+tests are excluded from the distributed package. No journal data is supplied.
+Firefox and WebKit automation were not rerun: their Playwright browser bundles
+are unavailable. Physical Safari was not tested for this correction.
 
 ## Still pending
 

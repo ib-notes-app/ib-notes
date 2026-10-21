@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 import { firstRecordedIbBreak, compareForecast, compareForecastUpdates, deriveSessionIbRead, deriveSessionOvernightRead, deriveCurrentIbCode, deriveLockPositionReference, deriveBestFitOutlook, buildForecastTraining,
   deriveLiveMarketMemory, describeMarketMemory, fbdCompatibility, type ContextBatch, type FbdBatch, type HistoricalLow,
-  latestPreOpenSnapshot, formatPriceNumber, type ForecastEstimate,
+  latestPreOpenSnapshot, formatPriceNumber, deriveRecordedRthRange, type ForecastEstimate,
   deriveSessionAuctionRead, deriveRecentAuctionRead, completedAuctionRangeFromPriceDay, priceHistoryCompatibility,memoryContractMatches,
   type CompletedAuctionRange, type AuctionRead, type RecentAuctionRead, type PriceHistoryBatch,
   type ForecastPriceReference,
@@ -21,10 +21,12 @@ import { OvernightStudyPanel } from './OvernightStudy';
 import {SessionPhasePanels,dashboardPhase} from './SessionPhasePanels';
 import {PostIbConditions} from './PostIbConditions';
 import {PhaseForecast} from './PhaseForecast';
+import {formatTickRoundedPrice} from './mapFormatting';
 
 const factorNames = { news: "News", fbd: "Recent LBAF", levels: "Nearby low", quarter: "Time of year", weekday: "Weekday" };
 const pct = (value: number) => value > 0 && value < 0.01 ? "<1%" : `${Math.round(value * 100)}%`;
 const points = (value: number) => `${formatPriceNumber(Math.round(value * 10) / 10, 1)} pt`;
+const tickPoints = (value:number,tickSize:number) => `${formatTickRoundedPrice(value,tickSize)} pt`;
 function condition(factor: string, value: string | null): string {
   if (!value) return 'Not recorded';
   if (value === 'NONE') return 'None noted';
@@ -287,6 +289,36 @@ function CurrentIbRead({ session, current }: { session: JournalSession;
   </div>;
 }
 
+/** RTH includes the IB hour. Its observed range can expand without changing the locked IB. */
+function CurrentRthRead({session,current}:{session:JournalSession;current:ReturnType<typeof deriveSessionIbRead>}) {
+  const range=deriveRecordedRthRange(session),latest=current?.read.latest;
+  const width=range.high!==null&&range.low!==null?range.high-range.low:null;
+  const position=latest&&range.low!==null&&width!==null&&width>0?100*(latest.price-range.low)/width:null;
+  const location=position===null?'Last recorded price':position===0?'At the RTH low':position===100?'At the RTH high':
+    position===50?'At the RTH midpoint':position<50?'Lower half of RTH':'Upper half of RTH';
+  const ibPosition=latest&&current&&current.high!==null&&current.low!==null?
+    latest.price>current.high?`${formatPriceNumber(latest.price-current.high)} pt above IBH`:
+    latest.price<current.low?`${formatPriceNumber(current.low-latest.price)} pt below IBL`:'Inside the IB':null;
+  const time=(at:string)=>new Intl.DateTimeFormat('en-US',{timeZone:session.displayTimeZone,hour:'numeric',minute:'2-digit'}).format(new Date(at));
+  return <div className="forecast-current-read" role="group" aria-label="Current RTH read" data-phase="RTH">
+    <p className="forecast-caption">RTH · Regular session including IB</p>
+    {latest?<div className="forecast-price-now"><strong>{formatPriceNumber(latest.price)}</strong>
+      <span>{location}{position!==null&&` · ${Math.round(position)}% of RTH`}<small>Last recorded CP · {time(latest.at)}</small></span></div>
+      :<p>Record a price to see its RTH position.</p>}
+    {range.high!==null&&range.low!==null&&<div className="forecast-ib-location" aria-label="Recorded RTH range">
+      {width!==null&&width>0&&<div className="forecast-ib-track" aria-hidden="true">{position!==null&&<span
+        className="forecast-price-marker" style={{left:`${Math.max(0,Math.min(100,position))}%`}}/>}</div>}
+      <div className="forecast-ib-edges"><span>RTHL {formatPriceNumber(range.low)}</span><span>RTHH {formatPriceNumber(range.high)}</span></div>
+    </div>}
+    {width!==null&&<p className="forecast-current-width">Recorded RTH range: <strong>{tickPoints(width,session.market.tickSize)}</strong></p>}
+    {current&&current.high!==null&&current.low!==null?<div aria-label="IB reference">
+      <p className="forecast-caption">{current.provisional?'Recorded':'Locked'} IB reference · IBL {formatPriceNumber(current.low)} · IBH {formatPriceNumber(current.high)}</p>
+      {ibPosition&&<p className="forecast-caption">{ibPosition}</p>}
+    </div>:<p className="forecast-caption">IB reference pending · Record the IB range to classify post-IB prices.</p>}
+    <RecordedIbBreaks session={session} current={current}/>
+  </div>;
+}
+
 function IbReadDetails({session,current,reference,auction,broader}:{session:JournalSession;
   current:ReturnType<typeof deriveSessionIbRead>;reference:ReturnType<typeof deriveLockPositionReference>;
   auction:AuctionRead|null;broader:RecentAuctionRead|null}){
@@ -313,7 +345,7 @@ function IbReadDetails({session,current,reference,auction,broader}:{session:Jour
     </div>}
       <p>This read follows your recorded ranges and prices. Half counts describe entries after IB lock, not minutes spent there.
         Gaps cannot establish the true first break. Range snapshots do not create price observations.
-        Position runs from 0% at IBL to 100% at IBH.</p>
+        IB position runs from 0% at IBL to 100% at IBH. After IB lock, the RTH position uses the recorded full regular-session low and high, including the IB hour.</p>
       <p>Balance means ranging or consolidation. Imbalance means a directional search for higher or lower prices.
         These are best-fit descriptions of your recorded path, not volume-profile value areas or forecast confidence.
         A brief edge test can return to balance, and consolidation can form above or below an older range.
@@ -361,13 +393,14 @@ function CurrentConditions({session,current,overnight,auction,broader,showOverni
   overnight:ReturnType<typeof deriveSessionOvernightRead>;
   auction:AuctionRead|null;broader:RecentAuctionRead|null;showOvernightStudy?:boolean;heading?:'h3'|'h4'}){
   if(!current&&!overnight&&!auction&&!broader)return null;
-  const phase=overnight?'ON forming':current?.closed?'Day closed':current?.phase==='FORMING'?'Forming':current?.phase==='LOCKED'?(current.provisional?'Recorded IB':'IB locked'):current?'IB pending':'Before the open';
+  const postIb=!!current&&current.phase!=='FORMING';
+  const phase=overnight?'ON forming':current?.closed?'Day closed':postIb?'RTH':current?.phase==='FORMING'?'Forming':'Before the open';
   const code=deriveCurrentIbCode(session,current);
   const Heading=heading??(overnight&&!session.forecast?'h3':'h4');
   return <div className="forecast-conditions" role="group" aria-label="Current conditions">
     <div className="forecast-conditions-heading"><Heading>{current?.closed?'Closing conditions':'Current conditions'}</Heading>
       {code?<IbCodeBadge code={code} closed={!!current?.closed}/>:<span>{phase}</span>}</div>
-    {overnight?<CurrentOvernightRead session={session} overnight={overnight}/>:<CurrentIbRead session={session} current={current}/>}
+    {overnight?<CurrentOvernightRead session={session} overnight={overnight}/>:postIb?<CurrentRthRead session={session} current={current}/>:<CurrentIbRead session={session} current={current}/>}
     {overnight&&showOvernightStudy&&<OvernightStudyPanel session={session}/>}
     <AuctionContextRead session={session} auction={auction} broader={broader}/>
   </div>;
@@ -510,8 +543,8 @@ export function ForecastCard({ session, prior, historical = [], batches = [], le
         <span>Chance {recordedFirst.side==='IBH'?'low':'high'} also breaks<small>Before close · {Math.ceil(remaining?.remainingMinutes??0)} min left</small></span>
         <strong>{remaining?.probability!=null?pct(remaining.probability):'Unavailable'}</strong></p>}
       {!closed&&current?.phase!=='LOCKED'&&<p className="forecast-width" aria-label="Estimated IB width">
-        <span>Estimated IB width</span><strong>{points(estimate.width.median)}</strong>
-        <small>Band {points(estimate.width.low)}–{points(estimate.width.high)}{formingWidth?.estimate
+        <span>Estimated IB width</span><strong>{tickPoints(estimate.width.median,session.market.tickSize)}</strong>
+        <small>Band {tickPoints(estimate.width.low,session.market.tickSize)}–{tickPoints(estimate.width.high,session.market.tickSize)}{formingWidth?.estimate
           ? ` · ${Math.ceil(formingWidth.remainingMinutes)} min left` : ' · Broad estimate'}</small>
       </p>}
       {(outlook||recap)&&<details className="forecast-support">
@@ -556,7 +589,7 @@ export function ForecastCard({ session, prior, historical = [], batches = [], le
       <h4>Original forecast · {clock}</h4>
       <p className="forecast-caption">{originalLabel}. Preserved separately from the day-specific estimates.</p>
       {saved.estimate ? <><Probabilities estimate={saved.estimate} />
-        <p className="forecast-caption">Estimated width {points(saved.estimate.width.median)}. Saved for the end-of-day comparison.</p></>
+        <p className="forecast-caption">Estimated width {tickPoints(saved.estimate.width.median,session.market.tickSize)}. Saved for the end-of-day comparison.</p></>
         : <p className="forecast-caption">Your original inputs were saved before enough history was available. No original probabilities were recorded.</p>}
       <p className="forecast-caption">{saved.referenceDays} historical + {saved.localDays} completed local days</p>
     </div>}
@@ -564,8 +597,8 @@ export function ForecastCard({ session, prior, historical = [], batches = [], le
     <DeferredDetails className="forecast-subdetails" summary="History & method">
     {outlook&&<p className="forecast-fit-support">Historical matches: {support!.support} · {support!.matchingDays} matched sessions
       <span>{remaining?.probability!=null?'Uses timed price paths through close.':outlook.pathDays?'Uses formation and available price history.':'Uses broader IB history.'}</span></p>}
-    {estimate&&<p className="forecast-width">{outlook&&current?.phase==='LOCKED'?'Recorded IB width':'Estimated IB width'}: <strong>{points(estimate.width.median)}</strong>
-      {!(outlook&&current?.phase==='LOCKED')&&<><br/>Estimated band {points(estimate.width.low)}–{points(estimate.width.high)}</>}</p>}
+    {estimate&&<p className="forecast-width">{outlook&&current?.phase==='LOCKED'?'Recorded IB width':'Estimated IB width'}: <strong>{tickPoints(estimate.width.median,session.market.tickSize)}</strong>
+      {!(outlook&&current?.phase==='LOCKED')&&<><br/>Estimated band {tickPoints(estimate.width.low,session.market.tickSize)}–{tickPoints(estimate.width.high,session.market.tickSize)}</>}</p>}
     {!estimate&&<p>At least 30 eligible earlier days are needed for an estimate. Re-select the original reference CSV to add missing ON/15R fields to an older import.</p>}
     <p className="forecast-caption">{saved.referenceDays} historical + {saved.localDays} completed local days</p>
     {saved.priorDay && <p className="forecast-caption">{priorLabel(saved.priorDay)}</p>}

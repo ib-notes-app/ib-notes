@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 import type {ReactNode} from 'react';
-import {firstRecordedIbBreak,formatPriceNumber,type BestFitOutlook,type ForecastUpdate,type JournalSession,
+import {firstRecordedIbBreak,type BestFitOutlook,type ForecastUpdate,type JournalSession,
   type deriveSessionIbRead} from '@ib-field-notes/domain';
 import {DeferredDetails} from './DeferredDetails';
 import {IbReturnRead} from './IbReturnRead';
@@ -8,6 +8,7 @@ import {OvernightStudyPanel} from './OvernightStudy';
 import {PostIbRecap} from './PostIbRecap';
 import {workspaceClock} from './workspaceModel';
 import {PUBLIC_BLANK} from './supportReportModel';
+import {formatTickRoundedPrice} from './mapFormatting';
 
 const percent=(p:number)=>p>0&&p<.01?'<1%':`${Math.round(p*100)}%`;
 const names:Record<string,string>={IBH:'High only · IBH',IBL:'Low only · IBL',IBB:'Both sides · IBB',IBN:'Neither · IBN'};
@@ -49,8 +50,8 @@ export function PhaseForecast({session,now,current,outlook,ready,historyAvailabl
           <ForecastRow label="Most likely IB outcome" value={percent(highest!)} detail={leaders.join(' / ')}/>
           <ForecastRow label="First edge to break" value={percent(firstHighest!)} detail={firstLeaders.join(' / ')}/>
         </>:<div className="forecast-pending"><strong>{PUBLIC_BLANK&&!historyAvailable?'Forecast unavailable':'Forecast getting ready'}</strong><p>{pending}</p></div>}
-        {!postIb&&estimate&&<ForecastRow label="Estimated IB width" value={`${formatPriceNumber(estimate.width.median,1)} pt`}
-          detail={`Band ${formatPriceNumber(estimate.width.low,1)}–${formatPriceNumber(estimate.width.high,1)} pt`}/>}
+        {!postIb&&estimate&&<ForecastRow label="Estimated IB width" value={`${formatTickRoundedPrice(estimate.width.median,session.market.tickSize)} pt`}
+          detail={`Band ${formatTickRoundedPrice(estimate.width.low,session.market.tickSize)}–${formatTickRoundedPrice(estimate.width.high,session.market.tickSize)} pt`}/>}
       </div>
       <p className="phase-forecast-stamp">{outlook?`Estimate ${time(outlook.asOf)} · `:''}
         {postIb?`Through ${time(clock.windows.RTH.end)}`:`IB forming · locks ${time(clock.windows.B.end)}`}</p>
