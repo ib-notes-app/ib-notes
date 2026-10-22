@@ -19,7 +19,15 @@
     "publicChromiumJourneys": 6,
     "safeUpdateChecks": 2,
     "publicDataAudit": "Passed: public Git history, candidate tree, nested archives and static literal review; no restricted data or private records found.",
-    "livePublicOrigin": "Pending",
+    "livePublicOrigin": {
+      "checkedAt": "2026-10-22T01:41:26.719263+00:00",
+      "matchedWebsiteFiles": 38,
+      "excludedPrivateFileProbes404": 8,
+      "chromiumJourneys": 6,
+      "firefox": "Not rerun",
+      "webkit": "Not rerun",
+      "physicalDevice": "Pending"
+    },
     "physicalPublicOriginInstall": "Pending"
   },
   "dataStorage": "Local SQLite in the browser; no account or journal synchronization.",
@@ -31,5 +39,8 @@
     "Price entry provides compact View entries and Entry details buttons with a clear return preserving the draft.",
     "Home, Levels and Review remain in bottom navigation; deeper screens retain named Back and main tab screens omit redundant header shortcuts.",
     "Day timeline and Review day align in one matching row beneath the Review heading."
-  ]
+  ],
+  "deployedAt": "2026-10-21",
+  "deploymentCommit": "ff619f4e3ec8a73189cc20509eb8734a2acba210",
+  "deploymentRun": "https://github.com/ib-notes-app/ib-notes/actions/runs/39706916144"
 }

@@ -54,10 +54,12 @@ are unavailable. Physical Safari was not tested for this correction.
 
 ## Live public address
 
-The current deployment and its verification are listed in
-[release-info.json](../release-info.json). Local package tests use the same
-`/ib-notes/` subpath as GitHub Pages. Live checks compare all prepared website
-files and exercise the published app in disposable browser storage.
+The updated app is deployed. All 38 live website files match the tested package
+by SHA-256, eight excluded private-data URLs return 404, and six Chromium
+journeys pass against the public address. These include day review, navigation,
+manual recording, level placement, offline use, PNG export and SQLite restore.
+Tests use disposable browser storage. See
+[release-info.json](../release-info.json) for the exact build and deployment.
 Physical-device acceptance remains pending.
 
 ## Still pending
