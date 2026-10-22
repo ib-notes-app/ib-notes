@@ -62,9 +62,10 @@ are unavailable. Physical Safari was not tested for this correction.
 ## Live public address
 
 The updated app is deployed. All 38 live website files match the tested package
-by SHA-256, eight excluded private-data URLs return 404, and six Chromium
+by SHA-256, eight excluded private-data URLs return 404, and seven Chromium
 journeys pass against the public address. These include day review, navigation,
-manual recording, level placement, offline use, PNG export and SQLite restore.
+manual recording, level placement, a confirmed Daily Low with an unknown closing
+price after reload, offline use, PNG export and SQLite restore.
 Tests use disposable browser storage. See
 [release-info.json](../release-info.json) for the exact build and deployment.
 Physical-device acceptance remains pending.

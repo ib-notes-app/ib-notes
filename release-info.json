@@ -19,7 +19,13 @@
     "publicChromiumJourneys": 7,
     "safeUpdateChecks": 2,
     "publicDataAudit": "Passed: public Git history, candidate tree, nested archives and static-literal review; no restricted data or private journals.",
-    "livePublicOrigin": "Pending",
+    "livePublicOrigin": {
+      "checkedAt": "2026-10-22T05:59:06.244834+00:00",
+      "filesMatched": 38,
+      "excludedPrivateDataUrlsReturned404": 8,
+      "chromiumJourneysPassed": 7,
+      "disposableBrowserStorage": true
+    },
     "physicalPublicOriginInstall": "Pending",
     "privateChromiumJourneys": 19,
     "periodEndingAudit": "Passed: configured phase boundaries, saved range inheritance, next-session ON/IB/Daily Low references; close stays unknown when absent."
@@ -32,5 +38,8 @@
     "Previously confirmed daily lows appear automatically from their saved ranges, retaining existing notes and removal choices.",
     "Level Stats retains reviewed final ranges without inventing a closing-price observation.",
     "Period boundaries, range inheritance and next-session ON/IB/daily-low carry-forward verified."
-  ]
+  ],
+  "deployedAt": "2026-10-21",
+  "deploymentCommit": "c5f7f5f64369bd28261529ef88b08dd48262ccea",
+  "deploymentRun": "https://github.com/ib-notes-app/ib-notes/actions/runs/39729489208"
 }
