@@ -6,6 +6,22 @@ A level is a price or zone you want to remember and observe. You can add a
 prior high, a low, a gap or another reference without importing a data pack.
 Your saved price observations then build its activity and history.
 
+## What carries forward automatically?
+
+| Period | What the app retains or carries |
+| --- | --- |
+| **ON** | ONH / ONL references after the configured overnight end. |
+| **15R** | Its own saved range, inherited by A. It is not a separate cross-day library reference. |
+| **A** | Its own saved range, inherited by B/IB. It is not a separate cross-day library reference. |
+| **B / IB** | IBH / IBL references after IB lock, with recorded B evidence. |
+| **RTH** | A Daily Low after Confirm day. The daily high remains in the reviewed daily range. |
+
+The Daily Low does not need a closing price or a rebound. An ordinary daily
+reference is separate from a 20-point-move or reclaim qualification. Previously
+confirmed daily lows appear without reconfirming, while existing notes and
+removed-level choices are preserved. In Levels, select **Type → Daily levels**
+to find them; map visibility and position/tier filters remain separate choices.
+
 ## Add a level
 
 1. Select the correct instrument and session date.

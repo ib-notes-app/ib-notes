@@ -1,5 +1,5 @@
 IB Notes — blank-slate edition
-Build: public-blank-20261022T013159902Z
+Build: public-blank-20261022T052511041Z
 
 Free manual Initial Balance journal. No historical market data, Study Packs, example journal records or private backups are included. Users record their own observations using data they have permission to use. Historical forecast probabilities are unavailable without suitable compatible learning history. No live price feed or automatic news service is included. Journals stay in each browser on that device.
 

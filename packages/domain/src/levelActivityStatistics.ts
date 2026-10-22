@@ -87,12 +87,15 @@ function activityDay(day:JournalSession,window:{start:string;ibLockAt:string;clo
     .filter(p=>{const at=ms(p.observedAt);if(seen.has(at))return false;seen.add(at);return true;})
     .sort((a,b)=>ms(a.observedAt)-ms(b.observedAt));
   const closeVisible=day.close.recordedAt&&day.close.observedAt&&ms(day.close.recordedAt)<=cutoff&&ms(day.close.observedAt)<=ms(end);
+  const reviewVisible=day.close.finishedAt&&day.close.recordedAt&&ms(day.close.finishedAt)<=cutoff&&
+    ms(day.close.recordedAt)<=cutoff&&ms(window.close)<=ms(end);
   // The same observed post-lock prices feed the live IB read; project them for
   // descriptive IB totals without creating stored RTH entries.
   const rthObservations=cpObservations.filter(p=>ms(p.observedAt)>ms(window.ibLockAt)).map(p=>({id:`stats:${p.id}`,
     price:p.price,observedAt:p.observedAt,recordedAt:p.recordedAt??p.observedAt,cpObservationId:p.id,note:null}));
   const result={...day,cpObservations,rthObservations,
-    close:closeVisible?day.close:{...day.close,price:null,rthHigh:null,rthLow:null,observedAt:null,recordedAt:null,finishedAt:null,pathComplete:false}};
+    close:closeVisible?day.close:reviewVisible?{...day.close,price:null,observedAt:null,pathComplete:false}
+      :{...day.close,price:null,rthHigh:null,rthLow:null,observedAt:null,recordedAt:null,finishedAt:null,pathComplete:false}};
   if(cached.reads.size>=8)cached.reads.delete(cached.reads.keys().next().value!);
   cached.reads.set(key,result);return result;
 }
@@ -223,7 +226,7 @@ export function* levelActivityStatisticsJob(input:Input):Generator<void,LevelAct
   const candidates=new Map(input.levels.filter(level=>level.instrument===context.instrument).map(level=>[level.id,level]));
   // Include all contracts' native edges, while preserving saved notes/lifecycle overlays.
   for(const day of sessions) {
-    for(const level of sessionLevelCatalog(input.levels,[],day,asOf).filter(level=>level.sessionEdge))candidates.set(level.id,level);
+    for(const level of sessionLevelCatalog(input.levels,[],day,asOf).filter(level=>level.sessionEdge||level.id.startsWith('level:daily-low:')))candidates.set(level.id,level);
     yield;
   }
   const sources=new Map<string,SignificantLevel[]>(),levels:SignificantLevel[]=[];

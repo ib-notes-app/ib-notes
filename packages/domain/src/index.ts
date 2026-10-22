@@ -3094,16 +3094,17 @@ export function upsertFinishedSessionDailyLow(
   session: JournalSession,
   existingLevel: SignificantLevel | null,
   recordedAt: string,
-  tickSize = 0.25,
+  _tickSize = 0.25,
 ): SignificantLevel | null {
   if (session.close.finishedAt === null) {
     throw new Error("Finish the day before creating its Daily Low.");
   }
-  const { rthLow, price: closePrice } = session.close;
-  if (rthLow === null || closePrice === null) {
-    throw new Error("Confirmed RTH low and close are required for the Daily Low.");
+  const { rthLow } = session.close;
+  if (rthLow === null) {
+    throw new Error("A confirmed RTH low is required for the Daily Low.");
   }
-  if (closePrice < rthLow + tickSize) return null;
+  // A confirmed daily reference is not a rebound/reclaim qualification. The
+  // optional close may be unknown or equal to the low; neither erases the low.
 
   const id = dailyLowSignificantLevelId(session.id);
   if (existingLevel?.id !== undefined && existingLevel.id !== id) {

@@ -43,7 +43,7 @@ export function FinalDayReview({session,onConfirm,onViewEntries,renderPeriod}:{s
   }}>
    <div className="final-day-heading"><div><h3>Final prices</h3><p>{session.instrument} · {new Intl.DateTimeFormat('en-US',{timeZone:'UTC',month:'short',day:'numeric'}).format(new Date(`${session.rthDate}T12:00:00Z`))}</p></div>
     <button className="primary-action" type="submit" disabled={busy||!ended||clock.unavailable}>{busy?'Saving…':'Confirm day'}</button></div>
-   <p className="stage-helper">Your entries are already saved. Check the final ranges here once.</p>
+   <p className="stage-helper">Your entries are already saved. Confirm these final ranges once to track the Daily Low in Levels.</p>
    {!ended&&<p role="status">Available after the session closes at {time(clock.windows.RTH.end)}.</p>}
    {error&&<p role="alert">{error}</p>}
    <fieldset disabled={busy}><legend className="visually-hidden">Final period prices</legend>

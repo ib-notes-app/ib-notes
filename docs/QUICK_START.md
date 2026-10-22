@@ -61,6 +61,9 @@ Review day** returns to your draft. **View entries** opens the Day timeline.
 The RTH close is optional: enter it only when known. The last CP is never assumed
 to be the closing price. Missing observations and path coverage remain unknown.
 Finalized entries retain explicit editing safeguards.
+Confirm day tracks the Daily Low independently of that optional close. Already
+confirmed daily lows appear in Levels without reconfirming; no rebound or
+qualifying move is assumed.
 
 Use the bottom **Home / Levels / Review** tabs for the main destinations.
 Deeper pages have a named Back button to the screen that opened them.

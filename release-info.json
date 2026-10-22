@@ -1,46 +1,36 @@
 {
-  "buildId": "public-blank-20261022T013159902Z",
+  "buildId": "public-blank-20261022T052511041Z",
   "distribution": "public-blank",
   "status": "Early public version; physical-device checks pending.",
   "appUrl": "https://ib-notes-app.github.io/ib-notes/",
   "archive": "downloads/IB-Notes-blank-slate.zip",
-  "archiveBytes": 4129430,
-  "archiveSha256": "a79e6168fcbd118c0e9c9a4c2a680009404f0ce486eeb09e47f381bdf450d533",
+  "archiveBytes": 4130566,
+  "archiveSha256": "25fc2380fe862a0b20dcba747359749c75306c3bc8866f9a8c5a24b1d5cd0dd7",
   "bundledMarketHistory": false,
   "bundledJournalRecords": false,
   "automaticNewsLookup": false,
   "historicalForecasts": "Unavailable without compatible learning history.",
   "verification": {
-    "typecheck": "Passed for application and data-free source copy",
+    "typecheck": "Passed",
     "unitTests": {
-      "passed": 690,
+      "passed": 693,
       "skipped": 1
     },
-    "publicChromiumJourneys": 6,
+    "publicChromiumJourneys": 7,
     "safeUpdateChecks": 2,
-    "publicDataAudit": "Passed: public Git history, candidate tree, nested archives and static literal review; no restricted data or private records found.",
-    "livePublicOrigin": {
-      "checkedAt": "2026-10-22T01:41:26.719263+00:00",
-      "matchedWebsiteFiles": 38,
-      "excludedPrivateFileProbes404": 8,
-      "chromiumJourneys": 6,
-      "firefox": "Not rerun",
-      "webkit": "Not rerun",
-      "physicalDevice": "Pending"
-    },
-    "physicalPublicOriginInstall": "Pending"
+    "publicDataAudit": "Passed: public Git history, candidate tree, nested archives and static-literal review; no restricted data or private journals.",
+    "livePublicOrigin": "Pending",
+    "physicalPublicOriginInstall": "Pending",
+    "privateChromiumJourneys": 19,
+    "periodEndingAudit": "Passed: configured phase boundaries, saved range inheritance, next-session ON/IB/Daily Low references; close stays unknown when absent."
   },
   "dataStorage": "Local SQLite in the browser; no account or journal synchronization.",
   "screenshots": "Empty application and isolated development observations; no market-history records.",
   "preparedAt": "2026-10-21",
   "changes": [
-    "Recorded overnight and IB levels carry forward after their configured period ends without per-period completion confirmations.",
-    "Review day collects period and daily highs/lows, optional explicit close and expanded Day Notes behind one Confirm day action.",
-    "Price entry provides compact View entries and Entry details buttons with a clear return preserving the draft.",
-    "Home, Levels and Review remain in bottom navigation; deeper screens retain named Back and main tab screens omit redundant header shortcuts.",
-    "Day timeline and Review day align in one matching row beneath the Review heading."
-  ],
-  "deployedAt": "2026-10-21",
-  "deploymentCommit": "ff619f4e3ec8a73189cc20509eb8734a2acba210",
-  "deploymentRun": "https://github.com/ib-notes-app/ib-notes/actions/runs/39706916144"
+    "Confirm day saves the Daily Low even when the optional closing price is unknown or equal to the low.",
+    "Previously confirmed daily lows appear automatically from their saved ranges, retaining existing notes and removal choices.",
+    "Level Stats retains reviewed final ranges without inventing a closing-price observation.",
+    "Period boundaries, range inheritance and next-session ON/IB/daily-low carry-forward verified."
+  ]
 }

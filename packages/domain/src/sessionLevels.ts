@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 import { Temporal } from '@js-temporal/polyfill';
 import { carryRangeEdgesForward, deriveSessionFinalIb, deriveSessionRecordedIb, memoryContractMatches,
+  dailyLowSignificantLevelId, upsertFinishedSessionDailyLow,
   type JournalSession, type SignificantLevel } from './index';
 
 export type SessionEdgeCode = 'ONH' | 'ONL' | 'IBH' | 'IBL';
@@ -63,16 +64,26 @@ function sourceLevels(day: JournalSession, asOf:string): SignificantLevel[] {
 export function sessionLevelCatalog(stored: SignificantLevel[], days: JournalSession[], current: JournalSession, asOf=current.updatedAt): SignificantLevel[] {
   const overlays = new Map(stored.filter(level => level.sessionEdge).map(level => [level.id,level]));
   const sources = new Map(days.map(day => [day.id,day])); sources.set(current.id,current);
-  const edges = [...sources.values()].filter(day => day.journalId === current.journalId && day.instrument === current.instrument &&
+  const eligibleDays = [...sources.values()].filter(day => day.journalId === current.journalId && day.instrument === current.instrument &&
     day.rthDate <= current.rthDate && (day.id === current.id || (!day.contract && !current.contract ||
       memoryContractMatches(day.contract,current.contract,Number(current.rthDate.slice(0,4))))))
-    .filter(day=>day.calendarStatus!=='CLOSED')
-    .flatMap(day => sourceLevels(day,asOf).filter(level => day.id === current.id || level.sessionEdge!.status === 'locked'))
+    .filter(day=>day.calendarStatus!=='CLOSED');
+  const edges = eligibleDays.flatMap(day => sourceLevels(day,asOf).filter(level => day.id === current.id || level.sessionEdge!.status === 'locked'))
     .map(source => {
       const saved = overlays.get(source.id);
       return { ...source, ...saved, price:source.price, levelType:source.levelType, shape:source.shape,
         label:source.label, sessionEdge:source.sessionEdge, createdAt:source.createdAt,
         showOnMap:saved?.showOnMap ?? source.createdInSessionId === current.id };
     });
-  return [...stored.filter(level => !level.sessionEdge), ...edges];
+  // Older confirmations could save the final low while skipping its library
+  // record when the optional close was blank. Project that saved fact read-only;
+  // existing records, notes and removal choices always keep their identity.
+  const storedIds=new Set(stored.map(level=>level.id));
+  const daily=eligibleDays.flatMap(day=>{
+    if(!day.close.finishedAt||day.close.rthLow===null||
+      Date.parse(day.close.finishedAt)>Date.parse(asOf)||storedIds.has(dailyLowSignificantLevelId(day.id)))return [];
+    const level=upsertFinishedSessionDailyLow(day,null,day.close.recordedAt??day.close.finishedAt,day.market.tickSize);
+    return level?[level]:[];
+  });
+  return [...stored.filter(level => !level.sessionEdge), ...daily, ...edges];
 }

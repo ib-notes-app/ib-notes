@@ -154,6 +154,20 @@ No. Price saves are immediate. Recorded ON/IB levels carry forward after their
 configured period ends without a separate completion step. Review day is one
 place to check and confirm the final measurements; sparse coverage stays unknown.
 
+### Is a closing price required to track the Daily Low?
+
+No. **Confirm day** tracks the confirmed daily low even if the optional close
+is blank or equal to the low. Previously confirmed days also appear without
+reconfirming. This does not claim a rebound, reclaim or 20-point move.
+Level Stats keeps the reviewed range; the closing price remains unknown.
+
+### What still needs an actual closing price?
+
+Close-above/below/inside results, detailed close-relative break codes and the
+next session's prior-close forecast input. Missing close is not zero and is
+never replaced with the last CP. It does not block saved ranges, recorded
+breaks or level carry-forward. Forecast grading has separate coverage rules.
+
 ### Where did the header Home and Close buttons go?
 
 Use the persistent bottom **Home / Levels / Review** tabs. Deeper pages keep

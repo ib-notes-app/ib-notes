@@ -17,6 +17,13 @@ The download checksum is in [downloads/SHA256SUMS.txt](../downloads/SHA256SUMS.t
 
 ## October 21 interface and day-review update
 
+The period-ending follow-up removes the optional-closing-price dependency from
+Daily Low tracking. Previously confirmed ranges supply missing Daily Low
+references automatically. Level Stats retains the known range review while
+leaving its closing price unknown. No extra confirmation, invented price,
+rebound or 20-point qualification is added. See the
+[period carry-forward table](LEVELS.md#what-carries-forward-automatically).
+
 Recorded ON/IB levels now carry forward after their configured period ends
 without per-period completion steps. Review day collects all period and daily
 highs/lows, an optional explicit close and expanded Day Notes behind one Confirm
@@ -37,8 +44,8 @@ separate references. Stored prices and forecast calculations are unchanged.
 
 ## Verification
 
-The current source passed TypeScript and 690 unit tests, with one existing
-skip. The data-free source copy also passes TypeScript. Six public-package
+The current source passed TypeScript and 693 unit tests, with one existing
+skip. The data-free source copy also passes TypeScript. Seven public-package
 Chromium journeys cover empty startup, manual prices and level placement,
 day confirmation, Review navigation, sharing, persistence and SQLite restore.
 Two exact-build safe-update/offline checks passed with disposable journals.

@@ -4528,13 +4528,13 @@ export function App() {
       if(clock.unavailable)throw Error('This date has no trading session.');
       const next=withFinalDayReview(current,input,now,clock.windows);
       const id=dailyLowSignificantLevelId(next.id),existing=significantLevels.find(l=>l.id===id)??null;
-      const dailyLow=next.close.price===null?null:upsertFinishedSessionDailyLow(next,existing,now,next.market.tickSize);
+      const dailyLow=upsertFinishedSessionDailyLow(next,existing,now,next.market.tickSize);
       if(dailyLow){
         await repositoryRef.current.saveSignificantLevel(dailyLow,next);
         setSignificantLevels(levels=>levels.some(l=>l.id===dailyLow.id)?levels.map(l=>l.id===dailyLow.id?dailyLow:l):[...levels,dailyLow]);
       }else await repositoryRef.current.saveSession(next);
       setSession(next);setTrackingSessions(days=>days?.map(d=>d.id===next.id?next:d)??null);
-      setMessage('Day confirmed. All entered ranges are saved.');setWorkspaceNotice('Day confirmed.');
+      setMessage(dailyLow?'Day confirmed. Daily Low saved to Levels.':'Day confirmed. All entered ranges are saved.');setWorkspaceNotice(dailyLow?'Day confirmed · Daily Low saved to Levels.':'Day confirmed.');
       if(workspacePreview)closeWorkspace();else setActivePanel('dashboard');
       return null;
     }catch(error){return error instanceof Error?error.message:'Unable to save. Your input is preserved.';}
