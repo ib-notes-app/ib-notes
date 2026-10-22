@@ -41,6 +41,7 @@ available under [downloads](downloads/).
 - See recorded prices against the session's ranges and nearby levels.
 - Track IB edge breaks, returns, notes and significant-level history.
 - Review days and local statistics, and create shareable recaps and images.
+- Check final ranges and write Day Notes in one Review day screen.
 - Export and restore SQLite backups of your journal.
 
 The journal starts empty. You supply your own observations using data you have

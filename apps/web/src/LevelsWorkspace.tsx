@@ -57,7 +57,7 @@ export function LevelsWorkspace({ session, levels, batches, priceBatches, contex
   initialPackId?: string; initialLevelId?: string; onAdd: () => void; onPacks: () => void;
   initialMonthlyFilter?: MonthlyLevelFilter;
   focused?: boolean;active?:boolean;
-  navigation?: {selectedId:string|null;onSelect:(id:string|null)=>void;backLabel?:string};
+  navigation?: {selectedId:string|null;onSelect:(id:string|null)=>void;backLabel?:string;showBack?:boolean};
   renderLevel: (level: SignificantLevel, tier: LevelQuality) => ReactNode; mapSettings: ReactNode; undo: ReactNode;
 }) {
   const trackingSessions = useContext(LevelTrackingContext);
@@ -226,7 +226,7 @@ export function LevelsWorkspace({ session, levels, batches, priceBatches, contex
       {!focused && <button type="button" className="levels-add" onClick={onAdd}>+ Add Level</button>}</div>
     {undo}
     {selected ? <div className="level-selected" data-quality={selected.quality}>
-      {!focused && <button type="button" className="price-back" onClick={() => setSelectedId(null)}>{navigation?.backLabel??'← All levels'}</button>}
+      {!focused&&navigation?.showBack!==false&&<button type="button" className="price-back" onClick={() => setSelectedId(null)}>{navigation?.backLabel??'← Back to Levels'}</button>}
       {selected.level ? renderLevel(selected.level,selected.tier) : <>
         {packDetail(selected)}
         <LevelVisits key={selected.id} levels={levels} level={{...historicalLowLevel(selected.historical!.low,selected.historical!.batch,session),
@@ -249,7 +249,7 @@ export function LevelsWorkspace({ session, levels, batches, priceBatches, contex
           {selected.level.originAt && <p className="level-source-caption">Formed {selected.level.originTimePrecision === 'approximate' ? 'around ' : ''}{shortDate(selected.level.originAt, session.displayTimeZone)}
             {selected.level.originTimePrecision !== 'unknown' && ` · ${new Intl.DateTimeFormat('en-US', {timeZone:session.displayTimeZone, hour:'numeric', minute:'2-digit'}).format(new Date(selected.level.originAt))}`}</p>}
           {selected.level.studyReplay && <p className="level-source-caption">Imported study material. Your saved prices continue its tracking.</p>}
-          {selected.level.sessionEdge && <p className="level-source-caption">{selected.level.sessionEdge.code.startsWith('ON') ? 'Overnight' : 'Initial Balance'} range · {selected.level.sessionEdge.status === 'locked' ? 'Locked' : 'Forming'}
+          {selected.level.sessionEdge && <p className="level-source-caption">{selected.level.sessionEdge.code.startsWith('ON') ? 'Overnight' : 'Initial Balance'} range · {selected.level.sessionEdge.status === 'forming' ? 'Forming' : selected.level.sessionEdge.confirmed===false?'Recorded':'Locked'}
             {selected.level.sessionEdge.contract && ` · ${selected.level.sessionEdge.contract}`}. Corrections follow the source day's range; notes and map choices stay with this level.</p>}
           {selected.level.studyReplay?.levelReference && <details className="stat-disclosure"><summary>Pack source</summary>
             <p>{selected.level.studyReplay.levelReference.reference.kind === 'DAILY_HIGH' ? 'Completed session high'

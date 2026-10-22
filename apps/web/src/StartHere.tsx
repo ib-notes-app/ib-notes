@@ -6,10 +6,11 @@ export function StartHere() {
     <summary>Start here</summary>
     <p>Observe. Record. Learn. Start with one price; fill in the rest as you go.</p>
     <ol>
-      <li><strong>Check the day.</strong> Today opens the current trading session. Use the arrows or calendar to browse other dates. Display time starts in Pacific; change it in Settings.</li>
-      <li><strong>Record a price.</strong> On Today, press the pink Record price button, enter a price and choose Save CP. The time is captured when you open the sheet. Historical entries need an observation time; finalized days offer Edit price. More observations give the map more detail; gaps remain unknown.</li>
+      <li><strong>Check the day.</strong> Home is your daily dashboard and opens the current trading session. Use the arrows or calendar to browse other dates. Display time starts in Pacific; change it in Settings.</li>
+      <li><strong>Record a price.</strong> On Home, press the pink Record price button, enter a price and choose Save CP. The time is captured when you open the sheet. Historical entries need an observation time; finalized days offer Edit price. More observations give the map more detail; gaps remain unknown.</li>
       <li><strong>Follow the session.</strong> Choose ON, 15R, A, B or RTH. ON is overnight; 15R is the first 15 minutes; A and B form the Initial Balance. RTH follows IB lock. Tap a period for its range editor. The green dot marks the active period; select it to resume automatic following. Missing entries never stop you recording another price.</li>
-      <li><strong>Review and share.</strong> Levels holds your references; Review holds days and statistics. In Today’s ⋯ menu, Context holds news and notes, and Share opens your preview before you download a PNG or copy its caption. Only share details you choose.</li>
+      <li><strong>Review and share.</strong> Levels holds your references; Review holds days and statistics. In Home’s ⋯ menu, Context holds news and notes, and Share opens your preview before you download a PNG or copy its caption. Only share details you choose.</li>
+      <li><strong>Find your way back.</strong> The bottom tabs open Home, Levels and Review. Home returns directly to the dashboard. Deeper pages have Back to a named screen. Close or Cancel dismisses a popup or form.</li>
       <li><strong>Keep a backup.</strong> In Settings → Backups &amp; storage, Export SQLite saves a restorable backup of all instrument journals. Export JSON is a readable copy. Save a SQLite backup before moving to a different app address or device; journals do not sync automatically.</li>
     </ol>
     <p>Your journal stays in this browser on this device. Keep the app and its website data; clearing them can remove your journal. After the app finishes preparing offline, ordinary journaling works without a connection.</p>

@@ -1,44 +1,35 @@
 {
-  "buildId": "public-blank-20261021T182121617Z",
+  "buildId": "public-blank-20261022T013159902Z",
   "distribution": "public-blank",
   "status": "Early public version; physical-device checks pending.",
   "appUrl": "https://ib-notes-app.github.io/ib-notes/",
   "archive": "downloads/IB-Notes-blank-slate.zip",
-  "archiveBytes": 4119971,
-  "archiveSha256": "396d95265d494e229c91614802b7573c0d7c017a68c2bc18f8bd84232d5d1cad",
+  "archiveBytes": 4129430,
+  "archiveSha256": "a79e6168fcbd118c0e9c9a4c2a680009404f0ce486eeb09e47f381bdf450d533",
   "bundledMarketHistory": false,
   "bundledJournalRecords": false,
   "automaticNewsLookup": false,
   "historicalForecasts": "Unavailable without compatible learning history.",
   "verification": {
-    "typecheck": "Passed",
+    "typecheck": "Passed for application and data-free source copy",
     "unitTests": {
-      "passed": 677,
+      "passed": 690,
       "skipped": 1
     },
-    "privateChromiumJourneys": 10,
-    "publicChromiumJourneys": 3,
+    "publicChromiumJourneys": 6,
     "safeUpdateChecks": 2,
-    "publicDataAudit": "Passed: full Git history, candidate tree and nested archives; no restricted data or private records found.",
-    "physicalPublicOriginInstall": "Pending",
-    "livePublicOrigin": {
-      "checkedAt": "2026-10-21",
-      "matchedWebsiteFiles": 38,
-      "excludedPrivateFileProbes404": 8,
-      "chromiumJourneys": 3,
-      "firefox": "Not rerun",
-      "webkit": "Not rerun",
-      "physicalDevice": "Pending"
-    }
+    "publicDataAudit": "Passed: public Git history, candidate tree, nested archives and static literal review; no restricted data or private records found.",
+    "livePublicOrigin": "Pending",
+    "physicalPublicOriginInstall": "Pending"
   },
   "dataStorage": "Local SQLite in the browser; no account or journal synchronization.",
   "screenshots": "Empty application and isolated development observations; no market-history records.",
   "preparedAt": "2026-10-21",
   "changes": [
-    "IB forecast width estimates display at the configured instrument tick size.",
-    "Post-IB Structure shows the full recorded RTH range with the locked IB and break history as reference."
-  ],
-  "deployedAt": "2026-10-21",
-  "deploymentCommit": "2ec71ba891d8580b5e2c45adcf021cce24df4a3d",
-  "deploymentRun": "https://github.com/ib-notes-app/ib-notes/actions/runs/39653455589"
+    "Recorded overnight and IB levels carry forward after their configured period ends without per-period completion confirmations.",
+    "Review day collects period and daily highs/lows, optional explicit close and expanded Day Notes behind one Confirm day action.",
+    "Price entry provides compact View entries and Entry details buttons with a clear return preserving the draft.",
+    "Home, Levels and Review remain in bottom navigation; deeper screens retain named Back and main tab screens omit redundant header shortcuts.",
+    "Day timeline and Review day align in one matching row beneath the Review heading."
+  ]
 }

@@ -1,10 +1,12 @@
 import {WorkspaceRangeEditor,WorkspacePhaseRecords} from './WorkspacePeriod';
 import {PHONE_TEST,phoneState,phoneStates} from './phoneTestMode';
 import {useWorkspaceNavigation} from './WorkspaceNavigation';
-import {WorkspaceDashboard,WorkspaceLevelCache,useWorkspaceActivePhase,type WorkspaceDestination} from './WorkspaceDashboard';
+import {WorkspaceDashboard,WorkspaceLevelCache,WorkspacePriceSheet,useWorkspaceActivePhase,type WorkspaceDestination} from './WorkspaceDashboard';
 import {useWorkspaceLevels} from './useWorkspaceLevels';
 import {WorkspaceDialog} from './WorkspaceDialog';
-import {workspaceClock,workspaceWindows,workspacePrice,applyWorkspaceEntry,undoWorkspaceEntry,workspaceFormatPrice,workspaceRecordedRange,type WorkspaceEntry,type WorkspacePhase} from './workspaceModel';
+import {DayReviewButton,FinalDayReview} from './FinalDayReview';
+import {withFinalDayReview,type DayReviewInput} from '@ib-field-notes/domain';
+import {workspaceClock,workspaceWindows,workspacePrice,applyWorkspaceEntry,undoWorkspaceEntry,workspaceFormatPrice,workspaceRecordedRange,workspaceEvidenceKey,workspaceEntryTarget,type WorkspaceEntry,type WorkspacePhase} from './workspaceModel';
 import { collapseNearbyMapObservations, mapMoveThreshold, mapObservationX } from "./mapGeometry";
 import { formationSteps } from "./formationSteps";
 import { MapEdgeLabels } from './MapEdgeLabels';
@@ -157,7 +159,6 @@ import {
   withBPeriodUpdate,
   withDevelopingBSnapshot,
   withDisplayTimeZone,
-  withClosingReview,
   withOvernightUpdate,
   withFifteenMinuteRange,
   withMarketContextItem,
@@ -304,14 +305,14 @@ const reviewPanels: SessionPanel[] = ["review-menu", "statistics-ib", "statistic
 type ReviewPanel='review-menu'|'statistics-ib'|'statistics-levels';
 const levelPanels: SessionPanel[] = ["level-library"];
 const workspaceTitles: Record<SessionPanel,string> = {
-  dashboard:'Today',settings:'Settings','instrument-setup':'Add instrument',
+  dashboard:'Home',settings:'Settings','instrument-setup':'Add instrument',
   'workspace-forecast':'Forecast','workspace-structure':'Structure','review-menu':'Review',
   preopen:'Overnight update',overnight:'Overnight range',context:'Context',event:'News or event',
   levels:'Add level','level-library':'Levels','level-detail':'Level details',notes:'Add note',
   'session-notes':'Day timeline',share:'Share', 'statistics-ib':'IB stats','statistics-levels':'Level stats',
   'historical-library-manage':'Study packs',trash:'Trash','session-actions':'Manage session',
   'a-period':'A period','b-snapshot':'B snapshot','b-period':'Final IB',rth:'Record price',
-  'rth-period':'RTH range',close:'Close and review',
+  'rth-period':'RTH range',close:'Review day',
 };
 
 function parentPanelFor(panel: SessionPanel, entryOrigin: EntryOrigin): SessionPanel {
@@ -3492,6 +3493,7 @@ export function App() {
   const repositoryRef = useRef<SqliteJournalRepository | null>(null);
   const leaseRef = useRef<WriterLease | null>(null);
   const [session, setSession] = useState<JournalSession | null>(null);
+  const catalogPhase=useWorkspaceActivePhase(session);
   useEffect(()=>{
     if(!PHONE_TEST)return;
     window.dispatchEvent(new CustomEvent('ib-phone-test-observations',{detail:{date:session?.rthDate,count:session?.cpObservations.length??0}}));
@@ -3845,8 +3847,8 @@ export function App() {
     [session],
   );
   const journalLevels = useMemo(() => session
-    ? sessionLevelCatalog(significantLevels, trackingSessions ?? [], session) : significantLevels,
-    [session, significantLevels, trackingSessions]);
+    ? sessionLevelCatalog(significantLevels, trackingSessions ?? [], session,Temporal.Now.instant().toString()) : significantLevels,
+    [session, significantLevels, trackingSessions,catalogPhase]);
   const visibleSignificantLevels = useMemo(
     () =>
       session
@@ -3896,8 +3898,12 @@ export function App() {
     [session, visibleSignificantLevels],
   );
   const backTarget = parentPanelFor(activePanel, entryOrigin);
+  // The persistent tabs handle category changes; only deeper pages need a
+  // contextual return. Keep history intact for browser/device Back.
+  const workspaceTabRoot=activePanel==='review-menu'||activePanel==='level-library'&&!workspaceNavigation.level;
+  const workspaceShowBack=workspaceNavigation.canGoBack&&!workspaceTabRoot;
   const displayedLevelPanel=activePanel==='level-library'||activePanel==='level-detail'?activePanel:workspacePreview?workspaceLevelPanel:null;
-  const backLabel = backTarget === "dashboard" ? "Today"
+  const backLabel = backTarget === "dashboard" ? "Home"
     : backTarget === "settings" ? "Settings"
     : backTarget === "context" ? "Context"
     : backTarget === "rth-period" ? "RTH"
@@ -3934,7 +3940,7 @@ export function App() {
       const locked=ended&&Temporal.Instant.compare(at,window.end)>=0;
       if(Temporal.Instant.compare(at,window.start)<0||Temporal.Instant.compare(at,window.end)>0||Temporal.Instant.compare(at,now)>0)throw Error("Keep the range time within the selected phase and no later than now.");
       const checkpoint=phase==='15R'?current.fifteenMinute:phase==='A'?current.aPeriod:phase==='B'?current.bPeriod:null;
-      if(!snapshot&&checkpoint?.status==='confirmed'&&!locked)throw Error('This period is already confirmed. Keep its completed range time at the period end; use View entries to correct an earlier record.');
+      if(!snapshot&&checkpoint?.status==='confirmed'&&!locked)throw Error('This period is already confirmed. Keep its completed range time at the period end; use the Day timeline in Review to correct an earlier record.');
       let next:JournalSession;
       if(snapshot){
         if(phase!=='B')throw Error('A B snapshot must belong to B.');
@@ -3954,7 +3960,7 @@ export function App() {
     }catch(error){return error instanceof Error?error.message:'Unable to save. Your input is preserved.';}
     finally{workspaceSaving.current=false;}
   }
-  function workspacePeriodContent(phase:WorkspacePhase,done:()=>void,editFinalized:boolean,onBusy:(busy:boolean)=>void,formId:string,openedAt:string){
+  function workspacePeriodContent(phase:WorkspacePhase,done:()=>void,editFinalized:boolean,onBusy:(busy:boolean)=>void,formId:string,openedAt:string,fromDayReview=false){
     if(!session)return null;
     const periodWindow=workspaceWindows(session)[phase];
     const rangeAt=Temporal.Instant.compare(openedAt,periodWindow.end)>=0?periodWindow.end:openedAt;
@@ -3965,7 +3971,7 @@ export function App() {
     const completed=Temporal.Instant.compare(openedAt,clock.windows[phase].end)>=0;
     return <><WorkspaceRangeEditor key={`${session.id}:${phase}`} formId={formId} rangeAt={rangeAt} timeZone={session.displayTimeZone} phase={phase} completed={completed} showCommentary={phase!=='RTH'} openPrice={phase==='ON'&&completed?session.overnight.rthOpen:undefined} high={range.high} low={range.low} note={phase==='B'?session.bPeriod.note:phase==='A'?session.aPeriod.note:phase==='15R'?session.fifteenMinute.note:phase==='ON'?forming?.note:null} onSave={save}/>
       {phase==='B'&&<details><summary>B snapshot</summary><BSnapshotForm snapshot={session.bSnapshots.at(-1)??null} inheritedRange={effectiveAPeriod??session.aPeriod} onSave={update=>save(update,undefined,true)}/></details>}
-      {phase==='RTH'&&<button type="button" onClick={()=>{window.addEventListener('popstate',()=>openWorkspace('close'),{once:true});done();}}>{session.close.finishedAt?'Review close':'Close & finish day'}</button>}</>;
+      {phase==='RTH'&&!fromDayReview&&<DayReviewButton session={session} onClick={()=>{window.addEventListener('popstate',()=>openWorkspace('close'),{once:true});done();}}/>}</>;
   }
   async function correctWorkspaceObservation(phase:WorkspacePhase,id:string,rth:boolean,update:RthObservationUpdate,time:string,editFinalized:boolean):Promise<string|null>{
     if(!session||!repositoryRef.current)return 'The journal is still opening.';
@@ -4510,49 +4516,29 @@ export function App() {
     }
   }
 
-  async function saveAndFinishDay(rthHigh: number, rthLow: number, price: number, note: string, pathComplete: boolean): Promise<string | null> {
-    if (!session || !repositoryRef.current) return "The journal is still opening.";
-    try {
-      const now = Temporal.Now.instant().toString();
-      const closed = withSessionClose(session, price, note,
-        checkpointInstant(session.rthDate, ES_TEMPLATE.checkpoints.studyClose).toString(), now, rthHigh, rthLow);
-      const next = withClosingReview(closed, pathComplete, now);
-      const dailyLowId = dailyLowSignificantLevelId(next.id);
-      const existingDailyLow = significantLevels.find(
-        (level) => level.id === dailyLowId,
-      ) ?? null;
-      const dailyLow = upsertFinishedSessionDailyLow(
-        next,
-        existingDailyLow,
-        now,
-        ES_TEMPLATE.tickSize,
-      );
-      if (dailyLow) {
-        await repositoryRef.current.saveSignificantLevel(dailyLow, next);
-        setSignificantLevels((current) => {
-          const exists = current.some((level) => level.id === dailyLow.id);
-          return exists
-            ? current.map((level) => level.id === dailyLow.id ? dailyLow : level)
-            : [...current, dailyLow];
-        });
-      } else {
-        await repositoryRef.current.saveSession(next);
-      }
-      setSession(next);
-      setActivePanel("dashboard");
-      setMessage(
-        pathComplete
-          ? dailyLow
-            ? "Day finalized. Confirmed RTH Low was carried forward as a Daily Low."
-            : "Day finalized. Close did not finish above the RTH Low, so no Daily Low was carried forward."
-          : dailyLow
-            ? "Day finished provisionally. Confirmed RTH Low was carried forward as a Daily Low."
-            : "Day finished provisionally and can be completed later.",
-      );
+  async function confirmFinalDay(input:DayReviewInput):Promise<string|null>{
+    if(!session||!repositoryRef.current)return 'The journal is still opening.';
+    if(workspaceSaving.current)return 'An entry is already being saved.';
+    workspaceSaving.current=true;
+    try{
+      await awaitForecastUpdateWrites();
+      const current=await repositoryRef.current.getSession(session.id)??session;
+      if(workspaceEvidenceKey(current)!==workspaceEvidenceKey(session))throw Error('New entries were saved. Reopen Review day to check the latest values.');
+      const now=Temporal.Now.instant().toString(),clock=workspaceClock(current,now);
+      if(clock.unavailable)throw Error('This date has no trading session.');
+      const next=withFinalDayReview(current,input,now,clock.windows);
+      const id=dailyLowSignificantLevelId(next.id),existing=significantLevels.find(l=>l.id===id)??null;
+      const dailyLow=next.close.price===null?null:upsertFinishedSessionDailyLow(next,existing,now,next.market.tickSize);
+      if(dailyLow){
+        await repositoryRef.current.saveSignificantLevel(dailyLow,next);
+        setSignificantLevels(levels=>levels.some(l=>l.id===dailyLow.id)?levels.map(l=>l.id===dailyLow.id?dailyLow:l):[...levels,dailyLow]);
+      }else await repositoryRef.current.saveSession(next);
+      setSession(next);setTrackingSessions(days=>days?.map(d=>d.id===next.id?next:d)??null);
+      setMessage('Day confirmed. All entered ranges are saved.');setWorkspaceNotice('Day confirmed.');
+      if(workspacePreview)closeWorkspace();else setActivePanel('dashboard');
       return null;
-    } catch (error) {
-      return error instanceof Error ? error.message : String(error);
-    }
+    }catch(error){return error instanceof Error?error.message:'Unable to save. Your input is preserved.';}
+    finally{workspaceSaving.current=false;}
   }
 
   async function savePreOpen(
@@ -5385,7 +5371,7 @@ export function App() {
       await refreshImportedPacks();
       setSignificantLevels(await repositoryRef.current.listSignificantLevels(profile.template.instrument));
       setMonthlyPreview(null); setHistoricalSelectedFileName(null);
-      setMessage('Study Pack added. Its material is ready in Today, Levels and Review.');
+      setMessage('Study Pack added. Its material is ready in Home, Levels and Review.');
     } catch (error) { setMessage(error instanceof Error ? error.message : String(error)); }
     finally { setHistoricalImporting(false); }
   }
@@ -5407,7 +5393,7 @@ export function App() {
       await repositoryRef.current.importContextPack(contextPreview.text, contextPreview.fileName);
       setContextBatches(await repositoryRef.current.listContextBatches());
       setContextPreview(null); setHistoricalSelectedFileName(null);
-      setMessage('Context Pack added. Find matching events in Today’s menu → Context or Review → Days.');
+      setMessage('Context Pack added. Find matching events in Home’s menu → Context or Review → Days.');
     } catch (error) { setMessage(error instanceof Error ? error.message : String(error)); }
     finally { setHistoricalImporting(false); }
   }
@@ -5787,12 +5773,13 @@ export function App() {
           onOpen={destination=>{setWorkspaceReferences([]);if(destination==='levels'){setFocusedLevelId(undefined);setFbdHistoryPackId(undefined);setMonthlyLevelFilter(undefined);}
             openWorkspace(({forecast:'workspace-forecast',structure:'workspace-structure',levels:'level-library',review:'review-menu'} as const)[destination],destination);}}
           onLevel={members=>{setWorkspaceReferences(members);setWorkspaceOrigin('levels');setEntryOrigin('dashboard');setFocusedLevelId(undefined);setFbdHistoryPackId(undefined);setMonthlyLevelFilter(undefined);workspaceNavigation.openLevel('level-library',`journal:${members[0]!.id}`);}}
-          onSave={saveWorkspacePrice} onUndo={()=>void undoWorkspacePrice()} notice={workspaceNotice} undoAvailable={workspaceUndoAvailable}/>
+          onReviewDay={()=>openWorkspace('close')} onSave={saveWorkspacePrice} onUndo={()=>void undoWorkspacePrice()} notice={workspaceNotice} undoAvailable={workspaceUndoAvailable}/>
         {activePanel!=='dashboard'&&<header className="workspace-destination-toolbar">
           <h2 tabIndex={-1}>{activePanel==='level-library'&&workspaceNavigation.level?'Level details':activePanel==='levels'&&editingSignificantLevelId?'Edit level':activePanel==='event'?(addingHoliday?'Holiday':editingMarketContextId?'Edit news or event':'News or event'):workspaceTitles[activePanel]}</h2>
-          <button type="button" onClick={workspaceNavigation.back}>Back</button>
-          <button type="button" onClick={closeWorkspace}>Close</button>
-          {activePanel==='review-menu'&&<button type="button" onClick={()=>setActivePanel('session-notes')}>Day timeline</button>}
+          {workspaceShowBack&&<div className="workspace-return-actions" role="group" aria-label="Page navigation">
+            <button type="button" onClick={workspaceNavigation.back}>Back to {workspaceNavigation.backLevel?'Level details':workspaceTitles[workspaceNavigation.backTarget]}</button>
+          </div>}
+          {activePanel==='review-menu'&&<div className="workspace-review-actions" role="group" aria-label="Review actions"><button type="button" onClick={()=>setActivePanel('session-notes')}>Day timeline</button><DayReviewButton session={session} onClick={()=>openWorkspace('close')}/></div>}
           {(activePanel==='level-detail'||activePanel==='level-library'&&workspaceNavigation.level)&&workspaceReferences.length>1&&<label className="workspace-area-choice">Reference in this area
             <select aria-label="Reference in this area" value={activePanel==='level-library'?workspaceNavigation.level?.replace(/^journal:/,''):focusedLevelId} onChange={e=>activePanel==='level-library'?workspaceNavigation.replaceLevel(`journal:${e.target.value}`):openLevels(e.target.value)}>{workspaceReferences.map(l=><option key={l.id} value={l.id}>{l.sessionEdge?.code??l.label??'Reference'} · {workspaceFormatPrice(l.price??l.zoneLow!,session.market.tickSize)}</option>)}</select></label>}
         </header>}
@@ -5920,8 +5907,7 @@ export function App() {
           <WorkspaceLevelCache enabled={workspacePreview} active={activePanel==='level-library'||activePanel==='level-detail'}><LevelTrackingContext.Provider value={trackingSessions}><SignificantLevelLibrary
             key={`${displayedLevelPanel}:${session.id}:${fbdHistoryPackId ?? 'all'}:${focusedLevelId ?? 'all'}:${monthlyLevelFilter?.levelIds.join(',') ?? ''}`}
             active={activePanel==='level-library'||activePanel==='level-detail'}
-            navigation={workspacePreview&&displayedLevelPanel==='level-library'?{selectedId:workspaceNavigation.level,onSelect:workspaceNavigation.selectLevel,
-              backLabel:workspaceNavigation.levelParent&&workspaceNavigation.levelParent!=='level-library'?`← Back to ${workspaceTitles[workspaceNavigation.levelParent]}`:undefined}:undefined}
+            navigation={workspacePreview&&displayedLevelPanel==='level-library'?{selectedId:workspaceNavigation.level,onSelect:workspaceNavigation.selectLevel,showBack:false}:undefined}
             focused={displayedLevelPanel === 'level-detail'}
             repository={repositoryRef.current!}
             lowBatches={fbdBatches}
@@ -6360,60 +6346,19 @@ export function App() {
             }
           >
               <RthRangeForm key={`${session.id}:${session.updatedAt}`} session={session} onSave={saveRthRange}/>
-              {activePanel === "rth-period" && <button className="close-day-action" type="button" onClick={() => setActivePanel("close")}>
-                {session.close.finishedAt ? "Review close" : "Close & finish day"}
-              </button>}
-              <p className="stage-helper">On Today, select RTH and press Record price. Each observation updates your recorded path.</p>
+              {activePanel === "rth-period" && <DayReviewButton session={session} onClick={() => setActivePanel("close")}/>}
+              <p className="stage-helper">On Home, select RTH and press Record price. Each observation updates your recorded path.</p>
           </FocusedStageCard>
         )}
 
-        {session && activePanel === "close" && (
-          <>
-          <FocusedStageCard
-            time={formatCheckpointTime(
-              session.rthDate,
-              ES_TEMPLATE.checkpoints.studyClose,
-              session.displayTimeZone as SupportedDisplayTimeZone,
-            )}
-            title="Close and review"
-            status={
-              session.close.finishedAt
-                ? closingOutcome?.status === "final"
-                  ? "Final"
-                  : "Provisional"
-                : session.close.price === null
-                  ? "Pending"
-                  : "Review"
-            }
-          >
-              <CloseReviewForm
-                key={`${session.id}:${session.close.recordedAt ?? "empty"}`}
-                session={session}
-                closingOutcome={closingOutcome}
-                onFinish={saveAndFinishDay}
-              />
-          </FocusedStageCard>
-          {session.close.finishedAt && (
-          <ForecastCard session={session} levels={significantLevels} sessions={trackingSessions ?? []}
-            historical={historicalSessions} batches={historicalBatches} news={contextBatches} lowBatches={fbdBatches} repository={repositoryRef.current} />
-          )}
-          {session.close.finishedAt && (
-          <DailyRecap
-            session={session}
-            finalIb={finalIb}
-            closingOutcome={closingOutcome}
-            rthStates={recapRthStates}
-            significantLevels={visibleSignificantLevels}
-            significantLevelInteractions={significantLevelInteractions}
-          />
-          )}
-          </>
-        )}
+        {session && activePanel === "close" && <FinalDayReview key={session.id} session={session} onConfirm={confirmFinalDay} onViewEntries={()=>workspacePreview?openWorkspace('session-notes'):setActivePanel('session-notes')}
+          renderPeriod={(phase,openedAt,done)=><WorkspacePriceSheet session={session} initial={workspaceEntryTarget(session,phase,openedAt)} mode="period" returnToReviewDay onClose={done} onSave={saveWorkspacePrice} renderReview={workspacePeriodReview} renderPeriod={(...args)=>workspacePeriodContent(...args,true)}/>}/>}
+
       </div>
 
       </AppErrorBoundary>
       {session && <nav className="main-navigation" aria-label="Main navigation">
-        {([{ panel: "dashboard", label: "Today" }, { panel: "level-library", label: "Levels" }, { panel: "review-menu", label: "Review" }] as const).map((item) =>
+        {([{ panel: "dashboard", label: "Home" }, { panel: "level-library", label: "Levels" }, { panel: "review-menu", label: "Review" }] as const).map((item) =>
           <button key={item.panel} type="button" disabled={workspacePreview&&(workspaceDateLoading||workspaceDateError)&&item.panel!=='dashboard'} aria-current={mainDestination === item.panel ? "page" : undefined}
             onClick={() => { if(workspacePreview){if(item.panel==="dashboard")closeWorkspace();else openWorkspace(item.panel,item.panel==="level-library"?"levels":"review");return;} setEntryOrigin("dashboard"); if (item.panel === "level-library") { setFbdHistoryPackId(undefined); setFocusedLevelId(undefined); setMonthlyLevelFilter(undefined); } if (item.panel === "review-menu") resumeReview(); else {setReturnToReview(false);setActivePanel(item.panel);} }}>{item.label}</button>)}
       </nav>}
@@ -6658,168 +6603,6 @@ function RthRangeForm({session,onSave}:{session:JournalSession;onSave:(high:numb
       </form>
     </details>}
   </div>;
-}
-
-function CloseReviewForm({
-  session,
-  closingOutcome,
-  onFinish
-}: {
-  session: JournalSession;
-  closingOutcome: ReturnType<typeof deriveClosingOutcome>;
-  onFinish: (rthHigh: number, rthLow: number, price: number, note: string, pathComplete: boolean) => Promise<string | null>;
-}) {
-  const { template: ES_TEMPLATE, formatCheckpointTime } = useJournalClock();
-  const range = deriveRecordedRthRange(session);
-  const [rthHigh, setRthHigh] = useState(range.high === null ? "" : formatPriceNumber(range.high));
-  const [rthLow, setRthLow] = useState(range.low === null ? "" : formatPriceNumber(range.low));
-  const [price, setPrice] = useState(
-    session.close.price === null ? "" : formatPriceNumber(session.close.price),
-  );
-  const [note, setNote] = useState(session.close.note ?? "");
-  const [pathComplete, setPathComplete] = useState(session.close.pathComplete);
-
-  const [error, setError] = useState<string | null>(null);
-  const [saving, setSaving] = useState(false);
-
-  const closeDisposition =
-    closingOutcome?.closeDisposition === "ABOVE_IBH"
-      ? "Above IBH"
-      : closingOutcome?.closeDisposition === "BELOW_IBL"
-        ? "Below IBL"
-        : closingOutcome?.closeDisposition === "INSIDE_OR_ON_IB"
-          ? "Inside or on IB"
-          : "Pending";
-
-  return (
-    <div className="close-review">
-      <form noValidate
-        onSubmit={async (event) => {
-          event.preventDefault();
-          const parsedHigh = parsePrice(rthHigh);
-          const parsedLow = parsePrice(rthLow);
-          const parsedPrice = parsePrice(price);
-          if (parsedHigh === null || parsedLow === null || parsedPrice === null) {
-            setError("Enter a valid RTH high, low, and close. Use numbers without commas.");
-            return;
-          }
-          if (saving) return;
-          setSaving(true);
-          setError(await onFinish(parsedHigh, parsedLow, parsedPrice, note, pathComplete));
-          setSaving(false);
-        }}
-      >
-        <div className="period-form-heading"><h3>RTH close</h3>
-          <button className="primary-action" type="submit" disabled={saving}>{saving ? "Saving…" : "Save & finish day"}</button></div>
-        {error && <p className="form-validation" role="alert">{error}</p>}
-        <p className="stage-helper">
-          Confirm the final RTH extremes and close. Recorded observations are
-          prefilled when available and remain editable.
-        </p>
-        <div className="close-extrema-grid">
-          <label>
-            <span>RTH high</span>
-            <input
-              inputMode="decimal"
-              required
-              value={rthHigh}
-              onChange={(event) => setRthHigh(event.target.value)}
-            />
-          </label>
-          <label>
-            <span>RTH low</span>
-            <input
-              inputMode="decimal"
-              required
-              value={rthLow}
-              onChange={(event) => setRthLow(event.target.value)}
-            />
-          </label>
-          <label>
-            <span>RTH close</span>
-            <input
-              inputMode="decimal"
-              required
-              value={price}
-              onChange={(event) => setPrice(event.target.value)}
-            />
-          </label>
-        </div>
-        <div className="close-entry-row close-time-row">
-          <div className="fixed-time-readout">
-            <span>Recorded at</span>
-            <strong>
-              {formatCheckpointTime(
-                session.rthDate,
-                ES_TEMPLATE.checkpoints.studyClose,
-                session.displayTimeZone as SupportedDisplayTimeZone,
-              )}
-            </strong>
-          </div>
-        </div>
-        <details className="optional-note">
-          <summary>Add a close note</summary>
-          <label>
-            <span>Close commentary</span>
-            <textarea value={note} onChange={(event) => setNote(event.target.value)} />
-          </label>
-        </details>
-          <label className="path-complete-control">
-            <input
-              type="checkbox"
-              checked={pathComplete}
-              onChange={(event) => setPathComplete(event.target.checked)}
-            />
-            <span>
-              <strong>Path complete</strong>
-              <small>All known IB breaks and returns are recorded through the close.</small>
-            </span>
-          </label>
-
-        <p className="stage-helper">Leave unchecked to finish provisionally and complete the path later.</p>
-      </form>
-
-      {session.close.price !== null && (
-        <section className="closing-outcome" aria-label="Recorded closing outcome">
-          <div className="closing-outcome-heading">
-            <div>
-              <span>Recorded outcome</span>
-              <strong>{closingOutcome?.dayType ?? "Not established"}</strong>
-            </div>
-            <em>{closingOutcome?.status ?? "provisional"}</em>
-          </div>
-
-          {closingOutcome ? (
-            <dl className="closing-facts">
-              <div><dt>Close location</dt><dd>{closeDisposition}</dd></div>
-              <div><dt>Break code</dt><dd>{closingOutcome.breakCode ?? "Pending"}</dd></div>
-              <div>
-                <dt>IBH break</dt>
-                <dd>{closingOutcome.highBreakRecorded ? "Recorded" : "Not recorded"}</dd>
-              </div>
-              <div>
-                <dt>IBL break</dt>
-                <dd>{closingOutcome.lowBreakRecorded ? "Recorded" : "Not recorded"}</dd>
-              </div>
-              <div>
-                <dt>Outside close</dt>
-                <dd>
-                  {closingOutcome.outsideCloseDistance === null
-                    ? "—"
-                    : `${formatPriceNumber(closingOutcome.outsideCloseDistance)} pts`}
-                </dd>
-              </div>
-            </dl>
-          ) : (
-            <p className="outcome-pending">
-              Final IB is still pending, so the closing classification is unavailable.
-            </p>
-          )}
-
-        </section>
-      )}
-    </div>
-  );
 }
 
 function DailyRecap({
@@ -8798,7 +8581,7 @@ function SignificantLevelLibrary({
   initialPackId?: string; initialLevelId?: string; onPacks: () => void;
   initialMonthlyFilter?: MonthlyLevelFilter;
   focused?: boolean;active?:boolean;
-  navigation?: {selectedId:string|null;onSelect:(id:string|null)=>void;backLabel?:string};
+  navigation?: {selectedId:string|null;onSelect:(id:string|null)=>void;backLabel?:string;showBack?:boolean};
   levels: SignificantLevel[];
   interactions: ReturnType<typeof deriveSignificantLevelInteractions>;
   latestCp: number | null;
@@ -8952,7 +8735,7 @@ function SignificantLevelList({
               <header className="level-detail-heading">
                 <strong>{significantLevelPrice(level)}</strong>
                 <LevelQualityBadge quality={quality}/>
-                <span>{level.sessionEdge ? `${level.sessionEdge.code} · ${level.sessionEdge.status === 'forming' ? 'Forming' : 'Locked'}`
+                <span>{level.sessionEdge ? `${level.sessionEdge.code} · ${level.sessionEdge.status === 'forming' ? 'Forming' : level.sessionEdge.confirmed===false?'Recorded':'Locked'}`
                   : `${levelTypeLabels[level.levelType]}${level.sourceTimeframe !== 'unknown' ? ` · ${levelTimeframeLabels[level.sourceTimeframe]}` : ''}`}</span>
                 {level.sessionEdge ? <p>{new Intl.DateTimeFormat('en-US', {month:'short',day:'numeric',timeZone:'UTC'}).format(new Date(`${level.createdInRthDate}T12:00:00Z`))}</p>
                   : displayLevelLabel(level) && <p>{displayLevelLabel(level)}</p>}

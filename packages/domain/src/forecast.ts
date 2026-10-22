@@ -129,10 +129,19 @@ function features(onHigh: number, onLow: number, high: number, low: number,
 
 function journalPriorDay(prior: JournalSession): ForecastPriorDay | null {
   const actual = forecastActual(prior), ib = deriveSessionFinalIb(prior);
-  if (!actual.complete || !actual.dayType || !ib || !finite(prior.close.price) || !finite(ib.high) || !finite(ib.low) ||
+  if (!ib || !finite(prior.close.price) || !finite(ib.high) || !finite(ib.low) ||
     ib.high <= ib.low || !Number.isFinite(time(prior.close.finishedAt))) return null;
+  // Reviewed daily extrema establish the prior day's broad outcome without
+  // establishing an unseen first-break/return sequence or a complete path.
+  const {rthHigh,rthLow}=prior.close,tick=prior.market.tickSize;
+  const reviewedRange=finite(rthHigh)&&finite(rthLow)&&rthHigh>=ib.high&&rthLow<=ib.low&&
+    prior.close.price<=rthHigh&&prior.close.price>=rthLow&&
+    prior.rthObservations.every(p=>p.price<=rthHigh&&p.price>=rthLow);
+  const high=reviewedRange&&rthHigh!>=ib.high+tick-1e-9,low=reviewedRange&&rthLow!<=ib.low-tick+1e-9;
+  const dayType=actual.complete?actual.dayType:reviewedRange?high?(low?'IBB':'IBH'):low?'IBL':'IBN':null;
+  if(!dayType)return null;
   return { rthDate: prior.rthDate, journalId: prior.journalId, instrument: prior.instrument,
-    high: ib.high, low: ib.low, close: prior.close.price, dayType: actual.dayType,
+    high: ib.high, low: ib.low, close: prior.close.price, dayType,
     availableAt: prior.close.finishedAt!, source: { kind: 'journal', sessionId: prior.id } };
 }
 const priorDay = (prior: JournalSession | ForecastPriorDay | null) =>

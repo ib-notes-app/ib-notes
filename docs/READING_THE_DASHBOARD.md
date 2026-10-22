@@ -17,8 +17,10 @@ the **last recorded current price**, not a live quote. The period buttons
 **ON / 15R / A / B / RTH** give access to period recording and editing; they do
 not manufacture an earlier forecast or an unseen historical price path.
 
-Use **Back** to reverse a step within a destination, or **Close** to return
-directly to the dashboard. Levels and Review in the bottom navigation use the
+Use the bottom **Home / Levels / Review** tabs for the main destinations. Home
+returns directly to the dashboard, keeping the selected instrument, date and
+viewed phase. A named **Back** button on a deeper page returns to its parent;
+**Close** or **Cancel** dismisses a popup or form. Levels and Review use the
 same underlying content as their corner buttons.
 
 ## Forecast — read the estimate and its target
@@ -171,6 +173,9 @@ tracking, LBAF qualification, map visibility and maintenance workflow.
 ## Review — inspect the record behind the summary
 
 The persistent top sections are **Days**, **IB stats** and **Level stats**.
+**Day timeline** and **Review day** sit together beneath the Review heading.
+Review day highlights **Needs review** after the session closes; confirmed days
+keep a dark, usable button labeled **Confirmed**.
 
 | Review area | What to read |
 | --- | --- |
@@ -196,11 +201,14 @@ not satisfy that later estimate. **No return recorded** describes your saved
 evidence; sparse entries may have missed a return. **Comparison unavailable**
 or **Result not confirmed** is a limit on verification, not a 0% estimate.
 
-A session being **closed by the clock** is different from explicitly finishing
-its journal. Incomplete entries can still be corrected through the available
-editing workflow; finalized days use the explicit editing safeguards. Review
-the closing measurements and path coverage before treating a classification
-as a completed result. Corrections can update derived maps and statistics.
+A session being **closed by the clock** is different from confirming its journal.
+Ordinary observations save immediately, and recorded ON/IB levels carry forward
+after their configured boundaries without per-period completion steps.
+**Review day** collects period and daily high/low measurements, an optional
+explicit RTH close and expanded **Day Notes** behind one **Confirm day** action.
+The last CP is not substituted for an unknown close; unrecorded path coverage
+remains unknown. Finalized days retain explicit editing safeguards. Corrections
+can update derived maps and statistics.
 
 Daily sharing opens from the dashboard's **⋯ → Share** menu. Period recaps
 have their own sharing workflow where available. Review the text or image

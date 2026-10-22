@@ -48,10 +48,22 @@ Levels above and below the central button are positioned relative to the last
 applicable recorded CP. A High/Low entry does not automatically replace it.
 Breaks and returns describe saved evidence; gaps between entries remain unknown.
 
-## Finish and keep a backup
+## Review the day and keep a backup
 
-Use Review to inspect the day and its existing closing/finalization workflow.
-Correct finalized entries through the explicit editing controls.
+Prices save immediately. You do not need to confirm each period for its recorded
+ON/IB levels to carry forward after that period ends.
+
+After the session closes, open **Review day** from Home or Review. Check the
+ON, 15R, A, B/IB and Daily/RTH high/low rows, enter **Day Notes** if useful, and
+press **Confirm day** once. Tap a period's name to review its range; **Back to
+Review day** returns to your draft. **View entries** opens the Day timeline.
+
+The RTH close is optional: enter it only when known. The last CP is never assumed
+to be the closing price. Missing observations and path coverage remain unknown.
+Finalized entries retain explicit editing safeguards.
+
+Use the bottom **Home / Levels / Review** tabs for the main destinations.
+Deeper pages have a named Back button to the screen that opened them.
 
 Use the dashboard menu's **Share** action to review a recap or image before
 copying or downloading it. Nothing is automatically posted.

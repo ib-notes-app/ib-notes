@@ -15,3 +15,15 @@ historical market records. No example sessions are installed with the app.
 ## Forecast without learning history
 
 <img src="images/forecast-unavailable.png" alt="Forecast unavailable because this edition includes no historical data" width="360">
+
+## Review navigation
+
+<img src="images/review-actions.png" alt="Aligned Day timeline and Review day buttons with persistent bottom navigation" width="360">
+
+## Review day and Day Notes
+
+<img src="images/review-day.png" alt="One final review of period and daily ranges with an expanded Day Notes field" width="360">
+
+## Day timeline
+
+<img src="images/day-timeline.png" alt="Recorded entries with a compact Back to Review day button" width="360">

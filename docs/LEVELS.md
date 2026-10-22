@@ -67,7 +67,7 @@ one zone are not automatically several independent defenses of that zone.
 
 ## Build the history by recording prices
 
-Return to Today and use **Record price → CP → Save CP** as you observe price.
+Return to Home and use **Record price → CP → Save CP** as you observe price.
 Check the observation time, especially for a backdated entry. High and Low
 entries are period-extreme observations and do not replace a newer CP.
 

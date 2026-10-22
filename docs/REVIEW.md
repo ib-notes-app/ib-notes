@@ -15,7 +15,20 @@ Physical-device checks remain pending; this is not a claim of release readiness.
 The exact prepared build is identified in [release-info.json](../release-info.json).
 The download checksum is in [downloads/SHA256SUMS.txt](../downloads/SHA256SUMS.txt).
 
-## October 21 correction
+## October 21 interface and day-review update
+
+Recorded ON/IB levels now carry forward after their configured period ends
+without per-period completion steps. Review day collects all period and daily
+highs/lows, an optional explicit close and expanded Day Notes behind one Confirm
+day action. Missing coverage remains unknown; the last CP is not assumed to be
+the close. Finalized edits keep their explicit safeguards.
+
+Price entry has compact View entries and Entry details buttons, with a named
+return preserving the draft. Home, Levels and Review stay in the bottom tabs;
+redundant header shortcuts are removed, while deeper pages retain contextual
+Back. Day timeline and Review day share an aligned row under the Review heading.
+
+## Earlier October 21 correction
 
 IB width forecasts now display on the selected instrument's tick size (quarter
 points for ES). During post-IB RTH, Structure shows the full recorded regular
@@ -24,25 +37,28 @@ separate references. Stored prices and forecast calculations are unchanged.
 
 ## Verification
 
-The October 21 source passed TypeScript and 677 unit tests, with one existing
-skip. Ten private-build Chromium journeys passed, covering formation and RTH
-forecasts, all-phase Structure, recorded breaks, reload persistence, period
-editing, statistics and sharing. Three public-package journeys and two safe-update/offline checks also pass.
-The public package passed the history, file and nested-archive data audit.
-Live deployment results are recorded in [release-info.json](../release-info.json) as completed.
+The current source passed TypeScript and 690 unit tests, with one existing
+skip. The data-free source copy also passes TypeScript. Six public-package
+Chromium journeys cover empty startup, manual prices and level placement,
+day confirmation, Review navigation, sharing, persistence and SQLite restore.
+Two exact-build safe-update/offline checks passed with disposable journals.
+Phone-width, enlarged-text and desktop screenshots were inspected.
+The public package passed the history, file, nested-archive and static-literal
+data audit. Live deployment results are recorded in
+[release-info.json](../release-info.json) as they are completed.
 
 Tests use disposable browser storage. Fictional observations used by the browser
 tests are excluded from the distributed package. No journal data is supplied.
 Firefox and WebKit automation were not rerun: their Playwright browser bundles
 are unavailable. Physical Safari was not tested for this correction.
 
-## Live public address — October 21
+## Live public address
 
-The deployment succeeded. All 38 website files match the tested public package
-by SHA-256; eight excluded private-file URLs return 404. Three Chromium journeys
-pass against the live address: empty startup, manual recording and RTH/IB level
-placement, and subpath/offline/PNG/SQLite restore. These checks use disposable
-browser storage. Physical-device acceptance remains pending.
+The current deployment and its verification are listed in
+[release-info.json](../release-info.json). Local package tests use the same
+`/ib-notes/` subpath as GitHub Pages. Live checks compare all prepared website
+files and exercise the published app in disposable browser storage.
+Physical-device acceptance remains pending.
 
 ## Still pending
 

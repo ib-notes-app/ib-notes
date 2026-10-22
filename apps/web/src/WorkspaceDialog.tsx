@@ -4,7 +4,7 @@ import {createPortal} from 'react-dom';
 
 /** Native modal semantics, outside any animated/transformed application ancestor. */
 export function WorkspaceDialog({title,children,onClose,busy=false,className='',dismissLabel='Close',headerAction,dismissAriaLabel,manageHistory=false}:{title:string;children:ReactNode;
- onClose:()=>void;busy?:boolean;className?:string;dismissLabel?:'Close'|'Cancel'|'Cancel/Close';headerAction?:ReactNode;dismissAriaLabel?:string;manageHistory?:boolean}){
+ onClose:()=>void;busy?:boolean;className?:string;dismissLabel?:'Close'|'Cancel'|'Cancel/Close'|'Back to Review day'|'Back to price entry'|'Back to period';headerAction?:ReactNode;dismissAriaLabel?:string;manageHistory?:boolean}){
  const dialog=useRef<HTMLDialogElement>(null);
  const historyId=useId(),closeRef=useRef(onClose);closeRef.current=onClose;
  const dismiss=()=>{if(busy)return;if(manageHistory&&window.history.state?.ibWorkspaceDialog===historyId)window.history.back();else onClose();};

@@ -58,7 +58,7 @@ export function ReviewDayDetail({ date, journals, daily, prices, contextBatches,
     return () => { cancelled = true; };
   }, [repository, batch, date]);
   return <section className="history-card review-day-detail" aria-label="Saved day details">
-    <button type="button" className="research-overview-back" onClick={onBack}>← All days</button>
+    <button type="button" className="research-overview-back" onClick={onBack}>← Back to Days</button>
     <h2>{dateLabel(date)}</h2>
     {journal && <section className="review-day-journal"><h3>{journal.studyReplay?'Journal replay':'My journal'}</h3><p>{journal.studyReplay?'Historical IB, entries and replay forecasts.':'Your notes, recorded prices and day recap.'}</p>
       <button type="button" onClick={() => onOpenJournal(date)}>Open my journal day</button></section>}

@@ -4417,3 +4417,6 @@ export { deriveLiveMarketMemory, summarizeMarketMemory, recoveryPath, marketMemo
 export type { MarketMemory, MarketMemoryLibrary, PackedMarketMemoryLibrary, RecoveryRecord, MemoryLandmark } from './marketMemory';
 export { describeAuctionFlow, deriveSessionAuctionRead, deriveRecentAuctionRead, completedAuctionRangeFromPriceDay } from './auctionRead';
 export type { AuctionRead, AuctionState, RecentAuctionRead, CompletedAuctionRange } from './auctionRead';
+
+export {dayReviewRanges,withFinalDayReview} from './finalDayReview';
+export type {ReviewPeriod,DayReviewInput,DayReviewWindows} from './finalDayReview';

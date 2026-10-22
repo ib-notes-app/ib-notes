@@ -223,7 +223,7 @@ export function* levelActivityStatisticsJob(input:Input):Generator<void,LevelAct
   const candidates=new Map(input.levels.filter(level=>level.instrument===context.instrument).map(level=>[level.id,level]));
   // Include all contracts' native edges, while preserving saved notes/lifecycle overlays.
   for(const day of sessions) {
-    for(const level of sessionLevelCatalog(input.levels,[],day).filter(level=>level.sessionEdge))candidates.set(level.id,level);
+    for(const level of sessionLevelCatalog(input.levels,[],day,asOf).filter(level=>level.sessionEdge))candidates.set(level.id,level);
     yield;
   }
   const sources=new Map<string,SignificantLevel[]>(),levels:SignificantLevel[]=[];

@@ -143,8 +143,22 @@ use Undo when offered. **Review price** flags something unusual, not a proven ty
 ### Is a closed session the same as a finalized journal?
 
 No. The clock can close the session while your journal remains unfinished.
-Use the closing review to check measurements and coverage. Finalized entries
-use the explicit editing safeguards; opening a day does not unfinalize it.
+Open **Review day**, check period and daily highs/lows, add Day Notes and press
+**Confirm day** once. The closing price is optional and is never guessed from
+the last CP. Finalized entries use explicit editing safeguards; opening a day
+does not unfinalize it.
+
+### Do I have to confirm every period for its levels to be saved?
+
+No. Price saves are immediate. Recorded ON/IB levels carry forward after their
+configured period ends without a separate completion step. Review day is one
+place to check and confirm the final measurements; sparse coverage stays unknown.
+
+### Where did the header Home and Close buttons go?
+
+Use the persistent bottom **Home / Levels / Review** tabs. Deeper pages keep
+a named Back button; Close or Cancel dismisses an open popup or form. From
+Day timeline, **Back to Review day** returns to the review that opened it.
 
 ## Forecasts and structure
 
@@ -185,9 +199,9 @@ These are post-lock outcomes, and missing observations do not prove neither brok
 Yes. Open **Levels → + Add Level** and save a price or zone. Your CP entries
 then provide recorded interaction evidence. See [Create and track levels](LEVELS.md).
 
-### Why is a low above my current price, or a level missing from Today?
+### Why is a low above my current price, or a level missing from Home?
 
-Above/below is calculated from recorded CP, not the level's name. Today shows
+Above/below is calculated from recorded CP, not the level's name. Home shows
 only a nearby selection. In Levels, check **Use CP**, Above/Below, tier and
 distance filters; a containing zone says **Inside zone**.
 
@@ -205,7 +219,7 @@ No. The current CSV format accepts **one daily IB summary per session date**,
 with specific headers and measurements. Ordinary OHLC bars, tick files and
 trade logs need preparation; renaming a file is not enough. See [CSV format](CSV_IMPORT.md).
 
-### Will imported days become editable entries on Today?
+### Will imported days become editable entries on Home?
 
 No. They form a separate history library, available through pack browsing and
 Review. Daily summaries do not reconstruct individual observations or an intraday path.

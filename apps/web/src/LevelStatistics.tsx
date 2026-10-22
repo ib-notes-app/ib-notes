@@ -102,7 +102,7 @@ export function LevelStatistics({sessions,levels,session,batches,repository,onOp
     });
     const pages=Math.max(1,Math.ceil(facts.length/8)),currentPage=Math.min(page,pages-1);
     return <section ref={scroll} className="history-card level-statistics" aria-label="Level statistic details" aria-busy={loading}>
-      <button type="button" className="research-overview-back" onClick={()=>setInspection(null)}>← Level stats</button>
+      <button type="button" className="research-overview-back" onClick={()=>setInspection(null)}>← Back to Level stats</button>
       <h2>{inspection.title}</h2>
       {loading&&<p className="history-helper" role="status">Refreshing saved prices…</p>}{error&&<p role="status">{error}</p>}
       <p className="history-helper">{facts.length} observation{facts.length===1?'':'s'} · Tap a date to open its day.</p>
