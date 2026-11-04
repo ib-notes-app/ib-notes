@@ -5,6 +5,7 @@ import type {DashboardShareCard,ShareFactSection} from './dashboardShare';
 import type {ImageCardResult} from './imageCard';
 import {buildImageCaption} from './imageCaption';
 import {shareWatermark} from './shareWatermark';
+import {shareFooterNotices,SHARE_DISCLAIMER} from './shareFooter';
 import {shareTextWidth,wrapShareText} from './shareImageText';
 import {SHARE_MAP_STYLES} from './shareMap';
 
@@ -49,12 +50,15 @@ function sectionLayout(section:ShareFactSection,compact:boolean){
 /** Fixed readable typography; excess selections block download rather than shrink or silently disappear. */
 export function buildDashboardImageCard(session:JournalSession,card:DashboardShareCard,extras:ShareFactSection[]=[],map?:{svg:string;overflow:boolean}):ImageCardResult{
   const forecast=card.experimental??['IB Forecast','ON Forecast','Post-IB'].includes(card.title);
+  const extraFootnotes=[...new Set(extras.flatMap(section=>section.footnote?[section.footnote]:[]))];
+  const footerLines=wrapShareText(shareFooterNotices([card.footnote,...extraFootnotes],forecast).join(' '),936,20);
+  const footerHeight=Math.max(148,96+footerLines.length*26);
   const sections=[...card.sections,...extras];
   const headline=wrap(card.headline,34),caption=wrap(card.caption,59);
   const headerHeight=headline.length*49+caption.length*31+(card.meter&&card.meter.high>card.meter.low?84:0)+18;
   const mapHeight=map?520:0;
-  const compact=282+headerHeight+mapHeight+sections.reduce((n,s)=>n+sectionLayout(s,false).height+18,0)-18>1202;
-  const cardHeight=map?Math.min(2700,Math.max(1350,Math.ceil((282+headerHeight+mapHeight+sections.reduce((n,s)=>n+sectionLayout(s,compact).height+(compact?12:18),0)+148)/50)*50)):1350;
+  const compact=282+headerHeight+mapHeight+sections.reduce((n,s)=>n+sectionLayout(s,false).height+18,0)-18>1350-footerHeight;
+  const cardHeight=map?Math.min(2700,Math.max(1350,Math.ceil((282+headerHeight+mapHeight+sections.reduce((n,s)=>n+sectionLayout(s,compact).height+(compact?12:18),0)+footerHeight)/50)*50)):1350;
   const inlineHeadline=compact&&headline.length===1&&shareTextWidth(card.title,38,true)+shareTextWidth(headline[0],42,true)+40<=936;
   let y=compact?254:282,omitted=0;
   const body:string[]=[];
@@ -84,7 +88,7 @@ export function buildDashboardImageCard(session:JournalSession,card:DashboardSha
   if(map){body.push(`<g class="session-share-map" transform="translate(0 ${y-254})">${map.svg}</g>`);y+=mapHeight;if(map.overflow)omitted++;}
   for(const section of sections){
     const {rows,titleLines,titleHeight,rowHeight,height}=sectionLayout(section,compact);
-    if(y+height>cardHeight-148){omitted+=Math.max(1,rows.filter(r=>r.kind!=='space').length);continue;}
+    if(y+height>cardHeight-footerHeight){omitted+=Math.max(1,rows.filter(r=>r.kind!=='space').length);continue;}
     body.push(`<rect x="72" y="${y}" width="936" height="${height}" rx="20" fill="#222b35"/>`);
     let lineY=y+(compact?29:34);
     for(const line of titleLines){body.push(text(line,96,lineY,'section'));lineY+=titleHeight;}
@@ -109,8 +113,8 @@ export function buildDashboardImageCard(session:JournalSession,card:DashboardSha
   const instant=createSessionClock(session.market).checkpointInstant(session.rthDate,session.market.checkpoints.overnightLock);
   const zone=new Intl.DateTimeFormat('en-US',{timeZone:session.displayTimeZone,timeZoneName:'short'}).formatToParts(new Date(instant.epochMilliseconds)).find(p=>p.type==='timeZoneName')?.value??session.displayTimeZone;
   const contract=session.contractStatus==='known'&&session.contract?session.contract:'contract unknown';
-  const extraFootnotes=[...new Set(extras.flatMap(section=>section.footnote?[section.footnote]:[]))];
-  const foot=wrap([card.footnote,...extraFootnotes].join(' '),80).slice(0,2).map((s,i)=>text(s,72,cardHeight-82+i*26,'foot')).join('');
+  const footerTop=cardHeight-footerHeight;
+  const foot=footerLines.map((s,i)=>text(s,72,footerTop+66+i*26,'foot')).join('');
   const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="${cardHeight}" viewBox="0 0 1080 ${cardHeight}">
     <style>
       text{font-family:Arial,sans-serif;fill:#e6eaf0}
@@ -127,10 +131,12 @@ export function buildDashboardImageCard(session:JournalSession,card:DashboardSha
     ${text(`${session.instrument} · ${date}${card.showTimes===false?'':` · ${zone}`}`,72,180,'meta')}
     ${text(`${session.market.requiresContract?contract+' · ':''}Initial Balance (IB): the opening range`,72,214,'meta')}
     ${body.join('')}
-    ${forecast?text('Experimental · Not financial advice',72,cardHeight-126,'foot'):''}
-    ${shareWatermark(cardHeight-126)}
-    <line x1="72" x2="1008" y1="${cardHeight-114}" y2="${cardHeight-114}" stroke="#38414f" stroke-width="2"/>
+    <g data-share-footer="true">
+    ${text(`${forecast?'Experimental · ':''}${SHARE_DISCLAIMER}`,72,footerTop+22,'foot')}
+    ${shareWatermark(footerTop+22)}
+    <line x1="72" x2="1008" y1="${footerTop+34}" y2="${footerTop+34}" stroke="#38414f" stroke-width="2"/>
     ${foot}
+    </g>
   </svg>`;
   const qualification=/reconstruct|replay/i.test(card.footnote)?card.footnote:
     card.title==='IB Forecast'||card.title==='ON Forecast'?'Experimental estimate.':

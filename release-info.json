@@ -1,11 +1,11 @@
 {
-  "buildId": "public-blank-20261104T040614630Z",
+  "buildId": "public-blank-20261104T050642586Z",
   "distribution": "public-blank",
-  "status": "Early public version; owner accepted private-phone contract-reference update. Public-device checks pending.",
+  "status": "Early public version; clearer sharing, matching phase labels and expiring level confirmations. Public-device checks pending.",
   "appUrl": "https://ib-notes-app.github.io/ib-notes/",
   "archive": "downloads/IB-Notes-blank-slate.zip",
-  "archiveBytes": 4200628,
-  "archiveSha256": "42a5a445f1250c916910b8b0bd2b4449e575424c69bf63a7946767c718695249",
+  "archiveBytes": 4202290,
+  "archiveSha256": "42ed916ae1c4d945841176ea0d14bc95c1edf23759d43994c510713d3801bfd3",
   "bundledMarketHistory": false,
   "bundledJournalRecords": false,
   "bundledExamples": false,
@@ -14,34 +14,28 @@
   "dataStorage": "Local SQLite in the browser; no journal synchronization.",
   "preparedAt": "2026-11-03",
   "changes": [
-    "Prior-contract references retain their month/year and exact source contract.",
-    "Home shows the closest two saved references on each side beyond the old map-distance cutoff.",
-    "Original prices, expiry groups, tracking, grades and forecast inputs remain separate.",
-    "Public source has no bundled-history loaders, private-dataset filenames or example records."
+    "Image cards always say Not financial advice or trade signals, including cards without forecasts.",
+    "One clear recording notice explains human error and gaps; reconstruction and source warnings remain visible.",
+    "ON, 15R, A, B, RTH and full-session cards avoid repeated footer notices and wrap longer qualifications.",
+    "Record price Details uses exactly ON, 15R, A, B and RTH.",
+    "Level confirmations expire and clear on navigation; save errors remain visible."
   ],
   "verification": {
-    "typecheck": "Passed",
-    "publicSourceRebuild": "Passed with existing local dependencies.",
-    "unitTests": {
-      "passed": 752,
-      "skipped": 1
+    "typecheck": "Passed, including cleaned public source.",
+    "focusedUnitTests": {
+      "passed": 69,
+      "files": 7
     },
-    "publicChromiumJourneys": 8,
+    "publicChromiumJourneys": 12,
     "safeUpdateChecks": 2,
-    "sourceAndDownloadsAudit": "Passed: no records, restricted-source mentions, private filenames or data files in the current tree and nested downloads.",
-    "visibleGitHistory": "Clean starting history published; previous history backed up only locally.",
+    "sourceAndDownloadsAudit": "Passed: source, website, nested downloads and reachable history have no records, restricted-source mentions, private dataset names or data files.",
     "livePublicOrigin": {
-      "status": "Passed",
-      "chromiumJourneys": 8,
-      "matchingSiteFiles": 38,
-      "excludedDataUrlsReturning404": 8,
-      "pagesCommit": "06d56b11415a29317f199e7b8bf8858e5dddc9f8",
-      "deploymentRun": "https://github.com/ib-notes-app/ib-notes/actions/runs/41772593611"
+      "status": "Pending"
     },
     "physicalPublicOriginInstall": "Pending",
-    "firefoxAndWebkit": "Not rerun; browser bundles unavailable.",
+    "firefoxAndWebkit": "Not run; automation browsers unavailable.",
     "staticLiteralReview": {
-      "filesInspected": 189,
+      "filesInspected": 190,
       "candidates": 50,
       "newPriceOrHistoryLiterals": 0
     }

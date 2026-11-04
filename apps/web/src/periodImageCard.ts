@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 import type { DayType, SessionPeriodStatistics } from '@ib-field-notes/domain';
 import {shareWatermark} from './shareWatermark';
+import {SHARE_DISCLAIMER} from './shareFooter';
 
 export const shareOutcomeLabel = (type: DayType | null) => type === null ? 'Not recorded'
   : ({IBH:'High only',IBL:'Low only',IBB:'Both sides',IBN:'Neither'})[type];
@@ -125,7 +126,7 @@ export function buildPeriodImageCard(card: PeriodCard) {
     ${overflow ? '<text x="72" y="1240" class="warning">Selected commentary does not fit this card.</text>' : ''}
     ${shareWatermark(1300,520)}
     <line x1="72" y1="1260" x2="1008" y2="1260" stroke="#38414f" stroke-width="2"/>
-    <text x="72" y="1300" class="footer">Observe · Record · Learn</text>
+    <text x="72" y="1300" class="footer">${SHARE_DISCLAIMER}</text>
     <text x="1008" y="1300" text-anchor="end" class="footer">${s.incompleteDays ? 'Unfinished days may change as prices are added' : 'From recorded sessions'}</text>
   </svg>`;
   return {svg,overflow,omittedLineCount,altText:`${card.title}. ${card.subtitle}. ${s.completedDays} complete days. `+

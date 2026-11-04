@@ -2,6 +2,7 @@
 import {formatPriceNumber,type WeeklySessionSummary} from '@ib-field-notes/domain';
 import {weeklyMarketFacts,type WeeklyMarketOptions,type MarketRange} from './weeklyMarketFacts';
 import {shareWatermark} from './shareWatermark';
+import {SHARE_DISCLAIMER} from './shareFooter';
 import {wrapShareText} from './shareImageText';
 
 const xml=(s:string)=>s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&apos;');
@@ -126,12 +127,12 @@ export function buildWeeklyMarketCard(summary:WeeklySessionSummary,instrument:st
     ${text('IB: first hour · ON: overnight · RTH: full regular session',72,191,'quiet')}
     ${lines.join('')}
     <line x1="72" y1="1260" x2="1008" y2="1260" stroke="#38414f" stroke-width="2"/>
-    ${text('Educational only. Do not use for trading decisions.',72,1286,'footer')}
+    ${text(SHARE_DISCLAIMER,72,1286,'footer')}
     ${text(`Bars share a price scale within each day. Gold dot: close.${missing?' — = not recorded.':''}`,72,1310,'footer')}${shareWatermark(1310)}
   </svg>`;
   return {svg,overflow,omittedLineCount,altText:`${instrument} · ${title}. ${dates}. `+
     tiles.map(t=>`${t.label}: ${t.value}.`).join(' ')+
     facts.days.map(d=>`${date(d.date,{weekday:'long',month:'short',day:'numeric'})}. ON ${range(d.on)}. IB ${range(d.ib)}. RTH ${range(d.rth)}. `+
       `Forecast ${d.forecast?`${d.forecast.types.map(t=>names[t]).join(' / ')} ${Math.round(d.forecast.probability*100)}%, ${d.forecast.earlier?'earlier ':''}${time(d.forecast.at)}`:'unavailable'}. Actual ${d.actual?names[d.actual]:'unavailable'}.`).join(' ')+
-    ' Range bars share a price scale within each day. Gold dot: close. Based on saved observations. Educational only. Do not use for trading decisions.'};
+    ` Range bars share a price scale within each day. Gold dot: close. Based on saved observations. ${SHARE_DISCLAIMER}`};
 }

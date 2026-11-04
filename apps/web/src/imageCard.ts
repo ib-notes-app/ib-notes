@@ -7,6 +7,7 @@ import { deriveCompactShareFacts } from "./sharePreview";
 import { buildShareMap, SHARE_MAP_STYLES, shareLevelCode, type ShareMapLevel } from "./shareMap";
 import {buildImageCaption} from './imageCaption';
 import {shareWatermark} from './shareWatermark';
+import {SHARE_DISCLAIMER} from './shareFooter';
 import {wrapShareText} from './shareImageText';
 
 export const IMAGE_CARD_WIDTH = 1080;
@@ -287,7 +288,7 @@ export function buildImageCardSvg(
   ${overflow ? `<text x="72" y="1228" class="warning">Selected content does not fit this card.</text>` : ""}
   ${shareWatermark(1300,520)}
   <line x1="72" y1="1260" x2="1008" y2="1260" stroke="#38414f" stroke-width="2"/>
-  <text x="72" y="1300" class="footer">Observe · Record · Learn</text>
+  <text x="72" y="1300" class="footer">${SHARE_DISCLAIMER}</text>
   <text x="1008" y="1300" text-anchor="end" class="footer">From journaled observations</text>
 </svg>`.trim();
 

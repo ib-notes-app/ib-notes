@@ -3559,12 +3559,22 @@ export function App() {
   const [storageStatus, setStorageStatus] = useState<StorageStatus | null>(null);
   const [persistence, setPersistence] = useState<PersistenceState>("unknown");
   const [message, setMessage] = useState("Opening the local field journal…");
+  const [actionNotice,setActionNotice]=useState<{text:string;panel:SessionPanel;sessionId:string|null}|null>(null);
   const [fatalError, setFatalError] = useState<string | null>(null);
   const [readOnly, setReadOnly] = useState(false);
   const [migrationProof, setMigrationProof] = useState<boolean | null>(null);
   const [updateReady, setUpdateReady] = useState(false);
   const [offlineReady, setOfflineReady] = useState(false);
   const [activePanel, setActivePanel] = useState<SessionPanel>("dashboard");
+  function showActionMessage(text:string){
+    setMessage('');setActionNotice({text,panel:activePanel,sessionId:session?.id??null});
+  }
+  const statusMessage=message||(actionNotice?.panel===activePanel&&actionNotice.sessionId===session?.id?actionNotice.text:'');
+  useEffect(()=>{setActionNotice(null);},[activePanel,session?.id]);
+  useEffect(()=>{
+    if(!actionNotice)return;
+    const timer=window.setTimeout(()=>setActionNotice(null),5000);return()=>clearTimeout(timer);
+  },[actionNotice]);
   const workspaceNavigation=useWorkspaceNavigation(workspacePreview,activePanel,setActivePanel,'dashboard' as SessionPanel);
   useEffect(()=>{if(workspacePreview){workspaceUndo.current=null;setWorkspaceUndoAvailable(false);setWorkspaceNotice('');}},[workspacePreview,session?.id]);
   useEffect(()=>{
@@ -4864,7 +4874,7 @@ export function App() {
       );
       setEditingSignificantLevelId(null);
       setSignificantLevelOpen(false);
-      setMessage(
+      showActionMessage(
         existing
           ? "Price level updated."
           : "Significant Level added to the active list.",
@@ -4899,7 +4909,7 @@ export function App() {
         invalidation_corrected: "Invalidation corrected; level returned to the active map."
       } as const;
       setLastArchivedLevelId(action === "retired" || action === "invalidated" ? level.id : null);
-      setMessage(labels[action]);
+      showActionMessage(labels[action]);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : String(error));
     }
@@ -4919,7 +4929,7 @@ export function App() {
     try {
       await repositoryRef.current.saveSignificantLevelPreferences(next);
       setSignificantLevelPreferences(next);
-      setMessage(`Nearby Significant Levels now use ±${proximityPoints} points from CP.`);
+      showActionMessage(`Nearby Significant Levels now use ±${proximityPoints} points from CP.`);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : String(error));
     }
@@ -4938,7 +4948,7 @@ export function App() {
       );
       await repositoryRef.current.saveSignificantLevel(next);
       setSignificantLevels((current) => [...current.filter(candidate => candidate.id !== next.id), next]);
-      setMessage(showOnMap
+      showActionMessage(showOnMap
         ? "Level enabled on map."
         : "Level hidden from map.");
     } catch (error) {
@@ -4966,7 +4976,7 @@ export function App() {
       );
       await repositoryRef.current.saveSignificantLevel(next);
       setSignificantLevels((current) => [...current.filter(candidate => candidate.id !== next.id), next]);
-      setMessage("Level note saved.");
+      showActionMessage("Level note saved.");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : String(error));
     }
@@ -4985,7 +4995,7 @@ export function App() {
       );
       await repositoryRef.current.saveSignificantLevel(next);
       setSignificantLevels((current) => [...current.filter(candidate => candidate.id !== next.id), next]);
-      setMessage("Significant Level note removed.");
+      showActionMessage("Significant Level note removed.");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : String(error));
     }
@@ -5041,7 +5051,7 @@ export function App() {
       await repositoryRef.current.saveSignificantLevel(next,updatedSession);
       setSignificantLevels((current) => [...current.filter(candidate => candidate.id !== next.id), next]);
       setSignificantLevelUndo({levelId:next.id,eventId:next.marketEvents.find(event=>!event.removedAt&&event.kind===kind&&event.observedAt===observedAt)!.id,action:'added'});
-      setMessage(
+      showActionMessage(
         `${significantLevelMarketEventLabel(level, kind)} recorded during ${
           significantLevelEpisodePhaseLabel(significantLevelEpisodePhase(session, observedAt))
         }.`
@@ -5073,7 +5083,7 @@ export function App() {
       await repositoryRef.current.saveSignificantLevel(next);
       setSignificantLevels((current) => [...current.filter(candidate => candidate.id !== next.id), next]);
       setSignificantLevelUndo({levelId:next.id,eventId:marketEventId,action:'removed'});
-      setMessage("Significant Level visit removed from active review.");
+      showActionMessage("Significant Level visit removed from active review.");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : String(error));
     }
@@ -5119,7 +5129,7 @@ export function App() {
       );
       await repositoryRef.current.saveSignificantLevel(next);
       setSignificantLevels((current) => [...current.filter(candidate => candidate.id !== next.id), next]);
-      setMessage(
+      showActionMessage(
         `${failurePatternLabel(classification)} confirmed by you and linked to ${significantLevelEpisodePhaseLabel(
           significantLevelEpisodePhase(session, observedAt),
         )}.`,
@@ -5142,7 +5152,7 @@ export function App() {
       );
       await repositoryRef.current.saveSignificantLevel(next);
       setSignificantLevels((current) => [...current.filter(candidate => candidate.id !== next.id), next]);
-      setMessage("Confirmed LBAF/LAAF episode removed from active review.");
+      showActionMessage("Confirmed LBAF/LAAF episode removed from active review.");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : String(error));
     }
@@ -5165,7 +5175,7 @@ export function App() {
       });
       setEditingSignificantLevelId(null);
       setSignificantLevelOpen(false);
-      setMessage("Price level removed. You can undo this below.");
+      showActionMessage("Price level removed. You can undo this below.");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : String(error));
     }
@@ -5185,7 +5195,7 @@ export function App() {
         const nextSession={...session,updatedAt:now};
         await repositoryRef.current.saveSignificantLevel(restored,nextSession);
         setSignificantLevels(current=>current.map(candidate=>candidate.id===restored.id?restored:candidate));
-        setSession(nextSession);setSignificantLevelUndo(null);setMessage('Level observation change undone.');return;
+        setSession(nextSession);setSignificantLevelUndo(null);showActionMessage('Level observation change undone.');return;
       }
       const restored = withUndoneSignificantLevelChange(
         session,
@@ -5198,7 +5208,7 @@ export function App() {
       setSignificantLevels((current) => current.map((candidate) =>
         candidate.id === restored.level.id ? restored.level : candidate));
       setSignificantLevelUndo(null);
-      setMessage("Significant Level change undone.");
+      showActionMessage("Significant Level change undone.");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : String(error));
     }
@@ -5890,7 +5900,7 @@ export function App() {
       </div>
       </div>}
 
-      <p className={`global-message${message ? "" : " message-empty"}${workspacePreview&&/opened locally\.$/.test(message)?" workspace-startup":""}${activePanel === 'levels' && significantLevelOpen && /^(Current session|Session \d{4}-\d{2}-\d{2}) opened locally\.$/.test(message) ? ' level-entry-startup-message' : ''}`} role="status" aria-live="polite">{message}</p>
+      <p className={`global-message${statusMessage ? "" : " message-empty"}${workspacePreview&&/opened locally\.$/.test(statusMessage)?" workspace-startup":""}${activePanel === 'levels' && significantLevelOpen && /^(Current session|Session \d{4}-\d{2}-\d{2}) opened locally\.$/.test(statusMessage) ? ' level-entry-startup-message' : ''}`} role="status" aria-live="polite">{statusMessage}</p>
       {session&&activePanel==='dashboard'&&returnToReview&&<button className="research-overview-back review-return" type="button" onClick={resumeReview}>← Back to Review</button>}
       {lastArchivedLevelId && significantLevels.some(level => level.id === lastArchivedLevelId && ["retired", "invalidated"].includes(level.currentStatus)) && <button className="undo-action" type="button" onClick={() => {
         const level = significantLevels.find(item => item.id === lastArchivedLevelId)!;

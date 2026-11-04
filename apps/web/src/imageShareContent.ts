@@ -2,6 +2,7 @@
 import {createSessionClock} from '@ib-field-notes/session-templates';
 import type {JournalSession} from '@ib-field-notes/domain';
 import {buildDashboardShareCard,type DashboardShareInput,type DashboardShareCard,type ShareFactSection} from './dashboardShare';
+import {shareFooterNotices} from './shareFooter';
 
 export const IMAGE_SHARE_TOPICS=[['ib','Initial Balance'],['on','Overnight'],['structure','Structure map']] as const;
 export type ImageShareTopic=typeof IMAGE_SHARE_TOPICS[number][0];
@@ -54,9 +55,10 @@ export function buildTopicShareCard(topic:Exclude<ImageShareTopic,'structure'>,i
   const context=buildDashboardShareCard('conditions',input).sections.filter(section=>section.title.startsWith('Prior '));
   card.sections.push(...context);
  }
- const qualifications=[selected.recap?recap:null,...(selected.forecast?[forecast,post]:[])].filter((c):c is DashboardShareCard=>!!c)
-  .filter(c=>/reconstruct|replay/i.test(c.footnote)).map(c=>c.footnote);
- if(qualifications.length)card.footnote=[...new Set([card.footnote,...qualifications])].join(' ');
+ const qualifications=[...(input.session.studyReplay?['Historical replay · reconstructed estimates']:[]),
+  ...[selected.recap?recap:null,...(selected.forecast?[forecast,post]:[])].filter((c):c is DashboardShareCard=>!!c)
+   .filter(c=>/reconstruct|replay/i.test(c.footnote)).map(c=>c.footnote)];
+ if(qualifications.length)card.footnote=shareFooterNotices([card.footnote,...qualifications]).join(' ');
  return card;
 }
 

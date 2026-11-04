@@ -2,6 +2,28 @@
 
 [Open IB Notes](https://ib-notes-app.github.io/ib-notes/) · [Getting started](QUICK_START.md) · [All guides](../README.md)
 
+## Clearer share-card footers and phase names
+
+Every image card now says **Not financial advice or trade signals**, including
+cards that show only recorded prices or structure. The recording notice appears
+once and explains that human error or gaps between entries can leave price
+movements unrecorded. Longer warnings stay readable, and replay, source and
+level qualifications are kept when relevant.
+
+**Record price → Details** now uses the same **ON, 15R, A, B and RTH** names as
+the dashboard. Your entries still save to the selected phase.
+
+After updating, download a new image to get the new footer. Images you already
+saved or posted do not change.
+
+## Level confirmations clear themselves
+
+Messages such as **Level enabled on map** and **Level hidden from map** now
+disappear after a few seconds and clear when you leave the page or day. Level
+note, archive/restore, proximity and recorded-visit confirmations behave the
+same way. The saved changes remain in your journal; only the message clears.
+A save error stays visible so it is not mistaken for a successful change.
+
 ## Levels stay useful through large moves
 
 Home now finds the closest two saved references on each side of recorded CP,

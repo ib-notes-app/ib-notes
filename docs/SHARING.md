@@ -37,6 +37,12 @@ months and years have their own recap sharing screens with Image Card first.
 
 ## Before posting
 
+Every image card includes **Not financial advice or trade signals**. The period
+cards also explain: **Recorded observations: human error or gaps between entries
+may leave price movements unrecorded.** This is a reminder that your entries
+show what you recorded, rather than every market movement. Replay and other
+relevant qualifications remain visible without repeating the same notice.
+
 Check the date, period, prices, event times and any selected notes. An unavailable
 forecast stays unavailable; exporting does not create odds. A return count means
 recorded returns, not proof of every move between your observations.
@@ -45,5 +51,8 @@ Downloading or copying creates your chosen output. It does not automatically
 post to X or another service. Confirm you are allowed to share the underlying
 data and any derived content; the app license grants no market-data rights.
 See [Privacy](PRIVACY.md) and the [data-rights reminder](CSV_IMPORT.md#check-your-data-rights-first).
+
+After an app update, export a fresh image. Downloaded files and existing posts
+keep the wording they had when you made them.
 
 Structure journal only · No trade recommendations.

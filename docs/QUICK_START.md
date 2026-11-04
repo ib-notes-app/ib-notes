@@ -44,7 +44,8 @@ Below the price are **Entries · Add Note · + Event · Details**.
 - **+ Event** records something such as CPI, PPI or FOMC and its tracking window.
   Saved prices within that window can build its observed range. The event is
   entered manually; no news feed supplies it. See [Events](EVENTS.md).
-- **Details** explains the entry types and gives access to the target phase.
+- **Details** explains the entry types and gives access to the target phase:
+  **ON, 15R, A, B or RTH**, matching the dashboard buttons.
 
 ## Correct a saved price quickly
 
