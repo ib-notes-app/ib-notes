@@ -30,7 +30,14 @@
     "safeUpdateChecks": 2,
     "sourceAndDownloadsAudit": "Passed: source, website, nested downloads and reachable history contain no records, restricted-source mentions, private dataset names or data files.",
     "livePublicOrigin": {
-      "status": "Pending"
+      "status": "Passed",
+      "chromiumJourneys": 14,
+      "publicOriginJourneys": 13,
+      "localOldBuildMigrationJourney": 1,
+      "matchingSiteFiles": 38,
+      "excludedDataUrlsReturning404": 8,
+      "pagesCommit": "150f5bf8473c39df2c468c725d3ec6660e70e5c2",
+      "deploymentRun": "https://github.com/ib-notes-app/ib-notes/actions/runs/41788054702"
     },
     "physicalPublicOriginInstall": "Pending",
     "firefoxAndWebkit": "Not run; automation browsers unavailable.",

@@ -38,8 +38,13 @@ was not part of that check.
 
 ## Live public checks
 
-Live checks for this build are pending. Results will be recorded in
-[release-info.json](../release-info.json).
+The public verification run passed all fourteen Chromium journeys: thirteen
+use the live public origin; one exercises an older build and the new package
+at an isolated local origin. All 38 served files match the reviewed package,
+and eight excluded-data URLs return 404. Results are recorded in
+[release-info.json](../release-info.json). Source, nested downloads and reachable
+history contain no bundled records, restricted-source mentions or private
+dataset filenames.
 
 ## Still pending
 
