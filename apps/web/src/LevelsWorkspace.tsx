@@ -96,7 +96,8 @@ export function LevelsWorkspace({ session, levels, batches, priceBatches, contex
   const mappedIds=new Set(mappedLevelIds);
   // This list deliberately ignores browser filters and the distance limit:
   // an enabled off-screen reference must still be easy to switch off.
-  const enabledMapLevels=useMemo(()=>levels.filter(level=>level.currentStatus==='active'&&level.showOnMap),[levels]);
+  const enabledMapLevels=useMemo(()=>levels.filter(level=>level.currentStatus==='active'&&level.showOnMap&&level.sessionEdge?.sessionId!==session.id),[levels,session.id]);
+  const shownOptionalCount=enabledMapLevels.filter(level=>mappedIds.has(level.id)).length;
   useEffect(()=>{
     if(!active||!mapRequest||mapRequest.sessionId!==session.id||handledMapRequest.current===mapRequest.id)return;
     handledMapRequest.current=mapRequest.id;
@@ -295,8 +296,8 @@ export function LevelsWorkspace({ session, levels, batches, priceBatches, contex
       </details>
     </div> : selectedId&&preparing ? <p role="status">Loading level…</p> : focused ? <p role="status">This level is no longer available. Return to Today or open Levels.</p> : <>
       {onToggleMap&&<details ref={mapSection} className="levels-map-enabled" open={mapOpen} onToggle={event=>setMapOpen(event.currentTarget.open)}>
-        <summary tabIndex={0}>Map levels <span>{mappedLevelIds.length} shown · {enabledMapLevels.length} enabled</span></summary>
-        <p className="levels-help">Hide a reference to clear it from the map. Its record and history stay saved. This list includes enabled levels outside the map distance.</p>
+        <summary tabIndex={0}>Map levels <span>{shownOptionalCount} shown · {enabledMapLevels.length} enabled</span></summary>
+        <p className="levels-help">Hide an extra reference to clear it from the map. Its record and history stay saved, including references outside the map distance. This day's own ON and IB boundaries always stay visible in Structure.</p>
         {enabledMapLevels.length?<ul aria-label="Enabled map levels">{enabledMapLevels.map(level=><li key={level.id}>
           <button type="button" className="map-level-record" onClick={()=>{setSelectedId(`journal:${level.id}`);window.scrollTo({top:0});}}>
             <strong>{level.sessionEdge?.code??displayLevelLabel(level)??`Significant ${level.levelType}`}</strong>

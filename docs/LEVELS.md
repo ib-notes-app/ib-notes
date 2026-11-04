@@ -87,6 +87,15 @@ journal and day, including ones too far away to appear on the map right now.
 **Shown now** marks the references currently displayed. The counts distinguish
 shown references from all enabled references.
 
+This list controls extra references. The selected day's own ON, 15R, A, B/IB
+and RTH ranges are part of its structure and always remain visible. Their
+details say **Always shown on this day**. A boundary carried from a different
+day is an optional reference that you can show or hide.
+
+Structure labels the current period's midpoint when both bounds are known.
+That midpoint belongs only to the map; it is never added to your level library
+or carried forward.
+
 Tap **Hide** beside a reference to take it off the map. Its price, notes and
 history stay saved. You can hide several without opening each detail page.
 The list ignores the browser's search, Above/Below, tier and distance filters,

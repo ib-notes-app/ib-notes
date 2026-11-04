@@ -2,6 +2,17 @@
 
 [Open IB Notes](https://ib-notes-app.github.io/ib-notes/) · [Getting started](QUICK_START.md) · [All guides](../README.md)
 
+## Your day's structure stays on the map
+
+The selected day's own ON, 15R, A, B/IB and RTH ranges always remain visible
+in Structure. Clearing extra map references cannot remove those boundaries,
+including when an older version saved them as hidden.
+
+The current period also has a named midpoint on the map and between the low
+and high in Current conditions. Both use the same recorded range. It is not
+saved as a level or carried into another day. Empty sessions identify their
+phase without inventing a range.
+
 ## Clear enabled map references in one place
 
 **Levels → Map levels** lists your enabled references with a quick **Hide**
@@ -9,8 +20,8 @@ button on each row. See which ones are shown now and which are enabled outside
 the map distance. Hiding keeps the record and its history saved.
 
 **Structure → Manage map levels**, or a listed reference under Other map
-levels, opens that same section. Back returns to Structure. Hidden current-day
-IB and ON references also stay hidden after returning or reloading.
+levels, opens that same section. Back returns to Structure. Optional references
+stay hidden after returning or reloading; the day's own boundaries stay visible.
 [Read the map-level guide](LEVELS.md#clear-map-references-quickly).
 
 ## Clearer share-card footers and phase names

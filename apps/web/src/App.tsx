@@ -684,6 +684,14 @@ function MapReferenceLabelLayer({
   </>;
 }
 
+function StructureMidpoint({phase,high,low,topFor,tickSize}:{phase:WorkspacePhase;high:number|null;low:number|null;topFor:(price:number)=>number;tickSize:number}){
+  if(high===null||low===null)return null;
+  const midpoint=low+(high-low)/2,price=formatTickRoundedPrice(midpoint,tickSize);
+  return <div className="map-period-midpoint" role="img" aria-label={`${phase} midpoint ${price}`} style={{top:`${topFor(midpoint)}%`}}>
+    <span>{phase} mid · {price}</span>
+  </div>;
+}
+
 function StructureMap({
   session,
   finalIb,
@@ -773,8 +781,6 @@ function StructureMap({
   const activeLevels = significantLevels.filter(
     (level) => level.currentStatus === "active" && level.sessionEdge?.sessionId !== session.id,
   );
-  const edgeShown = (code: string) => significantLevels.find(level =>
-    level.sessionEdge?.sessionId === session.id && level.sessionEdge.code === code)?.showOnMap ?? true;
   const markers = activeLevels.flatMap(level => levelMapReferences.has(level.id) ? [levelMapReferences.get(level.id)!] : []);
   const levelReferences = activeLevels.flatMap((level) => {
     const shortLabel = displayLevelLabel(level) || `Significant ${level.levelType}`;
@@ -824,6 +830,12 @@ function StructureMap({
       reference !== null);
   });
   const { high: rthHigh, low: rthLow } = deriveRecordedRthRange(session);
+  const structurePhase:WorkspacePhase=activePhase??(rthHigh!==null||rthLow!==null?'RTH':primaryRange?primaryRange.column===0?'15R':primaryRange.column===1?'A':'B':'ON');
+  const currentRange=workspaceRecordedRange(session,structurePhase);
+  const rthReferences=structurePhase==='RTH'?[
+    rthHigh===null?null:{id:'rth-high',label:'RTHH',price:rthHigh},
+    rthLow===null?null:{id:'rth-low',label:'RTHL',price:rthLow},
+  ].filter((reference):reference is {id:string;label:string;price:number}=>reference!==null):[];
   const contextCount =
     (overnightHigh !== null || overnightLow !== null ? 1 : 0) +
     (rthHigh !== null || rthLow !== null ? 1 : 0) +
@@ -832,20 +844,34 @@ function StructureMap({
     overnightHigh === null ? null : { id: "onh", label: "ONH", price: overnightHigh },
     overnightLow === null ? null : { id: "onl", label: "ONL", price: overnightLow },
   ].filter((reference): reference is { id: string; label: string; price: number } =>
-    reference !== null && edgeShown(reference.label));
+    reference !== null);
+  const earlyReferences=[...overnightReferences,...(structurePhase==='ON'?[]:structurePhase==='RTH'?rthReferences:[
+    currentRange.high===null?null:{id:'period-high',label:`${structurePhase}H`,price:currentRange.high},
+    currentRange.low===null?null:{id:'period-low',label:`${structurePhase}L`,price:currentRange.low},
+  ].filter((reference):reference is {id:string;label:string;price:number}=>reference!==null))];
+  const sessionStartMs = sessionObservationInstant(session.rthDate,ES_TEMPLATE.overnightStart).epochMilliseconds;
+  const preFormationCloseMs = checkpointInstant(session.rthDate,ES_TEMPLATE.checkpoints.studyClose).epochMilliseconds;
+  const preFormationObservations = primaryRange?[]:session.cpObservations.filter(observation=>{
+    const at=Temporal.Instant.from(observation.observedAt).epochMilliseconds;
+    return at>=sessionStartMs&&at<=preFormationCloseMs;
+  }).sort((left,right)=>left.observedAt.localeCompare(right.observedAt));
 
-  if (!primaryRange && overnightReferences.length === 0 && levelReferences.length === 0) {
+  // Hiding reference lines changes their display, never the presence of ON data.
+  if (!primaryRange && earlyReferences.length===0 && preFormationObservations.length === 0 && levelReferences.length === 0) {
+    const emptyTitle=activePhase?{ON:'Overnight references','15R':'15R structure',A:'A-period structure',B:'Forming IB',RTH:'RTH structure'}[activePhase]:'IB formation';
     return (
       <>
         <div className="section-heading map-heading">
           <div>
             <p className="eyebrow">Current structure</p>
-            <h2>IB formation</h2>
+            <h2>{emptyTitle}</h2>
           </div>
           <span className="status-dot">Awaiting data</span>
         </div>
         <p className="empty-state">
-          Start with ON high and low, or open A to record the opening range. Your map builds as you add observations.
+          {activePhase==='ON'?'Record an ON price, high or low. Your overnight map builds as you add observations.':
+            activePhase?`Record a price, high or low in ${activePhase}. Your map builds as you add observations.`:
+              'Start with ON high and low, or open A to record the opening range. Your map builds as you add observations.'}
         </p>
         {(contextCount > 0 || onManageMapLevels) && (
           <MapContext
@@ -865,22 +891,8 @@ function StructureMap({
   }
 
   if (!primaryRange) {
-    const sessionStartMs = sessionObservationInstant(
-      session.rthDate,
-      ES_TEMPLATE.overnightStart,
-    ).epochMilliseconds;
-    const studyCloseMs = checkpointInstant(
-      session.rthDate,
-      ES_TEMPLATE.checkpoints.studyClose,
-    ).epochMilliseconds;
-    const preFormationObservations = [...session.cpObservations]
-      .filter((observation) => {
-        const observedMs = Temporal.Instant.from(observation.observedAt).epochMilliseconds;
-        return observedMs >= sessionStartMs && observedMs <= studyCloseMs;
-      })
-      .sort((left, right) => left.observedAt.localeCompare(right.observedAt));
     const overnightValues = [
-      ...overnightReferences.map((reference) => reference.price),
+      ...earlyReferences.map(reference=>reference.price),
       ...preFormationObservations.map((observation) => observation.price),
       ...levelReferences.map((reference) => reference.price),
     ];
@@ -940,15 +952,15 @@ function StructureMap({
         <div className="section-heading map-heading">
           <div>
             <p className="eyebrow">Current structure</p>
-            <h2>Overnight references</h2>
+            <h2>{structurePhase==='ON'?'Overnight references':`${structurePhase} structure`}</h2>
           </div>
           <span className="status-dot map-status">
-            {session.overnight.status === "confirmed" ? "Locked" : "Forming"}
+            {structurePhase==='ON'?(session.overnight.status === "confirmed" ? "Locked" : "Forming"):activePhase?'Forming':'Recorded'}
           </span>
         </div>
-        <div className="map-shell" data-edge-markers={overnightReferences.length > 0} data-level-markers={markers.length > 0} role="group" aria-label="Current market structure map">
+        <div className="map-shell" data-edge-markers={earlyReferences.length > 0} data-level-markers={markers.length > 0} role="group" aria-label="Current market structure map">
           <div className="map-formation-canvas">
-            {overnightReferences.map((reference) => (
+            {earlyReferences.map((reference) => (
               <span
                 key={reference.id}
                 className="on-reference-line" role="img"
@@ -964,10 +976,11 @@ function StructureMap({
                 aria-label={`${reference.label} ${formatPriceNumber(reference.price)}`}
               />
             ))}
+            <StructureMidpoint phase={structurePhase} {...currentRange} topFor={overnightTopFor} tickSize={ES_TEMPLATE.tickSize}/>
             <MapReferenceLabelLayer
               levels={markers}
               references={[
-                ...overnightReferences.map((reference) => ({
+                ...earlyReferences.map((reference) => ({
                   ...reference,
                   shortLabel: reference.label,
                   tone: "overnight" as const,
@@ -1005,9 +1018,9 @@ function StructureMap({
               />
             ))}
           </div>
-          <div className="map-overnight-axis" role="group" aria-label="Recorded overnight time span">
+          <div className="map-overnight-axis" role="group" aria-label={structurePhase==='ON'?'Recorded overnight time span':'Recorded session time span'}>
             <span>{overnightAxisStart}</span>
-            <strong>Overnight</strong>
+            <strong>{structurePhase==='ON'?'Overnight':structurePhase}</strong>
             <span>{overnightAxisEnd}</span>
           </div>
         </div>
@@ -1066,6 +1079,7 @@ function StructureMap({
   const formationValues = formingSteps.flatMap((range) => [range.high, range.low]);
   const mapValues = [
     ...overnightReferences.map((reference) => reference.price),
+    ...rthReferences.map(reference=>reference.price),
     ...formationValues,
     ...recordedObservations.map((observation) => observation.price),
     ...levelReferences.map((reference) => reference.price),
@@ -1078,7 +1092,7 @@ function StructureMap({
   const scaleMax = mapMax + scalePadding;
   const scaleSpan = scaleMax - scaleMin;
   const topFor = (price: number) => ((scaleMax - price) / scaleSpan) * 100;
-  const midpoint = primaryRange.low + (primaryRange.high - primaryRange.low) / 2;
+  const rangeCode=finalIb?'IB':primaryRange.column===0?'15R':primaryRange.column===1?'A':'B';
   const largeMoveThreshold = mapMoveThreshold(ES_TEMPLATE.tickSize, mapSpan);
   const formationObservations = recordedObservations.filter((observation) =>
     Temporal.Instant.from(observation.observedAt).epochMilliseconds <= ibLockMs);
@@ -1132,6 +1146,8 @@ function StructureMap({
               aria-label={`${reference.label} ${formatPriceNumber(reference.price)}`}
             />
           ))}
+          {rthReferences.map(reference=><span key={reference.id} className="rth-reference-line" role="img" aria-label={`${reference.label} ${formatPriceNumber(reference.price)}`} style={{top:`${topFor(reference.price)}%`}}/>)}
+          <StructureMidpoint phase={structurePhase} {...currentRange} topFor={topFor} tickSize={ES_TEMPLATE.tickSize}/>
           {finalIb && (
             <div
               className="map-rth-ib-band"
@@ -1158,17 +1174,16 @@ function StructureMap({
           ))}
           {(
             <>
-              {edgeShown('IBH') && <span
+              <span
                 className="ib-reference-line high" data-forming={!finalIb} role="img"
                 style={{ top: `${topFor(primaryRange.high)}%`, background: ibReferenceBackground("high") }}
-                aria-label={`IBH ${formatPriceNumber(primaryRange.high)}`}
-              />}
-              <span className="ib-reference-line midpoint" style={{ top: `${topFor(midpoint)}%` }} aria-hidden="true" />
-              {edgeShown('IBL') && <span
+                aria-label={`${rangeCode}H ${formatPriceNumber(primaryRange.high)}`}
+              />
+              <span
                 className="ib-reference-line low" data-forming={!finalIb} role="img"
                 style={{ top: `${topFor(primaryRange.low)}%`, background: ibReferenceBackground("low") }}
-                aria-label={`IBL ${formatPriceNumber(primaryRange.low)}`}
-              />}
+                aria-label={`${rangeCode}L ${formatPriceNumber(primaryRange.low)}`}
+              />
             </>
           )}
           <MapReferenceLabelLayer
@@ -1179,6 +1194,7 @@ function StructureMap({
                 shortLabel: reference.label,
                 tone: "overnight" as const,
               })),
+              ...rthReferences.map(reference=>({...reference,shortLabel:reference.label,tone:'overnight' as const})),
               ...levelReferences.map((reference) => ({
                 ...reference,
                 tone: "significant" as const,
@@ -1186,17 +1202,17 @@ function StructureMap({
               ...([
                 {
                   id: "ibh",
-                  shortLabel: "IBH",
+                  shortLabel: `${rangeCode}H`,
                   price: primaryRange.high,
                   tone: "ib" as const,
                 },
                 {
                   id: "ibl",
-                  shortLabel: "IBL",
+                  shortLabel: `${rangeCode}L`,
                   price: primaryRange.low,
                   tone: "ib" as const,
                 },
-              ].filter(reference => edgeShown(reference.shortLabel))),
+              ]),
             ]}
             topFor={topFor}
           />
@@ -1234,8 +1250,8 @@ function StructureMap({
         </div>
       </div>
       <dl className="geometry-grid map-geometry">
-        <div><dt>IB range</dt><dd>{formatPriceNumber(primaryRange.high - primaryRange.low)} <small>pts</small></dd></div>
-        <div><dt>Midpoint</dt><dd>{formatTickRoundedPrice(midpoint, ES_TEMPLATE.tickSize)}</dd></div>
+        <div><dt>{rangeCode} range</dt><dd>{formatPriceNumber(primaryRange.high - primaryRange.low)} <small>pts</small></dd></div>
+        <div><dt>{structurePhase} midpoint</dt><dd>{currentRange.high!==null&&currentRange.low!==null?formatTickRoundedPrice(currentRange.low+(currentRange.high-currentRange.low)/2,ES_TEMPLATE.tickSize):'Pending'}</dd></div>
         <div className="map-price-position"><dt>Price in range<small>0% low · 100% high</small></dt><dd>{formatRangePosition(latestCp?.price ?? null, primaryRange)}</dd></div>
       </dl>
       {formationRanges.length > 0 && (
@@ -3943,11 +3959,10 @@ export function App() {
   const mappedReferenceLevels=useMemo(()=>visibleReferenceLevels.filter(level=>level.currentStatus==='active'&&level.showOnMap&&
     (level.sessionEdge?.sessionId===session?.id||latestCp&&significantLevelDistanceFromPrice(level,latestCp.price)<=significantLevelPreferences.proximityPoints)),
     [visibleReferenceLevels,session?.id,latestCp,significantLevelPreferences.proximityPoints]);
-  // Current-session edges must carry explicit hidden choices into the map;
-  // omitting them would make edgeShown fall back to visible.
-  const structureMapLevels=useMemo(()=>[...mappedReferenceLevels.filter(level=>level.sessionEdge?.sessionId!==session?.id),
-    ...visibleReferenceLevels.filter(level=>level.sessionEdge?.sessionId===session?.id).map(level=>({...level,showOnMap:level.currentStatus==='active'&&level.showOnMap}))],
-    [mappedReferenceLevels,visibleReferenceLevels,session?.id]);
+  // The selected day's own boundaries belong to its structure, independently
+  // of optional map-reference choices (including choices saved by older builds).
+  const structureMapLevels=useMemo(()=>mappedReferenceLevels.filter(level=>level.sessionEdge?.sessionId!==session?.id),
+    [mappedReferenceLevels,session?.id]);
   const nearbySignificantLevels = useMemo(
     () => visibleSignificantLevels.filter(
           (level) =>
@@ -9007,10 +9022,11 @@ function SignificantLevelList({
                 <button
                   type="button"
                   className="level-map-toggle"
-                  aria-pressed={level.showOnMap}
+                  aria-pressed={level.sessionEdge?.sessionId===session.id||level.showOnMap}
+                  disabled={level.sessionEdge?.sessionId===session.id}
                   onClick={() => onToggleMap(level, !level.showOnMap)}
                 >
-                  {level.showOnMap ? "Hide from map" : "Show on map"}
+                  {level.sessionEdge?.sessionId===session.id?'Always shown on this day':level.showOnMap ? "Hide from map" : "Show on map"}
                 </button>
                 <button type="button" onClick={() => {
                   setNoteLevelId(level.id);

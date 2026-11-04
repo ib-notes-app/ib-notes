@@ -1,11 +1,11 @@
 {
-  "buildId": "public-blank-20261104T054827864Z",
+  "buildId": "public-blank-20261104T064627024Z",
   "distribution": "public-blank",
-  "status": "Early public version; enabled map-level management. Public-device checks pending.",
+  "status": "Early public version; native structure boundaries and period midpoints. Public-device checks pending.",
   "appUrl": "https://ib-notes-app.github.io/ib-notes/",
   "archive": "downloads/IB-Notes-blank-slate.zip",
-  "archiveBytes": 4205558,
-  "archiveSha256": "6dd3adb417a8cb76e9ca5b762a16ec757c10840e62536b54764b59b8d71f9f09",
+  "archiveBytes": 4207592,
+  "archiveSha256": "b5c9a241f105e22e5c85c2beae2b5cd4819e327f6fa4fc22524326fd7a89264b",
   "bundledMarketHistory": false,
   "bundledJournalRecords": false,
   "bundledExamples": false,
@@ -14,27 +14,23 @@
   "dataStorage": "Local SQLite in the browser; no journal synchronization.",
   "preparedAt": "2026-11-03",
   "changes": [
-    "Levels has one map-level manager with quick Hide controls for enabled references.",
-    "Shown and off-screen enabled references are distinguished independently of browser filters.",
-    "Structure opens the same manager; contextual Back returns to Structure.",
-    "Hidden current-session IB and ON references remain hidden after navigation and reload."
+    "The selected day's native ON, 15R, A, B/IB and RTH boundaries always stay visible in Structure.",
+    "Map-level hiding controls extra references, including boundaries carried from other days.",
+    "Structure labels the current period's midpoint without saving or carrying it as a level.",
+    "Empty sessions identify their actual phase without inventing structure.",
+    "Current conditions shows the same current-period midpoint as the Structure map, between its low and high."
   ],
   "verification": {
     "typecheck": "Passed, including cleaned public source.",
     "focusedUnitTests": {
-      "passed": 39,
-      "files": 4
+      "passed": 60,
+      "files": 5
     },
-    "publicChromiumJourneys": 11,
+    "publicChromiumJourneys": 14,
     "safeUpdateChecks": 2,
     "sourceAndDownloadsAudit": "Passed: source, website, nested downloads and reachable history contain no records, restricted-source mentions, private dataset names or data files.",
     "livePublicOrigin": {
-      "status": "Passed",
-      "chromiumJourneys": 11,
-      "matchingSiteFiles": 38,
-      "excludedDataUrlsReturning404": 8,
-      "pagesCommit": "420fd3fb4433ba8f254ba9e82e289b0e96997046",
-      "deploymentRun": "https://github.com/ib-notes-app/ib-notes/actions/runs/41781960838"
+      "status": "Pending"
     },
     "physicalPublicOriginInstall": "Pending",
     "firefoxAndWebkit": "Not run; automation browsers unavailable.",

@@ -3031,6 +3031,10 @@ footer {
   transform: translateY(-50%);
 }
 
+.rth-reference-line { position:absolute; left:45%; right:0; z-index:2; height:1px; background:rgb(153 190 221 / 65%); transform:translateY(-50%); }
+.map-period-midpoint { position:absolute; left:0; right:0; z-index:3; border-top:1px dashed #bb8ba3; pointer-events:none; }
+.map-period-midpoint > span { position:absolute; top:4px; right:6px; max-width:calc(100% - 12px); padding:2px 5px; border-radius:4px; background:#1b1a1c; color:#d3bdc8; font-size:.75rem; line-height:1.3; white-space:nowrap; }
+
 .map-reference-label-cluster {
   position: absolute;
   left: 8px;
@@ -4908,7 +4912,7 @@ button:disabled { opacity: .6; }
 }
 
 /* Names occupy the left gutter; the plot reuses the former top/bottom label space. */
-.map-shell[data-edge-markers="true"] { --map-edge-gutter: 2.5rem; }
+.map-shell[data-edge-markers="true"] { --map-edge-gutter: 3rem; }
 .map-formation-canvas { inset: 18px 0 54px var(--map-edge-gutter, 0px); }
 .map-shell[data-edge-markers="true"] .map-stage-axis { left: var(--map-edge-gutter); }
 .map-edge-label-layer { position: absolute; top: 0; bottom: 0; right: 100%; width: var(--map-edge-gutter); z-index: 6; border-right: 1px solid #36343a; pointer-events: none; }
@@ -5557,6 +5561,11 @@ button:disabled { opacity: .6; }
 .forecast-ib-track { position: relative; height: 5px; margin: .3rem 4px .5rem; border-radius: 3px; background: #aa678e; }
 .forecast-price-marker { position: absolute; top: 50%; width: 10px; height: 10px; background: #f2f1f5; border: 1px solid #252f39; border-radius: 50%; transform: translate(-50%, -50%); }
 .forecast-ib-edges { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .2rem .5rem; color: #d5bace; font-size: .875rem; font-variant-numeric: tabular-nums; }
+.forecast-ib-edges[data-midpoint="true"] { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); }
+.forecast-ib-edges[data-midpoint="true"] > span { display:flex; flex-direction:column; align-items:flex-start; white-space:nowrap; }
+.forecast-ib-edges[data-midpoint="true"] > span:nth-child(2) { align-items:center; }
+.forecast-ib-edges[data-midpoint="true"] > span:last-child { align-items:flex-end; }
+.forecast-ib-edges strong { font-weight:600; }
 .forecast-on-read .forecast-ib-track { background: #9399a2; }
 .forecast-on-read .forecast-ib-edges { color: #d0d3da; }
 .forecast-card .forecast-current-width { margin: .3rem 0; font-size: .875rem; color: #d0dae4; }

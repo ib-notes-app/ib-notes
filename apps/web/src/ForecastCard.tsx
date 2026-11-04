@@ -22,6 +22,7 @@ import {SessionPhasePanels,dashboardPhase} from './SessionPhasePanels';
 import {PostIbConditions} from './PostIbConditions';
 import {PhaseForecast} from './PhaseForecast';
 import {formatTickRoundedPrice} from './mapFormatting';
+import {workspaceClock} from './workspaceModel';
 
 const factorNames = { news: "News", fbd: "Recent LBAF", levels: "Nearby low", quarter: "Time of year", weekday: "Weekday" };
 const pct = (value: number) => value > 0 && value < 0.01 ? "<1%" : `${Math.round(value * 100)}%`;
@@ -256,6 +257,11 @@ function RecordedIbBreaks({session,current}:{session:JournalSession;current:Retu
   </div>;
 }
 
+function ConditionMidpoint({phase,high,low,tickSize}:{phase:string;high:number|null;low:number|null;tickSize:number}){
+  if(high===null||low===null)return null;
+  return <span aria-label={`${phase} midpoint`}>Mid <strong>{formatTickRoundedPrice(low+(high-low)/2,tickSize)}</strong></span>;
+}
+
 function CurrentIbRead({ session, current }: { session: JournalSession;
   current: ReturnType<typeof deriveSessionIbRead> }) {
   if (!current) return null;
@@ -274,10 +280,12 @@ function CurrentIbRead({ session, current }: { session: JournalSession;
       : <p>{current.phase === 'PENDING' ? 'Record the IB range to classify post-IB prices.'
         : current.phase === 'FORMING' ? 'Record a price after your latest range update to see its position.'
         : 'Record a price at or after IB close to see its position.'}</p>}
-    {current.high!==null&&current.low!==null&&current.high>current.low&&<div className="forecast-ib-location" aria-label="Recorded IB range">
-      <div className="forecast-ib-track" aria-hidden="true">{position&&latest&&read.positionPercent!==null&&<span
-        className="forecast-price-marker" style={{left:`${Math.max(0,Math.min(100,read.positionPercent))}%`}}/>}</div>
-      <div className="forecast-ib-edges"><span>IBL {formatPriceNumber(current.low)}</span><span>IBH {formatPriceNumber(current.high)}</span></div>
+    {current.high!==null&&current.low!==null&&<div className="forecast-ib-location" aria-label="Recorded IB range">
+      {current.high>current.low&&<div className="forecast-ib-track" aria-hidden="true">{position&&latest&&read.positionPercent!==null&&<span
+        className="forecast-price-marker" style={{left:`${Math.max(0,Math.min(100,read.positionPercent))}%`}}/>}</div>}
+      <div className="forecast-ib-edges" data-midpoint="true"><span>IBL <strong>{formatPriceNumber(current.low)}</strong></span>
+        <ConditionMidpoint phase={workspaceClock(session,current.asOf).phase??'IB'} high={current.high} low={current.low} tickSize={session.market.tickSize}/>
+        <span>IBH <strong>{formatPriceNumber(current.high)}</strong></span></div>
     </div>}
     {current.width !== null && <p className="forecast-current-width">{current.phase === 'FORMING' ? 'Recorded IB so far' : current.provisional?'Recorded IB':'Locked IB'}: <strong>{points(current.width)}</strong></p>}
     {counts && (counts.aboveCount || counts.belowCount) ? <p className="forecast-read-break">
@@ -308,7 +316,9 @@ function CurrentRthRead({session,current}:{session:JournalSession;current:Return
     {range.high!==null&&range.low!==null&&<div className="forecast-ib-location" aria-label="Recorded RTH range">
       {width!==null&&width>0&&<div className="forecast-ib-track" aria-hidden="true">{position!==null&&<span
         className="forecast-price-marker" style={{left:`${Math.max(0,Math.min(100,position))}%`}}/>}</div>}
-      <div className="forecast-ib-edges"><span>RTHL {formatPriceNumber(range.low)}</span><span>RTHH {formatPriceNumber(range.high)}</span></div>
+      <div className="forecast-ib-edges" data-midpoint="true"><span>RTHL <strong>{formatPriceNumber(range.low)}</strong></span>
+        <ConditionMidpoint phase="RTH" {...range} tickSize={session.market.tickSize}/>
+        <span>RTHH <strong>{formatPriceNumber(range.high)}</strong></span></div>
     </div>}
     {width!==null&&<p className="forecast-current-width">Recorded RTH range: <strong>{tickPoints(width,session.market.tickSize)}</strong></p>}
     {current&&current.high!==null&&current.low!==null?<div aria-label="IB reference">
@@ -377,8 +387,9 @@ function CurrentOvernightRead({session,overnight}:{session:JournalSession;
       {width!==null&&width>0&&<div className="forecast-ib-track" aria-hidden="true">
         {positionPercent!==null&&<span className="forecast-price-marker"
           style={{left:`${Math.max(0,Math.min(100,positionPercent))}%`}}/>}</div>}
-      <div className="forecast-ib-edges"><span>ONL {low===null?'Pending':formatPriceNumber(low)}</span>
-        <span>ONH {high===null?'Pending':formatPriceNumber(high)}</span></div>
+      <div className="forecast-ib-edges" data-midpoint={high!==null&&low!==null}><span>ONL <strong>{low===null?'Pending':formatPriceNumber(low)}</strong></span>
+        <ConditionMidpoint phase="ON" high={high} low={low} tickSize={session.market.tickSize}/>
+        <span>ONH <strong>{high===null?'Pending':formatPriceNumber(high)}</strong></span></div>
     </div>
     {width!==null&&<p className="forecast-current-width">Recorded ON so far: <strong>{points(width)}</strong></p>}
     {!latest&&<p className="forecast-caption">Record a price to see its overnight position.</p>}
