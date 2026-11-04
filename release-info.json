@@ -28,10 +28,15 @@
     },
     "publicChromiumJourneys": 8,
     "safeUpdateChecks": 2,
-    "sourceAndDownloadsAudit": "Passed: no records, provider mentions, private filenames or data files in the current tree and nested downloads.",
-    "visibleGitHistory": "Owner approved a clean starting commit; old history backed up privately.",
+    "sourceAndDownloadsAudit": "Passed: no records, restricted-source mentions, private filenames or data files in the current tree and nested downloads.",
+    "visibleGitHistory": "Clean starting history published; previous history backed up only locally.",
     "livePublicOrigin": {
-      "status": "Pending deployment verification"
+      "status": "Passed",
+      "chromiumJourneys": 8,
+      "matchingSiteFiles": 38,
+      "excludedDataUrlsReturning404": 8,
+      "pagesCommit": "06d56b11415a29317f199e7b8bf8858e5dddc9f8",
+      "deploymentRun": "https://github.com/ib-notes-app/ib-notes/actions/runs/41772593611"
     },
     "physicalPublicOriginInstall": "Pending",
     "firefoxAndWebkit": "Not rerun; browser bundles unavailable.",

@@ -31,7 +31,11 @@ installation was not part of that check.
 
 ## Still pending
 
-The live verification result is recorded in [release-info.json](../release-info.json).
+Eight live Chromium journeys passed. All 38 served files match the reviewed
+package, and eight excluded-data URLs return 404. The clean starting history,
+source and nested downloads contain no bundled records, restricted-source
+mentions or private-dataset filenames. Results are recorded in
+[release-info.json](../release-info.json).
 Actual-device installation and keyboard checks at the public address remain
 pending. Firefox and WebKit were not rerun because their automation browsers
 are unavailable. The wider legacy forecast suite was not rerun and is not
