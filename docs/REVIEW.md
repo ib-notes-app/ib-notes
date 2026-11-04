@@ -33,7 +33,8 @@ was not part of that check.
 
 ## Still pending
 
-Live checks for this build follow deployment; their results are recorded in
+Twelve live Chromium journeys passed. All 38 served files match the reviewed
+package, and eight excluded-data URLs return 404. Results are recorded in
 [release-info.json](../release-info.json). Source and nested downloads contain
 no bundled records, restricted-source mentions or private-dataset filenames.
 Actual-device installation and keyboard checks at the public address remain
