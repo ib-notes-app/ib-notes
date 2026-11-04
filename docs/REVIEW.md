@@ -41,8 +41,11 @@ a fresh dependency installation was not part of the check.
 
 ## Live public checks
 
-Deployment verification is pending. The current result will be recorded in
-[release-info.json](../release-info.json) after publication.
+All eighteen Chromium journeys passed at the live public address. All 38 served
+files match the reviewed package, and eight excluded-data URLs return 404.
+Results are recorded in [release-info.json](../release-info.json). Source,
+nested downloads and reachable history contain no bundled records,
+restricted-source mentions or private dataset filenames.
 
 ## Still pending
 

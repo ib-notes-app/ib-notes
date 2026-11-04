@@ -33,7 +33,13 @@
     "safeUpdateChecks": 2,
     "sourceAndDownloadsAudit": "Passed: source, website, nested downloads and reachable history contain no records, restricted-source mentions, private dataset names or data files.",
     "livePublicOrigin": {
-      "status": "Pending deployment verification"
+      "status": "Passed",
+      "chromiumJourneys": 18,
+      "publicOriginJourneys": 18,
+      "matchingSiteFiles": 38,
+      "excludedDataUrlsReturning404": 8,
+      "pagesCommit": "40d7198c11f0b944a18765bb489e15eb806df6ea",
+      "deploymentRun": "https://github.com/ib-notes-app/ib-notes/actions/runs/41875403385"
     },
     "physicalPublicOriginInstall": "Pending",
     "firefoxAndWebkit": "Could not launch: automation browser binaries are unavailable.",

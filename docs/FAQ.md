@@ -127,7 +127,8 @@ exact moment the extreme occurred.
 
 Tap its **ON / 15R / A / B / RTH** button to open the range editor. 15R belongs
 within A; A and B form the IB. Later prices do not silently rewrite locked
-earlier ranges. See the [first-session guide](QUICK_START.md).
+earlier ranges. A confirmed period shows **Saved · Closed · Confirmed**; choose
+**Edit confirmed range** to correct it. See the [first-session guide](QUICK_START.md).
 
 ### Do I have to record every price or complete every field?
 
@@ -160,7 +161,8 @@ does not unfinalize it.
 
 No. Price saves are immediate. Recorded ON/IB levels carry forward after their
 configured period ends without a separate completion step. Review day is one
-place to check and confirm the final measurements; sparse coverage stays unknown.
+place to check and confirm the final measurements; sparse coverage stays unknown. The period-end prompt helps
+you review the range; dismissing it does not erase earlier successful saves.
 
 ### Is a closing price required to track the Daily Low?
 
@@ -207,6 +209,19 @@ minute-price paths that daily summaries do not contain.
 One outcome can lead when the remaining probability is spread across others.
 A low-probability event can still happen. Check the target and timestamp;
 forecast percentages are study estimates, not trade instructions or guarantees.
+
+### Why can a historical frequency differ from today's estimate?
+
+A historical frequency counts past records in the named group. The model
+weights several available conditions. Check the source, sample size and
+estimate time; the percentages answer different questions. Your journal and
+learning history stay separate. See [Today in context](READING_THE_DASHBOARD.md#today-in-context).
+
+### Why is there no return-to-IB forecast yet?
+
+Before a recorded edge break, there is no return to estimate. After a break,
+an outside price can show a future return chance. Inside again, the card shows
+recorded return counts instead of an “Already inside” placeholder.
 
 ### What do IBH, IBL, IBB and IBN mean?
 
