@@ -16,6 +16,7 @@ does not fetch or verify a live news calendar.
 The release time and tracking window can differ. For example, you can start
 tracking before the release. Open **Adjust tracking window** for those controls.
 An ongoing window can be ended with **End now**. Check your configured time zone.
+Windows that span two dates show both dates on shared cards.
 Opening Events does not record a price or reopen a finalized day.
 
 ## What gets tracked?
@@ -50,5 +51,9 @@ want the event information included. Available recorded event ranges can appear
 with it. Check the preview: event notes and linked private prose are not swept
 into that option automatically. Your journal and notes remain local unless you
 explicitly export or share them.
+
+An election or another ongoing situation can be event context without a single
+numerical result. The card does not call that a missing release figure. Recording
+an event alongside volatility does not establish that it caused the movement.
 
 Structure journal only · No trade recommendations.

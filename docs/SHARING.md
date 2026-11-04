@@ -32,6 +32,26 @@ If the card fills up, additions that would overflow it become dimmed. Remove
 an item to make space. Already selected items stay removable. The app does not
 quietly drop details or shrink everything into unreadable text.
 
+The preview uses the image's full height. Scroll to its final rows and footer;
+they are part of the downloaded PNG too.
+
+## Read the forecast on the card
+
+The card uses the same stage summary and estimate wording as Forecast. Check its
+timestamp: another price or a later snapshot can legitimately change the estimate.
+Before an edge breaks, the four outcomes include Neither. First-break odds stay
+in the optional details so they do not look like a second step in a prediction.
+
+**Today in context** describes recorded ON/IB size and location. Historical
+comparisons appear only when suitable records exist, with their source and
+counts. A past frequency and today's weighted model estimate answer different
+questions; they are labeled separately.
+
+A return forecast appears after a recorded break while price is outside. Inside
+again, recorded return counts show what happened. An unbroken session does not
+need an “Already inside” forecast row. Events such as elections can provide
+context without a single numerical result or a claim that they caused a move.
+
 **Short Post** and **Full Recap** remain available if you want text. Weeks,
 months and years have their own recap sharing screens with Image Card first.
 

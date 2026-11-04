@@ -1,15 +1,20 @@
 IB Notes — blank-slate edition
+Build: public-blank-20261104T164643566Z
 
-Open / install: https://ib-notes-app.github.io/ib-notes/
-Start here: https://github.com/ib-notes-app/ib-notes/blob/main/docs/QUICK_START.md
-What changed: https://github.com/ib-notes-app/ib-notes/blob/main/docs/WHATS_NEW.md
+Free manual Initial Balance journal. No historical market data, Study Packs, example journal records or private backups are included. Users record their own observations using data they have permission to use. Historical forecast probabilities are unavailable without suitable compatible learning history. No live price feed or automatic news service is included. Journals stay in each browser on that device.
 
-The app starts empty. Record your own permitted prices, notes and events. No live feed, automatic news, private journals or market-history packs are included. Historical forecasts need suitable compatible learning history.
+HOSTING
+Extract IB-Notes-blank-slate.zip and serve its contents from static HTTPS hosting. Relative asset URLs support a site root or project subfolder. Open the HTTPS address in Safari/Chrome; install to the Home Screen where supported. This ZIP is a website/PWA build, not an APK or a native installer. Opening index.html directly from Files is not supported by browser storage/workers.
 
-Back up regularly: Home > ... > Backups & storage > Export SQLite. Journals stay in each browser on that device. There is no automatic cloud sync.
+LOCAL DESKTOP PREVIEW
+From the source repository:
+npm run preview --workspace @ib-field-notes/web -- --mode public-blank --host 127.0.0.1 --port 4202 --strictPort --outDir /absolute/path/to/this/site
+Open http://127.0.0.1:4202/ . Stop with Ctrl+C. This loopback address is for the desktop, not a phone. This does not replace the installed phone build.
 
-This ZIP contains a website/PWA, not an APK or phone installer. Use the hosted app link above. Self-hosting instructions: https://github.com/ib-notes-app/ib-notes/blob/main/docs/HOSTING.md
+BACKUPS
+Export SQLite in Settings before clearing browser data, moving devices or changing app addresses. Separate addresses do not share or automatically sync journals.
 
-LICENSE.txt, THIRD-PARTY-NOTICES.txt and source.zip accompany this build. Source code is MPL 2.0; importing or sharing market data requires your own permission.
+LICENSE AND SOURCE
+See LICENSE.txt, THIRD-PARTY-NOTICES.txt and source.zip. Source code licensing does not grant rights to any data a user imports. Educational journal only; no trade recommendations.
 
-Structure journal only. No trade recommendations.
+This package is prepared locally. It has not been publicly deployed. Physical Android/iPhone installation on a public origin remains to be checked.

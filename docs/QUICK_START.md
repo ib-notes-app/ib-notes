@@ -14,7 +14,8 @@ Each instrument keeps its own journal, prices and history.
 Use the arrows beside the date to browse sessions, or tap the date to open the
 calendar. **Current session** takes you back using your configured study hours.
 ON, 15R, A, B and RTH are the period controls. Tapping one opens its range editor.
-Closing it leaves that period selected for recording.
+On the current session, closing an earlier period returns you to the active
+period. Historical browsing keeps the period you selected.
 
 ## Record a price
 
@@ -63,6 +64,11 @@ correction. Notes are available in the focused entry editor too.
 Tap a period button to add its high and low. 15R sits within A; A and B form the
 IB. Missing values stay missing. You can keep recording without pretending
 you observed the entire price path.
+
+When a period ends while the app is open, check its offered range and press
+**Confirm range**. The prompt waits until an open entry or other screen closes.
+Confirmed periods show **Saved · Closed · Confirmed**. Use **Edit confirmed
+range** to correct one; opening it alone changes nothing.
 
 The level cards around Record price use the selected day's latest recorded CP.
 A low can appear above CP if price has moved below it. A zone containing CP says

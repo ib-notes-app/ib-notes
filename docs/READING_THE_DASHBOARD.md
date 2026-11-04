@@ -34,20 +34,19 @@ as the session progresses and new observations become available.
 | Session stage | What to look for when the required inputs and history are available |
 | --- | --- |
 | **Overnight** | **Opening band estimate**: the estimated band containing the RTH open, relative to the displayed fixed overnight reference range. Open **Opening odds & evidence** for the reference boundaries and other bands. |
-| **15R / A / B formation** | **Most likely IB outcome**, **First edge to break**, and **Estimated IB width**. The width band describes an estimate, not guaranteed limits. |
-| **After IB lock, while outside the IB** | **Return inside IB**: the chance of reaching at least one tick inside the locked range after the estimate and before the displayed close. Touching an edge alone does not satisfy this target. |
-| **After one recorded IB edge break** | **Chance low also breaks** or **Chance high also breaks**: the remaining-session chance of the other edge breaking, which would make both edges recorded, or IBB. |
-| **After both recorded breaks** | **Both IB edges · Recorded · IBB** reports an observed result. It is not a new prediction of an event already recorded. |
+| **15R / A / B formation** | **Leading outcome by RTH close**, the four edge outcomes, and **Estimated IB width**. First-break odds are in Details. The width band is an estimate, not guaranteed limits. |
+| **After IB lock, before a recorded break** | The leading outcome and all four chances, including **Neither**. No return forecast is needed yet. |
+| **After one recorded IB edge break** | **Chance IB low also breaks** or **Chance IB high also breaks** asks whether the other edge breaks before close, which would make IBB. |
+| **After a break, while outside the IB** | **Chance of return inside IB** asks about reaching at least one tick inside after the estimate and before close. Touching an edge alone does not count. |
+| **After both recorded breaks** | **Both IB edges broke · IBB** reports recorded evidence. A future return may still be estimated while price is outside. |
 | **After the session ends** | Saved estimates and, when the day has been finished with the relevant records, **Post-IB recap** and **Forecast vs result**. |
 
-The return row counts each recorded outside-to-inside excursion after the first
-IB edge break. After three such returns, it says **Recorded · 3 returns** while
-inside. Another outside observation keeps that count visible and asks **Another
-return inside IB**, with the existing chance of a future return before close.
+The return count includes each recorded outside-to-inside excursion after the
+first IB edge break. Inside again, **Returns inside IB** shows the recorded count.
+Another outside observation can ask **Chance of another return inside IB**.
 Repeated inside observations and edge touches do not add returns. Sparse entries
 can miss a return; the count describes recorded evidence, not complete coverage.
-Before any recorded excursion, **Inside the IB** or **At the edge** describes
-the recorded position rather than a future probability. A new estimate may
+Before any recorded break there is no return placeholder. A new estimate may
 legitimately have the same percentage as an earlier one.
 
 The forecast screen follows the selected session's stage and available
@@ -56,7 +55,7 @@ do not assume an earlier period selection replays what the model knew then.
 
 ### Read percentages without mixing the questions
 
-**Most likely IB outcome** compares four final outcomes:
+**Leading outcome by RTH close** compares four edge outcomes:
 
 | Code in an outcome estimate | Meaning |
 | --- | --- |
@@ -111,6 +110,22 @@ Match counts and support labels describe the comparison behind an estimate.
 Closer matches can receive more weight; a large file is not necessarily a
 large set of close matches for the current situation. They are not a measured
 win rate or a promise that the next outcome will follow the estimate.
+
+### Today in context
+
+Recorded widths and the IB's location within ON help explain what is unusual
+about the session. These facts come from your entries, not a live feed.
+
+Where earlier records are available, the app can say how many completed ranges
+were narrower and how often an outcome occurred among IBs at least as wide as
+today's locked IB. It names the source and sample size. **Your journal** and
+**learning history** are separate comparisons; unfinished coverage remains
+unknown rather than being counted as Neither.
+
+A **historical frequency** counts past records. A **model estimate** weights
+several available conditions, so its percentage can differ. Neither is a
+guarantee. Forming IBs are not compared with final widths as though today's
+range were already complete. Full explanations stay in **Forecast details**.
 
 ## Structure — read the conditions and the map together
 

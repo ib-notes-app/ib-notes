@@ -8,6 +8,7 @@ import { deriveOvernightStudy, onForecastInput, onBandNames, ON_BANDS, compareOn
 import type { JournalRepository } from '@ib-field-notes/storage-port';
 import { journalClock } from './journalClock';
 import {PUBLIC_BLANK} from './supportReportModel';
+import {onForecastStory} from './forecastStory';
 
 type View={study:OvernightStudy|null;rows:OnForecastUpdate[];loading:boolean;error:string|null;revision?:string};
 const StudyContext=createContext<View>({study:null,rows:[],loading:false,error:null});
@@ -174,11 +175,12 @@ export function OnReferenceMeter({session,forecast}:{session:JournalSession;
 
 function BandForecast({session,forecast,compact=false}:{session:JournalSession;forecast:OnForecast;compact?:boolean}){
   const lead=winners(forecast);
+  const story=onForecastStory({session,now:forecast.asOf,study:{live:true,outlook:forecast},rows:[],loading:false});
   return <div className="on-opening-forecast">{compact?<div className="phase-forecast-row" data-numeric="true" role="group" aria-label="Opening band estimate">
-    <div><h3>Opening band estimate</h3><p>{lead.map(b=>onBandNames[b]).join(' / ')}</p></div><strong>{percent(forecast.probabilities[lead[0]!]!)}</strong>
+    <div><h3>{story.rows[0]!.label}</h3><p>{story.rows[0]!.value}</p></div>
   </div>:<div className="on-opening-pick"><span>Opening band estimate</span>
     <strong><span>{lead.map(b=>onBandNames[b]).join(' / ')}</span><b>{percent(forecast.probabilities[lead[0]!]!)}</b></strong></div>}
-    <p className="forecast-caption">For {clockLabel(session,forecast.until)} · {Math.ceil(forecast.remainingMinutes)} min left</p>
+    <p className="forecast-caption">{compact?story.caption:`For ${clockLabel(session,forecast.until)} · ${Math.ceil(forecast.remainingMinutes)} min left`}</p>
     {!compact&&<OnReferenceMeter session={session} forecast={forecast}/>}
     <details className="on-study-details"><summary>Opening odds & evidence</summary>
       {compact&&<OnReferenceMeter session={session} forecast={forecast}/>}
@@ -217,7 +219,9 @@ export function OvernightStudyPanel({session,compact=false}:{session:JournalSess
   const forecast=outlook?<BandForecast session={session} forecast={outlook} compact={compact}/>:<p className="forecast-caption">{Date.parse(Temporal.Now.instant().toString())<Date.parse(study.startsAt)
     ?`Opening estimate starts at ${clockLabel(session,study.startsAt)}.`:loading?'Comparing earlier overnights…':'Opening estimate needs an ON range saved before the forecast start and compatible earlier history.'}</p>;
   return <div className="on-study" role="group" aria-label="Overnight study" aria-busy={loading}>
-    {compact?<>{forecast}<details className="on-study-details"><summary>Overnight observations</summary>{observations}</details></>:<>{observations}{forecast}</>}
+    {compact?<>{forecast}
+      {widthComparison&&<p className="forecast-caption">ON is as wide as or wider than {Math.round(widthComparison.percentile)}% of {widthComparison.days} earlier nights at this point.</p>}
+      <details className="on-study-details"><summary>Overnight observations</summary>{observations}</details></>:<>{observations}{forecast}</>}
     {error&&<p className="forecast-caption" role="status">{error}</p>}
   </div>;
 }

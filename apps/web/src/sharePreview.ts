@@ -1,6 +1,6 @@
+import {formatTickRoundedPrice} from './mapFormatting';
 import {shareTimeZoneLabel} from './shareTimeZone';
 // SPDX-License-Identifier: MPL-2.0
-import { formatPriceNumber } from "@ib-field-notes/domain";
 
 import { Temporal } from "@js-temporal/polyfill";
 import {
@@ -71,8 +71,8 @@ const TRANSITION_LABELS: Record<IbTransition, string> = {
   RETURN_INSIDE_FROM_IBL_RECORDED: "IBL edge retested after break",
 };
 
-function formatPrice(value: number | null): string {
-  return value === null ? "Pending" : formatPriceNumber(value);
+function formatPrice(value: number | null, tickSize:number): string {
+  return value === null ? "Pending" : formatTickRoundedPrice(value,tickSize);
 }
 
 function formatClock(instant: string, timeZone: string): string {
@@ -87,12 +87,13 @@ function formatRangeLine(
   label: string,
   range: RangeObservation,
   status: "confirmed" | "pending",
+  tickSize:number,
 ): string {
   const geometry = deriveRange(range);
   if (!geometry) {
-    return `${label}: ${formatPrice(range.low)}–${formatPrice(range.high)} · ${status === "confirmed" ? "Confirmed" : "Pending"}`;
+    return `${label}: ${formatPrice(range.low,tickSize)}–${formatPrice(range.high,tickSize)} · ${status === "confirmed" ? "Confirmed" : "Pending"}`;
   }
-  return `${label}: ${formatPrice(range.low)}–${formatPrice(range.high)} · Width ${formatPriceNumber(geometry.width)} · Mid ${formatPriceNumber(geometry.midpoint, 3)} · ${status === "confirmed" ? "Confirmed" : "Pending"}`;
+  return `${label}: ${formatPrice(range.low,tickSize)}–${formatPrice(range.high,tickSize)} · Width ${formatTickRoundedPrice(geometry.width,tickSize)} · Mid ${formatTickRoundedPrice(geometry.midpoint,tickSize)} · ${status === "confirmed" ? "Confirmed" : "Pending"}`;
 }
 
 function closeDispositionLabel(
@@ -213,12 +214,12 @@ export function deriveCompactShareFacts(
     const location = closingOutcome
       ? closeDispositionLabel(closingOutcome.closeDisposition).replace(/^./,letter=>letter.toLowerCase())
       : "location pending";
-    currentOrClose = `Close ${formatPriceNumber(session.close.price)} · ${location}`;
+    currentOrClose = `Close ${formatTickRoundedPrice(session.close.price,tickSize)} · ${location}`;
   } else {
     const latestCp = latestCpObservation(session);
     if (latestCp) {
       currentOrClose =
-        `CP ${formatPriceNumber(latestCp.price)}${showTimes?` · ${formatClock(latestCp.observedAt, session.displayTimeZone)}`:''}`;
+        `CP ${formatTickRoundedPrice(latestCp.price,tickSize)}${showTimes?` · ${formatClock(latestCp.observedAt, session.displayTimeZone)}`:''}`;
     }
   }
 
@@ -256,8 +257,8 @@ export function buildShortPostShareText(
     });
     const label = facts.overnightRange.status === "Locked" ? "ON" : "Forming ON";
     lines.push(
-      `${label} ${formatPrice(facts.overnightRange.low)}–${formatPrice(facts.overnightRange.high)}` +
-      `${overnightGeometry ? ` · ${formatPriceNumber(overnightGeometry.width)} pts` : ""}`,
+      `${label} ${formatPrice(facts.overnightRange.low,tickSize)}–${formatPrice(facts.overnightRange.high,tickSize)}` +
+      `${overnightGeometry ? ` · ${formatTickRoundedPrice(overnightGeometry.width,tickSize)} pts` : ""}`,
     );
   }
 
@@ -269,7 +270,7 @@ export function buildShortPostShareText(
   ) {
     const geometry = deriveRange(facts.finalIb);
     lines.push(
-      `IB ${formatPriceNumber(facts.finalIb.low)}–${formatPriceNumber(facts.finalIb.high)}${geometry ? ` · ${formatPriceNumber(geometry.width)} pts` : ""}`,
+      `IB ${formatTickRoundedPrice(facts.finalIb.low,tickSize)}–${formatTickRoundedPrice(facts.finalIb.high,tickSize)}${geometry ? ` · ${formatTickRoundedPrice(geometry.width,tickSize)} pts` : ""}`,
     );
   }
 
@@ -334,14 +335,16 @@ export function buildDailyShareText(
         cp: null,
       },
       overnightRange?.status === "Locked" ? "confirmed" : "pending",
+      tickSize,
     ),
-    formatRangeLine("15R", session.fifteenMinute, session.fifteenMinute.status),
-    formatRangeLine("A", session.aPeriod, session.aPeriod.status),
-    formatRangeLine("B", session.bPeriod, session.bPeriod.status),
+    formatRangeLine("15R", session.fifteenMinute, session.fifteenMinute.status,tickSize),
+    formatRangeLine("A", session.aPeriod, session.aPeriod.status,tickSize),
+    formatRangeLine("B", session.bPeriod, session.bPeriod.status,tickSize),
     formatRangeLine(
       "Final IB",
       finalIb ?? { high: null, low: null, cp: null },
       finalIb ? "confirmed" : "pending",
+      tickSize,
     ),
   ];
 
@@ -363,14 +366,14 @@ export function buildDailyShareText(
       const transitions = state.transitions.map((transition) =>
         TRANSITION_LABELS[transition]).join(" · ");
       lines.push(
-        `${showTimes?`${formatClock(state.observation.observedAt, session.displayTimeZone)} — `:''}${formatPriceNumber(state.observation.price)}${closeLabel} · ${RELATIONSHIP_LABELS[state.relationship]}${transitions ? ` · ${transitions}` : ""}`,
+        `${showTimes?`${formatClock(state.observation.observedAt, session.displayTimeZone)} — `:''}${formatTickRoundedPrice(state.observation.price,tickSize)}${closeLabel} · ${RELATIONSHIP_LABELS[state.relationship]}${transitions ? ` · ${transitions}` : ""}`,
       );
     }
   }
 
   lines.push("", "OUTCOME");
   lines.push(`Day type: ${closingOutcome?.dayType ?? recordedDayType ?? "Not established"}`);
-  lines.push(`Close: ${formatPrice(session.close.price)}`);
+  lines.push(`Close: ${formatPrice(session.close.price,tickSize)}`);
   lines.push(
     `Close location: ${closingOutcome ? closeDispositionLabel(closingOutcome.closeDisposition) : "Pending"}`,
   );

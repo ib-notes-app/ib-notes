@@ -35,5 +35,6 @@
 .share-image-primary-actions > .primary-action { width:100%; min-height:52px; margin:0; border:1px solid #f3aece; border-radius:13px; background:var(--accent); color:#271b24; font-size:1rem; font-weight:700; }
 .share-image-primary-actions > .primary-action:disabled { opacity:.55; }
 .daily-share-card .share-actions .primary-action { background:var(--accent); border-color:#f3aece; color:#271b24; }
-.daily-share-card .share-image-frame { border:1px solid #52677d; border-radius:13px; overflow:hidden; }
+.daily-share-card .share-image-frame { border:1px solid #52677d; border-radius:13px; overflow:hidden; aspect-ratio:auto; height:auto; }
+.daily-share-card .share-image-frame img { display:block; width:100%; height:auto; }
 @media(max-width:379px) { .share-include-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }

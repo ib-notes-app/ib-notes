@@ -1,5 +1,6 @@
+import {formatTickRoundedPrice} from './mapFormatting';
 // SPDX-License-Identifier: MPL-2.0
-import {formatPriceNumber,type WeeklySessionSummary} from '@ib-field-notes/domain';
+import {type WeeklySessionSummary} from '@ib-field-notes/domain';
 import {weeklyMarketFacts,type WeeklyMarketOptions,type MarketRange} from './weeklyMarketFacts';
 import {shareWatermark} from './shareWatermark';
 import {SHARE_DISCLAIMER} from './shareFooter';
@@ -7,11 +8,6 @@ import {wrapShareText} from './shareImageText';
 
 const xml=(s:string)=>s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&apos;');
 const text=(s:string,x:number,y:number,kind:string)=>`<text x="${x}" y="${y}" class="${kind}">${xml(s)}</text>`;
-const number=(n:number|null)=>n===null?'—':formatPriceNumber(n);
-const points=(n:number|null)=>n===null?'—':`${number(n)} pt`;
-const range=(r:MarketRange|null)=>r?`${number(r.low)}–${number(r.high)}`:'—';
-const compact=(n:number|null)=>n===null?'—':number(n).replace(/\.00$/,'').replace(/(\.\d)0$/,'$1');
-const shortPoints=(n:number|null)=>n===null?'—':`${compact(n)} pt`;
 const names={IBH:'High only',IBL:'Low only',IBB:'Both sides',IBN:'Neither'};
 const colors={IBH:'#a8cdf5',IBL:'#ee95bd',IBB:'#e8c984',IBN:'#b5becb'};
 const sessions={ON:'#a8b3c3',IB:'#ee95bd',RTH:'#8ed2c7'};
@@ -20,6 +16,11 @@ const date=(s:string,options:Intl.DateTimeFormatOptions)=>new Intl.DateTimeForma
 /** A market recap for readers outside the app. Full readable facts, no app
  * completion/status scorecard; excessive selected notes still block export. */
 export function buildWeeklyMarketCard(summary:WeeklySessionSummary,instrument:string,commentary:string[],options:WeeklyMarketOptions){
+const number=(n:number|null)=>n===null?'—':formatTickRoundedPrice(n,options.tickSize??options.sessions?.[0]?.market.tickSize??.01);
+const points=(n:number|null)=>n===null?'—':`${number(n)} pt`;
+const range=(r:MarketRange|null)=>r?`${number(r.low)}–${number(r.high)}`:'—';
+const compact=(n:number|null)=>n===null?'—':number(n).replace(/\.00$/,'').replace(/(\.\d)0$/,'$1');
+const shortPoints=(n:number|null)=>n===null?'—':`${compact(n)} pt`;
   const facts=weeklyMarketFacts(summary,instrument,options),lines:string[]=[];
   const title=`${date(summary.weekStart,{month:'long'})} · Week ${Math.ceil(Number(summary.weekStart.slice(8,10))/7)}`;
   const dates=`${date(summary.weekStart,{month:'short',day:'numeric'})}–${date(summary.weekEnd,{month:'short',day:'numeric',year:'numeric'})}`;

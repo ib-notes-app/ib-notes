@@ -1,5 +1,5 @@
+import {formatTickRoundedPrice} from './mapFormatting';
 // SPDX-License-Identifier: MPL-2.0
-import { formatPriceNumber } from "@ib-field-notes/domain";
 
 import type {
   MonthlySessionSummary,
@@ -47,8 +47,8 @@ function displayMonth(month: string): string {
   }).format(new Date(`${month}-01T00:00:00Z`));
 }
 
-function width(value: number | null): string {
-  return value === null ? "Unavailable" : `${formatPriceNumber(value)} pts`;
+function width(value: number | null,tickSize=.01): string {
+  return value === null ? "Unavailable" : `${formatTickRoundedPrice(value,tickSize)} pts`;
 }
 
 function returnDepth(
@@ -85,7 +85,7 @@ export function buildWeeklyShortShareText(
   summary = periodShareSummary(summary, options);
   const lines = [
     `${instrument} · ${displayDate(summary.weekStart)}–${displayDate(summary.weekEnd)} · Weekly IB Notes`,
-    `${summary.journaledDays} ${summary.journaledDays === 1 ? 'session' : 'sessions'} · ${summary.completedDays} complete · Median IB ${width(summary.medianIbWidth)}`,
+    `${summary.journaledDays} ${summary.journaledDays === 1 ? 'session' : 'sessions'} · ${summary.completedDays} complete · Median IB ${width(summary.medianIbWidth,options.tickSize)}`,
     dayTypeLine(summary),
     `First break: High ${summary.firstBreakCounts.high} · Low ${summary.firstBreakCounts.low} · Back inside ${summary.returnedInsideAfterBreakDays}/${summary.recordedBreakDays}`,
     ...selectedLines(commentary),
@@ -117,7 +117,7 @@ export function buildWeeklyFullShareText(
     `Complete: ${summary.completedDays}`,
     ...(summary.incompleteDays ? [`Unfinished sessions: ${summary.incompleteDays}`] : []),
     `Recorded IB ranges: ${summary.finalIbAvailableDays}`,
-    `Median IB width: ${width(summary.medianIbWidth)}`,
+    `Median IB width: ${width(summary.medianIbWidth,options.tickSize)}`,
     ...(summary.missingDataCount ? [`Missing journal fields: ${summary.missingDataCount}`] : []),
     "",
     "WHICH IB EDGES BROKE?",
@@ -141,7 +141,7 @@ export function buildWeeklyFullShareText(
     "",
     "CONTRIBUTING DAYS",
     ...summary.days.map((day) =>
-      `${day.rthDate} · ${shareOutcomeLabel(day.dayType)} · ${width(day.finalIbWidth)} · ` +
+      `${day.rthDate} · ${shareOutcomeLabel(day.dayType)} · ${width(day.finalIbWidth,options.tickSize)} · ` +
       `${day.completed ? "Complete" : "Unfinished"}`),
     ...upcomingLines(view.upcomingDays),
   ];
@@ -189,7 +189,7 @@ export function buildMonthlyShortShareText(
   summary = periodShareSummary(summary, options);
   return [
     `${instrument} · ${displayMonth(summary.month)} · Monthly IB Notes`,
-    `${summary.journaledDays} ${summary.journaledDays === 1 ? 'session' : 'sessions'} · ${summary.completedDays} complete · Median IB ${width(summary.medianIbWidth)}`,
+    `${summary.journaledDays} ${summary.journaledDays === 1 ? 'session' : 'sessions'} · ${summary.completedDays} complete · Median IB ${width(summary.medianIbWidth,options.tickSize)}`,
     dayTypeLine(summary),
     `First break: High ${summary.firstBreakCounts.high} · Low ${summary.firstBreakCounts.low} · Back inside ${summary.returnedInsideAfterBreakDays}/${summary.recordedBreakDays}`,
     ...selectedLines(commentary),
@@ -220,7 +220,7 @@ export function buildMonthlyFullShareText(
     `Complete: ${summary.completedDays}`,
     ...(summary.incompleteDays ? [`Unfinished sessions: ${summary.incompleteDays}`] : []),
     `Recorded IB ranges: ${summary.finalIbAvailableDays}`,
-    `Median IB width: ${width(summary.medianIbWidth)}`,
+    `Median IB width: ${width(summary.medianIbWidth,options.tickSize)}`,
     ...(summary.missingDataCount ? [`Missing journal fields: ${summary.missingDataCount}`] : []),
     "",
     "WHICH IB EDGES BROKE?",
@@ -245,11 +245,11 @@ export function buildMonthlyFullShareText(
     "CONTRIBUTING WEEKS",
     ...summary.weeks.filter(week => week.journaledDays > 0).map((week) =>
       `${week.weekStart}–${week.weekEnd} · ${week.journaledDays} day${week.journaledDays === 1 ? "" : "s"} · ` +
-      `${week.completedDays} complete · Median IB ${width(week.medianIbWidth)}`),
+      `${week.completedDays} complete · Median IB ${width(week.medianIbWidth,options.tickSize)}`),
     "",
     "CONTRIBUTING DAYS",
     ...summary.days.map((day) =>
-      `${day.rthDate} · ${shareOutcomeLabel(day.dayType)} · ${width(day.finalIbWidth)} · ` +
+      `${day.rthDate} · ${shareOutcomeLabel(day.dayType)} · ${width(day.finalIbWidth,options.tickSize)} · ` +
       `${day.completed ? "Complete" : "Unfinished"}`),
     ...upcomingLines(view.upcomingDays),
   ];
@@ -265,12 +265,12 @@ export function buildMonthlyImageCardSvg(
 ): WeeklyImageCardResult {
   const view = periodShareSummary(summary, options);
   summary = view;
-  return buildPeriodImageCard({period:'MONTHLY',title:`${instrument} · ${displayMonth(summary.month)}`,
+  return buildPeriodImageCard({tickSize:options.tickSize,period:'MONTHLY',title:`${instrument} · ${displayMonth(summary.month)}`,
     subtitle:'Recorded opening ranges and what followed',
     summary,upcomingCount:view.upcomingDays.length,midpoint:returnDepth(summary,'MIDPOINT'),rowHeading:'WEEKS IN THIS MONTH',
     columns:['Week starting','Sessions','Typical IB width','Complete days'],
     rows:summary.weeks.map(week=>({date:displayDate(week.weekStart),outcome:String(week.journaledDays),
-      width:week.journaledDays ? shareWidth(week.medianIbWidth) : '—',
+      width:week.journaledDays ? shareWidth(week.medianIbWidth,options.tickSize) : '—',
       status:week.journaledDays ? `${week.completedDays} of ${week.journaledDays}` : 'Upcoming'})),
     commentary:selectedLines(commentary).flatMap(line=>wrapText(line,62))});
 }
@@ -284,7 +284,7 @@ export function buildYearlyShortShareText(
   summary = periodShareSummary(summary, options);
   return [
     `${instrument} · ${summary.year} · Yearly IB Notes`,
-    `${summary.journaledDays} ${summary.journaledDays === 1 ? 'session' : 'sessions'} · ${summary.completedDays} complete · Median IB ${width(summary.medianIbWidth)}`,
+    `${summary.journaledDays} ${summary.journaledDays === 1 ? 'session' : 'sessions'} · ${summary.completedDays} complete · Median IB ${width(summary.medianIbWidth,options.tickSize)}`,
     dayTypeLine(summary),
     `First break: High ${summary.firstBreakCounts.high} · Low ${summary.firstBreakCounts.low} · Back inside ${summary.returnedInsideAfterBreakDays}/${summary.recordedBreakDays}`,
     ...selectedLines(commentary),
@@ -315,7 +315,7 @@ export function buildYearlyFullShareText(
     `Complete: ${summary.completedDays}`,
     ...(summary.incompleteDays ? [`Unfinished sessions: ${summary.incompleteDays}`] : []),
     `Recorded IB ranges: ${summary.finalIbAvailableDays}`,
-    `Median IB width: ${width(summary.medianIbWidth)}`,
+    `Median IB width: ${width(summary.medianIbWidth,options.tickSize)}`,
     ...(summary.missingDataCount ? [`Missing journal fields: ${summary.missingDataCount}`] : []),
     "",
     "WHICH IB EDGES BROKE?",
@@ -340,7 +340,7 @@ export function buildYearlyFullShareText(
     "CONTRIBUTING MONTHS",
     ...summary.months.filter(month => month.journaledDays > 0).map((month) =>
       `${displayMonth(month.month)} · ${month.journaledDays} day${month.journaledDays === 1 ? "" : "s"} · ` +
-      `${month.completedDays} complete · Median IB ${width(month.medianIbWidth)}`),
+      `${month.completedDays} complete · Median IB ${width(month.medianIbWidth,options.tickSize)}`),
     ...upcomingLines(view.upcomingDays),
   ];
   const selected = selectedLines(commentary);
@@ -355,12 +355,12 @@ export function buildYearlyImageCardSvg(
 ): WeeklyImageCardResult {
   const view = periodShareSummary(summary, options);
   summary = view;
-  return buildPeriodImageCard({period:'YEARLY',title:`${instrument} · ${summary.year}`,
+  return buildPeriodImageCard({tickSize:options.tickSize,period:'YEARLY',title:`${instrument} · ${summary.year}`,
     subtitle:'Recorded opening ranges and what followed',
     summary,upcomingCount:view.upcomingDays.length,midpoint:returnDepth(summary,'MIDPOINT'),rowHeading:'MONTHS IN THIS YEAR',
     columns:['Month','Sessions','Typical IB width','Complete days'],compactMonths:true,
     rows:summary.months.map(month=>({date:displayMonth(month.month).replace(` ${summary.year}`,''),
-      outcome:String(month.journaledDays),width:shareWidth(month.medianIbWidth),
+      outcome:String(month.journaledDays),width:shareWidth(month.medianIbWidth,options.tickSize),
       status:month.journaledDays ? `${month.completedDays} of ${month.journaledDays} complete` : 'Upcoming'})),
     commentary:selectedLines(commentary).flatMap(line=>wrapText(line,62))});
 }

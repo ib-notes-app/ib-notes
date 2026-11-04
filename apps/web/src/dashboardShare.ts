@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 import {compareForecast,compareForecastUpdates,compareOnOpening,deriveCurrentIbCode,derivePostIbRecap,deriveRecordedRthRange,deriveRecordedIbReturns,
-  deriveOvernightObservationRead,firstRecordedIbBreak,formatPriceNumber,ON_BANDS,onBandNames,
+  deriveOvernightObservationRead,firstRecordedIbBreak,ON_BANDS,onBandNames,
   type ForecastUpdate,type JournalSession,type OnForecastUpdate,type OvernightStudy} from '@ib-field-notes/domain';
 import {createSessionClock} from '@ib-field-notes/session-templates';
 import type {useCurrentForecast} from './ForecastCard';
@@ -9,6 +9,9 @@ import type {ShareMapLevel} from './shareMap';
 import {qualityNames} from './levelQuality';
 import {ibForecastCheckpoint,selectIbCheckpointUpdate} from './ibForecastCheckpoint';
 import {postIbForecastSummary} from './postIbForecastSummary';
+import {formatTickRoundedPrice} from './mapFormatting';
+import {ibForecastStory,onForecastStory,forecastStoryUpdates,rangeStory,recordedOnRange} from './forecastStory';
+import type {WorkspacePhase} from './workspaceModel';
 
 export const SHARE_CONTAINERS = [
   ['structure','Current Structure'],['post-ib','Post-IB'],['ib-forecast','IB Forecast'],['ib-recap','IB Recap'],
@@ -28,24 +31,21 @@ export type DashboardShareCard={title:string;headline:string;caption:string;sect
     extent?:{low:number;high:number;lowLabel:string;highLabel:string}}};
 type Read=ReturnType<typeof useCurrentForecast>;
 export type DashboardShareInput={session:JournalSession;read:Read;updates:ForecastUpdate[];
-  overnight:{study:OvernightStudy|null;rows:OnForecastUpdate[];loading:boolean};details:DashboardShareDetails;levels?:ShareMapLevel[];showTimes?:boolean};
+  overnight:{study:OvernightStudy|null;rows:OnForecastUpdate[];loading:boolean};details:DashboardShareDetails;levels?:ShareMapLevel[];showTimes?:boolean;phase?:WorkspacePhase};
 const outcomes:Record<string,string>={IBH:'High only',IBL:'Low only',IBB:'Both sides',IBN:'Neither side'};
 const pct=(n:number)=>n>0&&n<.01?'<1%':`${Math.round(n*100)}%`;
-const price=(n:number|null|undefined)=>n==null?'Not recorded':formatPriceNumber(n);
 const lead=(values:Record<string,number>,names:Record<string,string>)=>{
   const top=Math.max(...Object.values(values));
   return `${Object.keys(values).filter(k=>values[k]===top).map(k=>names[k]).join(' / ')} · ${pct(top)}`;
 };
 export function validShareUpdates(session:JournalSession,updates:ForecastUpdate[],now:string){
-  const until=Math.min(Date.parse(now),Date.parse(session.close.observedAt??session.close.finishedAt??now));
-  return updates.filter(u=>u.sessionId===session.id&&u.journalId===session.journalId&&u.contract===session.contract&&
-    u.originalIssuedAt===session.forecast?.issuedAt&&Date.parse(u.issuedAt)>=Date.parse(session.forecast.issuedAt)&&Date.parse(u.issuedAt)<=until)
-    .sort((a,b)=>Date.parse(a.issuedAt)-Date.parse(b.issuedAt)||a.id.localeCompare(b.id));
+  return forecastStoryUpdates(session,updates,now);
 }
 
 /** Public facts only. No spreading receipts, research rows, private notes or storage metadata. */
 export function buildDashboardShareCard(container:ShareContainer,input:DashboardShareInput):DashboardShareCard{
   const {session:s,read,overnight,details,levels=[]}=input,clock=createSessionClock(s.market),cp=s.market.checkpoints;
+  const price=(n:number|null|undefined)=>n==null?'Not recorded':formatTickRoundedPrice(n,s.market.tickSize);
   const showTimes=input.showTimes!==false;
   const time=(at:string)=>new Intl.DateTimeFormat('en-US',{timeZone:s.displayTimeZone,hour:'numeric',minute:'2-digit'}).format(new Date(at));
   const stamp=(at:string)=>showTimes?` · ${time(at)}`:'';
@@ -67,6 +67,7 @@ export function buildDashboardShareCard(container:ShareContainer,input:Dashboard
   const status=!!s.close.finishedAt?facts.status:'In progress';
   if(container==='conditions'||container==='post-ib'){
     card.headline=deriveCurrentIbCode(s,ib)??(read.overnight?'ON forming':'Session developing');
+    if(card.headline==='IBN'&&!s.close.finishedAt)card.headline='No IB break recorded';
     card.caption=container==='post-ib'?`After Initial Balance${showTimes?` · ${time(lockAt)}–${time(closeAt)}`:''}`:status;
     add('Recorded position',[
       {label:s.close.finishedAt?'Close':'Latest price',value:latest?`${price(latest.price)}${stamp(latest.at)}`:facts.currentOrClose??'Not recorded'},
@@ -98,9 +99,9 @@ export function buildDashboardShareCard(container:ShareContainer,input:Dashboard
             {label:'Recorded result',value:words.result,detail:words.detail},
           ]);
         }
-      }else if(ib?.phase==='LOCKED'&&latest&&range&&Date.parse(read.now)<Date.parse(closeAt)){
+      }else if(returns.firstBreak&&ib?.phase==='LOCKED'&&latest&&range&&Date.parse(read.now)<Date.parse(closeAt)){
         const inside=latest.price>ib.low!&&latest.price<ib.high!,edge=latest.price===ib.low||latest.price===ib.high;
-        add(returns.count&&!inside&&!edge?'Another return inside the IB':'Return inside the IB',[
+        if(!inside&&!edge)add(returns.count?'Another return inside the IB':'Return inside the IB',[
           {label:'Before close',value:inside?(returns.count?`Recorded · ${returns.count} ${returns.count===1?'return':'returns'}`:'Already inside at the recorded price'):edge?'At the IB edge':
             !read.ready?'Reading earlier history…':f?.probability!=null?pct(f.probability):'Estimate unavailable',tone:'green'},
           ...(!inside&&!edge?[{label:'Deadline',value:`${showTimes?`${time(closeAt)} · `:''}${remaining(closeAt)}`}]:[]),
@@ -108,30 +109,22 @@ export function buildDashboardShareCard(container:ShareContainer,input:Dashboard
         if(details.evidence&&f?.probability!=null)add(`Historical matches · ${f.support}`,[
           {label:'Matched sessions',value:`${f.matchingDays} out of ${f.eligibleDays} reviewed`},
           {label:'After weighting',value:`${f.effectiveDays.toFixed(1)} equivalent sessions`}]);
-      }else if(!s.close.finishedAt)add('Session timing',[{label:'Post-IB begins',value:showTimes?time(lockAt):'After Initial Balance'}]);
+      }else if(!s.close.finishedAt&&ib?.phase!=='LOCKED')add('Session timing',[{label:'Post-IB begins',value:showTimes?time(lockAt):'After Initial Balance'}]);
     }
   }else if(container==='ib-forecast'){
-    const saved=s.close.finishedAt?updates[0]:updates.at(-1),live=!s.close.finishedAt&&read.ready?read.outlook:null;
-    // While the same dashboard read prepares, keep an explicitly labeled saved estimate.
-    const source=live??saved,estimate=source?.estimate??s.forecast?.estimate;
-    const at=live?.asOf??saved?.issuedAt??s.forecast?.issuedAt;
-    card.estimateAvailable=!!estimate;
-    card.headline=source?.settled?'Both edges recorded':estimate?lead(estimate.dayType,outcomes):'No IB forecast recorded';
-    card.caption=`${live?'Best fit from recorded entries':saved?(s.close.finishedAt?'First saved estimate':'Latest saved estimate'):'Saved original reference'}${at?stamp(at):''}`;
-    const first=ib?.phase==='LOCKED'?firstRecordedIbBreak(ib.read.ib):null;
-    add('IB outlook',[
-      ...(first?[{label:'First recorded break',value:`${first.side==='IBH'?'High':'Low'} · 100% recorded${stamp(first.at)}`}]:
-        estimate?[{label:'First edge forecast',value:lead(estimate.firstBreak,{IBH:'High',IBL:'Low',none:'Neither'})}]:[]),
-      ...(source?.remainingEdge?[{label:`Chance ${source.remainingEdge.target==='IBH'?'high':'low'} also breaks`,
-        value:`${source.remainingEdge.probability==null?'Unavailable':pct(source.remainingEdge.probability)} · before ${showTimes?time(source.remainingEdge.until):`close${s.close.finishedAt?'':` · ${remaining(source.remainingEdge.until)}`}`}`}]:[]),
-      ...(estimate&&ib?.phase!=='LOCKED'?[{label:'Estimated final IB width',value:`${price(estimate.width.median)} pt`}]:[]),
-      ...(!showTimes&&ib?.phase==='FORMING'?[{label:'Until IB lock',value:remaining(lockAt)}]:[]),
-    ]);
-    if(details.outcomes&&estimate)add('Which edges break after IB lock?',Object.entries(estimate.dayType).map(([key,n])=>({label:outcomes[key],value:pct(n),tone:'pink'})));
-    const support=source?.remainingEdge?.probability!=null?{...source.remainingEdge,historicalDays:source.remainingEdge.eligibleDays}:source;
-    if(details.evidence&&support)add(`Historical matches · ${support.support}`,[{label:'Matched sessions',value:`${support.matchingDays} out of ${support.historicalDays} reviewed`},
-      {label:'After weighting',value:`${support.effectiveDays.toFixed(1)} equivalent sessions`}]);
-    card.footnote=s.studyReplay?card.footnote:'Experimental estimate · recorded breaks are observations, not predictions.';
+    const story=ibForecastStory({session:s,now:read.now,current:ib,outlook:read.outlook,updates,ready:read.ready,phase:input.phase,showTimes});
+    card.estimateAvailable=story.available;card.headline=story.headline;card.caption=story.caption;
+    add(story.title,story.rows.length?story.rows.map((row,i)=>({...row,...(i===0?{detail:[row.detail,story.caption].filter(Boolean).join(' · ')}:{})})):[{label:'Current estimate',value:story.headline}]);
+    if(story.outcomes.length){
+      const [h,l,b,n]=story.outcomes;
+      add('IB edges broken by RTH close',details.outcomes?story.outcomes:[
+        {label:`High only ${h!.value} · Low only ${l!.value}`,value:`Both ${b!.value} · Neither ${n!.value}`},
+      ]);
+    }
+    const context=rangeStory(s,ib,recordedOnRange(s,read.now),read.comparisons);
+    add('Today in context',context.rows.map(({detail,...row})=>row.label.includes('IBs at least')?{...row,detail:'Historical frequency · completed sessions'}:row));
+    if(details.evidence)add('Forecast details',[...story.details,...context.details]);
+    card.footnote=s.studyReplay?card.footnote:'Experimental estimate · historical frequencies are comparisons, not model probabilities.';
   }else if(container==='ib-recap'){
     const comparison=compareForecast(s),actual=comparison?.actual;
     const point=ibForecastCheckpoint(s),selected=selectIbCheckpointUpdate(s,updates,read.now);
@@ -170,14 +163,18 @@ export function buildDashboardShareCard(container:ShareContainer,input:Dashboard
       .sort((a,b)=>Date.parse(a.forecast.asOf)-Date.parse(b.forecast.asOf));
     const initial=rows[0];
     const saved=rows.at(-1),live=overnight.study?.live&&!overnight.loading?overnight.study.outlook:null;
-    const f=live??saved?.forecast;
+    const onStory=onForecastStory({session:s,now:read.now,study:overnight.study,rows:overnight.rows,loading:overnight.loading,showTimes});
+    const f=onStory.forecast;
     const onRead=overnight.study?.read??deriveOvernightObservationRead(s,{now:read.now,startAt:clock.overnightStart(s.rthDate).toString(),openAt},Date.parse(read.now)>=Date.parse(openAt));
     if(container==='on-forecast'){
-      card.estimateAvailable=!!f;
-      card.headline=f?lead(f.probabilities,onBandNames):'No opening estimate recorded';
-      card.caption=f?`${live?'Overnight opening estimate':'Saved overnight opening estimate'}${showTimes?` · ${time(f.asOf)} · for ${time(f.until)}`:
-        Date.parse(read.now)<Date.parse(f.until)?` · ${remaining(f.until,'min until open')}`:` · issued ${Math.ceil(f.remainingMinutes)} min before open`}`:
-        `Overnight estimate begins ${showTimes?time(clock.checkpointInstant(s.rthDate,cp.overnightLock).subtract({minutes:90}).toString()):'90 min before open'}`;
+      card.estimateAvailable=onStory.available;card.headline=onStory.headline;card.caption=onStory.caption;
+      add(onStory.title,onStory.rows.map((row,i)=>({...row,...(i===0?{detail:onStory.caption}:{})})));
+      const context=rangeStory(s,null,recordedOnRange(s,read.now),read.comparisons);
+      add('Today in context',context.rows.map(({detail,...row})=>row));
+      const widthComparison=overnight.study?.widthComparison;
+      if(widthComparison&&Date.parse(widthComparison.at)<=Date.parse(read.now))add('ON at this point',[
+        {label:'Earlier nights · same elapsed time',value:`As wide as or wider than ${Math.round(widthComparison.percentile)}% of ${widthComparison.days}`},
+      ]);
       if(f){
         card.meter={low:f.low,high:f.high,price:f.price,lowLabel:`${showTimes?time(f.referenceAt):'Fixed ON'} low`,highLabel:`${showTimes?time(f.referenceAt):'Fixed ON'} high`};
         add('Fixed forecast reference',[

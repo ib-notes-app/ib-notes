@@ -4,7 +4,7 @@ import { summarizeDaySummaries, type WeeklyDaySummary, type WeeklySessionSummary
   type MonthlySessionSummary, type YearlySessionSummary } from '@ib-field-notes/domain';
 
 type PeriodSummary = WeeklySessionSummary | MonthlySessionSummary | YearlySessionSummary;
-export type PeriodShareOptions = { asOfDate?: string };
+export type PeriodShareOptions = { asOfDate?: string; tickSize?:number };
 
 /** The market's calendar date, independent of the user's display timezone. */
 export function periodShareDateAt(instant: string, timeZone: string): string {

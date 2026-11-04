@@ -50,7 +50,7 @@ export function shareLevelAvailable(level:SignificantLevel,cutoff:string){
 /** Compose saved/live existing projections; scope changes never request or save a new forecast. */
 export function buildSessionShareCard(scope:SessionShareScope,input:DashboardShareInput,selected:ImageShareSections):DashboardShareCard{
  const phase=scope==='all'?'RTH':scope,s=input.session;
- const card=buildTopicShareCard(phase==='ON'?'on':'ib',input,selected);
+ const card=buildTopicShareCard(phase==='ON'?'on':'ib',{...input,phase:scope==='all'?(workspaceClock(s,input.read.now).phase??'RTH'):phase},selected);
  const fmt=(n:number|null)=>n===null?'Not recorded':workspaceFormatPrice(n,s.market.tickSize);
  if(phase!=='ON'&&phase!=='RTH'&&selected.recap){
   const range=workspaceRecordedRange(s,phase);

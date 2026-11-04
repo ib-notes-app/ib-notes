@@ -1,5 +1,6 @@
+import {formatTickRoundedPrice} from './mapFormatting';
 // SPDX-License-Identifier: MPL-2.0
-import { carryRangeEdgesForward, deriveSessionFinalIb, formatPriceNumber, type JournalSession } from "@ib-field-notes/domain";
+import { carryRangeEdgesForward, deriveSessionFinalIb,  type JournalSession } from "@ib-field-notes/domain";
 import { createSessionClock } from "@ib-field-notes/session-templates";
 import { formationSteps } from "./formationSteps";
 import { collapseNearbyMapObservations, mapMoveThreshold, mapObservationX } from "./mapGeometry";
@@ -139,7 +140,7 @@ export function buildShareMap(session: JournalSession, options: {
   const labelY=labelPositions(ordered.map(ref=>ref.price));
   const compactLabel = (label:string) => label === 'DEV HIGH' ? 'IBH' : label === 'DEV LOW' ? 'IBL' : label;
   const labels = ordered.map((ref, index) => `<g class="map-reference ${ref.tone}-reference">
-    <title>${xml(ref.label)} ${formatPriceNumber(ref.price)}</title>
+    <title>${xml(ref.label)} ${formatTickRoundedPrice(ref.price,session.market.tickSize)}</title>
     <path d="M 136 ${labelY[index]} L ${plot.x} ${y(ref.price)}" class="label-leader"/>
     <text x="132" y="${labelY[index]+6}" text-anchor="end" class="map-label ${ref.tone}-label">${xml(compactLabel(ref.label))}</text>
     </g>`).join("");
@@ -149,7 +150,7 @@ export function buildShareMap(session: JournalSession, options: {
   const levelLines=levelMarkers.map(level=>[...new Set([level.low,level.high])].map(price=>
     `<line x1="${plot.x}" y1="${y(price)}" x2="${x(100)}" y2="${y(price)}" class="level-line" data-role="${level.role ?? 'reference'}" data-quality="${level.quality ?? 'common'}"/>`).join('')).join('');
   const levelLabels=levelMarkers.map((level,index)=>`<g class="map-reference level-reference" data-quality="${level.quality ?? 'common'}">
-    <title>${xml(level.code)} · ${xml(level.label)} · ${formatPriceNumber(level.low)}${level.high===level.low?'':`–${formatPriceNumber(level.high)}`}</title>
+    <title>${xml(level.code)} · ${xml(level.label)} · ${formatTickRoundedPrice(level.low,session.market.tickSize)}${level.high===level.low?'':`–${formatTickRoundedPrice(level.high,session.market.tickSize)}`}</title>
     <path d="M ${x(100)} ${y(level.high)} V ${y(level.low)} M ${x(100)} ${y((level.high+level.low)/2)} L ${x(100)+10} ${levelY[index]}" class="level-leader"/>
     <text x="${x(100)+14}" y="${levelY[index]+6}" class="map-label level-label">${xml(level.code)}</text>
   </g>`).join('');

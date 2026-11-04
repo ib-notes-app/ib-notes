@@ -1,5 +1,5 @@
+import {formatTickRoundedPrice} from './mapFormatting';
 // SPDX-License-Identifier: MPL-2.0
-import { formatPriceNumber } from "@ib-field-notes/domain";
 
 import { deriveRange, type JournalSession } from "@ib-field-notes/domain";
 import { createSessionClock } from "@ib-field-notes/session-templates";
@@ -58,8 +58,8 @@ function escapeXml(value: string): string {
     .replaceAll("'", "&apos;");
 }
 
-function formatPrice(value: number | null): string {
-  return value === null ? "Pending" : formatPriceNumber(value);
+function formatPrice(value: number | null,tickSize:number): string {
+  return value === null ? "Pending" : formatTickRoundedPrice(value,tickSize);
 }
 
 function developingIbEdges(session: JournalSession): { high: number; low: number } | null {
@@ -195,16 +195,16 @@ export function buildImageCardSvg(
   const detailBlocks = [
     overnightRange
       ? `${overnightRange.status === "Locked" ? "Overnight" : "Forming overnight"} · ` +
-        `${formatPrice(overnightRange.low)}–${formatPrice(overnightRange.high)}` +
-        `${overnightGeometry ? ` · ${formatPriceNumber(overnightGeometry.width)} pts` : ""}`
+        `${formatPrice(overnightRange.low,session.market.tickSize)}–${formatPrice(overnightRange.high,session.market.tickSize)}` +
+        `${overnightGeometry ? ` · ${formatTickRoundedPrice(overnightGeometry.width,session.market.tickSize)} pts` : ""}`
       : null,
     options.includePath && facts.path ? readablePath(facts.path) : null,
     options.includeCurrentOrClose ? facts.currentOrClose?.replace(/^CP /, 'Latest price ').replace('inside or on IB', 'inside the IB').replace('above IBH', 'above the IB').replace('below IBL', 'below the IB') : null,
     options.includeEvents && facts.events.length > 0
       ? `Events · ${facts.events.join(", ")}`
       : null,
-    ...selectedLevels.map((level,index)=>`${shareLevelCode(level,index)} · ${formatPriceNumber(level.low)}`+
-      (level.high===level.low ? '' : `–${formatPriceNumber(level.high)}`)+` · ${level.label}`+
+    ...selectedLevels.map((level,index)=>`${shareLevelCode(level,index)} · ${formatTickRoundedPrice(level.low,session.market.tickSize)}`+
+      (level.high===level.low ? '' : `–${formatTickRoundedPrice(level.high,session.market.tickSize)}`)+` · ${level.label}`+
       (level.role ? ` · ${level.role}` : '')+
       (level.detail ? ` · ${level.detail}` : '')),
     ...options.selectedOptionalLines,
@@ -237,16 +237,16 @@ export function buildImageCardSvg(
         <rect x="786" y="788" width="222" height="116" rx="20" fill="#252b35"/>
         <text x="92" y="826" class="stat-label">${escapeXml(rangeState.lowLabel)}</text>
         <text x="92" y="849" class="stat-meaning">${rangeMeaning} low</text>
-        <text x="92" y="883" class="stat-value">${escapeXml(formatPrice(rangeState.low))}</text>
+        <text x="92" y="883" class="stat-value">${escapeXml(formatPrice(rangeState.low,session.market.tickSize))}</text>
         <text x="330" y="826" class="stat-label">${escapeXml(rangeState.highLabel)}</text>
         <text x="330" y="849" class="stat-meaning">${rangeMeaning} high</text>
-        <text x="330" y="883" class="stat-value">${escapeXml(formatPrice(rangeState.high))}</text>
+        <text x="330" y="883" class="stat-value">${escapeXml(formatPrice(rangeState.high,session.market.tickSize))}</text>
         <text x="568" y="826" class="stat-label">RANGE WIDTH</text>
         <text x="568" y="849" class="stat-meaning">High minus low</text>
-        <text x="568" y="883" class="stat-value">${escapeXml(formatPrice(rangeGeometry?.width ?? null))}${rangeGeometry ? ' pt' : ''}</text>
+        <text x="568" y="883" class="stat-value">${escapeXml(formatPrice(rangeGeometry?.width ?? null,session.market.tickSize))}${rangeGeometry ? ' pt' : ''}</text>
         <text x="806" y="826" class="stat-label">MIDPOINT</text>
         <text x="806" y="849" class="stat-meaning">Middle · nearest tick</text>
-        <text x="806" y="883" class="stat-value">${escapeXml(rangeGeometry ? formatPriceNumber(Math.round(rangeGeometry.midpoint / session.market.tickSize) * session.market.tickSize) : "Pending")}</text>
+        <text x="806" y="883" class="stat-value">${escapeXml(rangeGeometry ? formatTickRoundedPrice(rangeGeometry.midpoint,session.market.tickSize) : "Pending")}</text>
       </g>`
     : `<g>
         <rect x="72" y="788" width="936" height="116" rx="20" fill="#252b35"/>
@@ -301,8 +301,8 @@ export function buildImageCardSvg(
       title:'Current Structure',headline,showTimes:options.showTimes,
       context:`${facts.classification!=='In progress'?`${facts.classification} · `:''}${facts.status}`,
       details:[
-        ...(rangeState&&rangeState.phase!=='overnight'?[`${rangeMeaning} low / high: ${formatPrice(rangeState.low)}–${formatPrice(rangeState.high)}`+
-          (rangeGeometry?` · ${formatPriceNumber(rangeGeometry.width)} pt`:'')]:[]),
+        ...(rangeState&&rangeState.phase!=='overnight'?[`${rangeMeaning} low / high: ${formatPrice(rangeState.low,session.market.tickSize)}–${formatPrice(rangeState.high,session.market.tickSize)}`+
+          (rangeGeometry?` · ${formatTickRoundedPrice(rangeGeometry.width,session.market.tickSize)} pt`:'')]:[]),
         ...detailBlocks,
       ],
       ...(session.studyReplay?{qualification:'Historical replay · reconstructed from recorded entries.'}:{}),

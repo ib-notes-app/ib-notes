@@ -565,7 +565,7 @@ function usePeriodShareOptions() {
   const { template } = useJournalClock();
   useCurrentTimeInZone(template.canonicalTimeZone);
   const asOfDate = periodShareDateAt(Temporal.Now.instant().toString(), template.canonicalTimeZone);
-  return useMemo(() => ({ asOfDate }), [asOfDate]);
+  return useMemo(() => ({ asOfDate,tickSize:template.tickSize }), [asOfDate,template.tickSize]);
 }
 
 function formatClockTime(localTime: string): string {
@@ -4091,6 +4091,13 @@ export function App() {
       const ended=Temporal.Instant.compare(now,window.end)>=0;
       const at=observedAt??(ended?window.end:now);
       const locked=ended&&Temporal.Instant.compare(at,window.end)>=0;
+      if(locked&&(update.high===null||update.low===null))throw Error('Enter both the high and low to confirm this period.');
+      if(locked&&update.high!==null&&update.low!==null&&update.high<update.low)throw Error('High must be at or above Low.');
+      if(locked){
+        const start=phase==='A'?clock.windows['15R'].start:window.start;
+        const prices=current.cpObservations.filter(price=>Date.parse(price.observedAt)>=Date.parse(start)&&Date.parse(price.observedAt)<Date.parse(window.end));
+        if(prices.some(price=>update.high!==null&&price.price>update.high||update.low!==null&&price.price<update.low))throw Error('The confirmed range must include this period’s recorded prices. Correct a mistaken entry in Entries first.');
+      }
       if(Temporal.Instant.compare(at,window.start)<0||Temporal.Instant.compare(at,window.end)>0||Temporal.Instant.compare(at,now)>0)throw Error("Keep the range time within the selected phase and no later than now.");
       const checkpoint=phase==='15R'?current.fifteenMinute:phase==='A'?current.aPeriod:phase==='B'?current.bPeriod:null;
       if(!snapshot&&checkpoint?.status==='confirmed'&&!locked)throw Error('This period is already confirmed. Keep its completed range time at the period end; use the Day timeline in Review to correct an earlier record.');
@@ -7505,7 +7512,7 @@ function SharePreview({
     if(sections.structure&&options.includeCurrentOrClose&&!sections.conditions&&mapFacts.currentOrClose)
       card.caption+=` · Recorded ${mapFacts.currentOrClose}`;
     return buildDashboardImageCard(shareSession,card,[
-      ...(sections.levels?buildShareVisitedLevels(visited):[]),
+      ...(sections.levels?buildShareVisitedLevels(visited,shareSession.market.tickSize):[]),
       ...(sections.levels?buildNearbyShareSections({...publicCardInput,levels:references}):[]),
       ...(options.includeEvents?buildShareNewsSections(shareSession,projection.cutoff,showTimes):[]),
       ...(sections.notes&&notes.length?[{title:'Selected notes',rows:notes.map(value=>({label:'Note',value}))}]:[]),

@@ -32,16 +32,14 @@ export function buildTopicShareCard(topic:Exclude<ImageShareTopic,'structure'>,i
  if(selected.recap&&post&&input.read.current?.phase==='LOCKED'){
   card.headline=post.headline;card.caption=post.caption;
  }
- if(selected.recap)card.sections.push(...recap.sections);
  if(selected.forecast){
-  const outlook=forecast.sections.find(section=>section.title==='IB outlook');
-  card.sections.push({title:topic==='ib'?'IB forecast':'Opening forecast',rows:[
-   {label:forecast.headline==='Both edges recorded'?'Recorded result':'Leading estimate',value:forecast.headline,tone:topic==='ib'?'pink':'green',...(forecast.estimateAvailable===false?{}:{detail:forecast.caption})},
-   ...(outlook?.rows??[]),
-  ]},...forecast.sections.filter(section=>section!==outlook));
-  if(post)card.sections.push(...post.sections.filter(s=>s.title!=='Recorded position'&&s.title!=='Session timing'&&(!selected.recap||s.title!=='Recorded returns inside IB')));
+  card.sections.push(...forecast.sections);
+  // The common summary already contains the applicable remaining-edge / return
+  // target. Do not append a second, differently worded post-IB forecast.
+  if(post&&input.details.comparison)card.sections.push(...post.sections.filter(s=>s.title!=='Recorded position'&&s.title!=='Session timing'&&s.title!=='Recorded returns inside IB'));
   card.footnote='Experimental estimates · Recorded observations; gaps may exist.';
  }
+ if(selected.recap)card.sections.push(...recap.sections);
  if(selected.conditions){
   card.sections.push(...conditions.sections.map(section=>({...section,rows:section.rows.filter(row=>
    // The combined recap already names these exact IB edges. Keep the latest

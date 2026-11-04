@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
-import { firstRecordedIbBreak, compareForecast, compareForecastUpdates, deriveSessionIbRead, deriveSessionOvernightRead, deriveCurrentIbCode, deriveLockPositionReference, deriveBestFitOutlook, buildForecastTraining,
+import { firstRecordedIbBreak, compareForecast, compareForecastUpdates, deriveSessionIbRead, deriveSessionOvernightRead, deriveCurrentIbCode, deriveLockPositionReference, deriveBestFitOutlook, buildForecastTraining,deriveRangeComparisons,
   deriveLiveMarketMemory, describeMarketMemory, fbdCompatibility, type ContextBatch, type FbdBatch, type HistoricalLow,
   latestPreOpenSnapshot, formatPriceNumber, deriveRecordedRthRange, type ForecastEstimate,
   deriveSessionAuctionRead, deriveRecentAuctionRead, completedAuctionRangeFromPriceDay, priceHistoryCompatibility,memoryContractMatches,
@@ -23,6 +23,7 @@ import {PostIbConditions} from './PostIbConditions';
 import {PhaseForecast} from './PhaseForecast';
 import {formatTickRoundedPrice} from './mapFormatting';
 import {workspaceClock} from './workspaceModel';
+import {recordedOnRange} from './forecastStory';
 
 const factorNames = { news: "News", fbd: "Recent LBAF", levels: "Nearby low", quarter: "Time of year", weekday: "Weekday" };
 const pct = (value: number) => value > 0 && value < 0.01 ? "<1%" : `${Math.round(value * 100)}%`;
@@ -123,6 +124,12 @@ export function useCurrentForecast(session: JournalSession, historical: Historic
   }, [session,clockTick,inputs.snapshotAt]);
   const current = useMemo(() => deriveSessionIbRead(session,readWindow,{provisional:true}), [session,readWindow]);
   const overnight = useMemo(() => deriveSessionOvernightRead(session,readWindow), [session,readWindow]);
+  const comparisons=useMemo(()=>{
+    const on=recordedOnRange(session,readWindow.now);
+    return deriveRangeComparisons({session,now:readWindow.now,sessions:inputs.sessions,historical,batches,
+      onWidth:Date.parse(readWindow.now)>=Date.parse(readWindow.openAt)?on.width:null,
+      ibWidth:current?.phase==='LOCKED'?current.width:null});
+  },[session,readWindow,current,inputs.sessions,historical,batches]);
   const sourceKey=JSON.stringify([referenceKey,referencePrices.map(p=>[p.batch.id,p.batch.contentSha256,p.path.date]),
     batches.map(b=>[b.id,b.contentSha256,b.importedAt]),
     inputs.news.map(b=>[b.id,b.contentSha256,b.importedAt]),inputs.lowBatches.map(b=>[b.id,b.contentSha256,b.importedAt])]);
@@ -141,13 +148,13 @@ export function useCurrentForecast(session: JournalSession, historical: Historic
     const auctionContext=broader?{state:broader.state,low:broader.low,high:broader.high,typicalRthWidth:broader.typicalRthWidth,
       days:broader.days,dates:broader.dates,knownAt:broader.knownAt}:null;
     return { now, current, overnight, ready: prepared.ready&&recentReady===recentKey, historyError:prepared.error, auction:deriveSessionAuctionRead(session,current),
-      broader,
+      broader,...(comparisons.length?{comparisons}:{}),
       reference: deriveLockPositionReference(session, current, historical, batches, now),
       outlook: references||prepared.error ? deriveBestFitOutlook({ session, current, window, historical, batches, examples:references?.examples??examples,
         paths:references?.paths, levels, marketMemory, memoryLibrary:references?.memoryLibrary,
         auctionContext,auctionLibrary:references?.auctionLibrary,
         referencePriceBatchIds:references?.priceBatchIds }) : null };
-  }, [session, current, overnight, readWindow, historical, batches, examples, levels, inputs.sessions, inputs.news, lows,recentRanges,recentReady,recentKey,closed,references,prepared.ready,prepared.error]);
+  }, [session, current, overnight, readWindow, historical, batches, examples, levels, inputs.sessions, inputs.news, lows,recentRanges,recentReady,recentKey,closed,references,prepared.ready,prepared.error,comparisons]);
 }
 
 function ForecastUpdateHistory({session,updates,error,current}:{session:JournalSession;updates:ForecastUpdate[];error:string|null;current:ReturnType<typeof deriveSessionIbRead>}) {
@@ -429,7 +436,7 @@ export function ForecastCard({ session, prior, historical = [], batches = [], le
   sessions?: JournalSession[]; news?: ContextBatch[]; lowBatches?: FbdBatch[];priceBatches?:PriceHistoryBatch[]; repository?: JournalRepository | null;
   dashboard?:boolean;focused?:boolean;visible?:boolean;presentation?:'forecast'|'structure';children?:ReactNode;contextLevels?:SignificantLevel[];levelDistance?:number;onOpenLevel?:(id:string)=>void }) {
   const saved = session.forecast;
-  const { now, current, overnight, reference, outlook,auction,broader,ready,historyError } = useCurrentForecast(session, historical, batches, levels, {sessions,news,lowBatches,priceBatches,repository});
+  const { now, current, overnight, reference, outlook,auction,broader,ready,historyError,comparisons } = useCurrentForecast(session, historical, batches, levels, {sessions,news,lowBatches,priceBatches,repository});
   const history=useForecastUpdateHistory({session,repository,current,outlook,ready,levels,batches,news,lowBatches,priceBatches});
   const closed=!!session.close.finishedAt;
   const recap=useMemo(()=>{
@@ -477,7 +484,7 @@ export function ForecastCard({ session, prior, historical = [], batches = [], le
   </div>;
   const wrapForecast=(forecast:ReactNode)=>!dashboard?forecast:<SessionPhasePanels session={session} now={now} forecast={forecast} focused={focused}
     focusedForecast={focused?<PhaseForecast session={session} now={now} current={current} outlook={outlook} ready={ready} historyAvailable={historical.length>0}
-      updates={history.updates} gaps={gaps} partial={!!provisionalIb} inputStatus={partialNotice} details={forecast}/>:undefined}
+      updates={history.updates} comparisons={comparisons} gaps={gaps} partial={!!provisionalIb} inputStatus={partialNotice} details={forecast}/>:undefined}
     postIbForecast={closed?<PostIbRecap session={session} updates={history.updates}/>:
       <IbReturnRead session={session} current={current} forecast={outlook?.ibReturn} now={now} ready={ready}/>}
     conditions={<section className="forecast-card standalone-conditions" aria-label="Session conditions">

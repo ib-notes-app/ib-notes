@@ -1,3 +1,4 @@
+import {formatTickRoundedPrice} from './mapFormatting';
 // SPDX-License-Identifier: MPL-2.0
 import type { DayType, SessionPeriodStatistics } from '@ib-field-notes/domain';
 import {shareWatermark} from './shareWatermark';
@@ -5,8 +6,8 @@ import {SHARE_DISCLAIMER} from './shareFooter';
 
 export const shareOutcomeLabel = (type: DayType | null) => type === null ? 'Not recorded'
   : ({IBH:'High only',IBL:'Low only',IBB:'Both sides',IBN:'Neither'})[type];
-export const shareWidth = (value: number | null) => value === null ? 'Not recorded'
-  : `${value.toLocaleString('en-US',{useGrouping:false,minimumFractionDigits:2,maximumFractionDigits:2})} pt`;
+export const shareWidth = (value: number | null,tickSize=.01) => value === null ? 'Not recorded'
+  : `${formatTickRoundedPrice(value,tickSize)} pt`;
 const xml = (value: string) => value.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;')
   .replaceAll('"','&quot;').replaceAll("'",'&apos;');
 
@@ -14,7 +15,7 @@ type PeriodRow = { date: string; outcome: string; width: string; status: string 
 type PeriodCard = {
   period: 'WEEKLY' | 'MONTHLY' | 'YEARLY'; title: string; subtitle: string;
   summary: SessionPeriodStatistics; midpoint: {yes:number;known:number};
-  upcomingCount?: number;
+  upcomingCount?: number; tickSize?:number;
   rowHeading: string; columns: [string,string,string,string]; rows: PeriodRow[];
   commentary: string[]; compactMonths?: boolean;
 };
@@ -102,7 +103,7 @@ export function buildPeriodImageCard(card: PeriodCard) {
     <rect x="722" y="252" width="286" height="116" rx="20" fill="#252b35"/>
     <text x="94" y="287" class="stat-label">RECORDED SESSIONS</text><text x="94" y="339" class="stat-value">${s.journaledDays}</text>
     <text x="419" y="287" class="stat-label">COMPLETE DAYS</text><text x="419" y="339" class="stat-value">${s.completedDays}</text>
-    <text x="744" y="287" class="stat-label">TYPICAL IB WIDTH</text><text x="744" y="339" class="stat-value">${shareWidth(s.medianIbWidth)}</text>
+    <text x="744" y="287" class="stat-label">TYPICAL IB WIDTH</text><text x="744" y="339" class="stat-value">${shareWidth(s.medianIbWidth,card.tickSize)}</text>
     <text x="72" y="399" class="meta">${s.finalIbAvailableDays ? `Typical width = middle recorded range size (${s.finalIbAvailableDays} ${daysLabel(s.finalIbAvailableDays)}).` : 'No IB range recorded yet.'}</text>
     <text x="72" y="428" class="section">WHICH IB EDGES BROKE?</text>
     ${outcomeTiles}

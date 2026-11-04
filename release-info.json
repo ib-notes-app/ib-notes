@@ -1,49 +1,45 @@
 {
-  "buildId": "public-blank-20261104T064627024Z",
+  "buildId": "public-blank-20261104T164643566Z",
   "distribution": "public-blank",
-  "status": "Early public version; native structure boundaries and period midpoints. Public-device checks pending.",
+  "status": "Early public version; consistent forecast sharing, range context and period-end review. Public-device checks pending.",
   "appUrl": "https://ib-notes-app.github.io/ib-notes/",
   "archive": "downloads/IB-Notes-blank-slate.zip",
-  "archiveBytes": 4207592,
-  "archiveSha256": "b5c9a241f105e22e5c85c2beae2b5cd4819e327f6fa4fc22524326fd7a89264b",
+  "archiveBytes": 4220350,
+  "archiveSha256": "7ee5e3c75f892788c05940557617778bc95a16cca62f9e474116600924c83596",
   "bundledMarketHistory": false,
   "bundledJournalRecords": false,
   "bundledExamples": false,
   "automaticNewsLookup": false,
   "historicalForecasts": "Unavailable without suitable user-supplied learning history.",
   "dataStorage": "Local SQLite in the browser; no journal synchronization.",
-  "preparedAt": "2026-11-03",
+  "preparedAt": "2026-11-04",
   "changes": [
-    "The selected day's native ON, 15R, A, B/IB and RTH boundaries always stay visible in Structure.",
-    "Map-level hiding controls extra references, including boundaries carried from other days.",
-    "Structure labels the current period's midpoint without saving or carrying it as a level.",
-    "Empty sessions identify their actual phase without inventing structure.",
-    "Current conditions shows the same current-period midpoint as the Structure map, between its low and high."
+    "Forecast and image cards use one stage-specific summary and estimate timestamp.",
+    "Neither remains visible among the four IB outcomes before a recorded edge break; first-break odds stay in Details.",
+    "Recorded ON/IB size and location gain source-labelled historical comparisons when suitable earlier records exist.",
+    "Return estimates appear after a break while outside; re-entries show recorded counts.",
+    "Non-numerical events need no release result; tracking windows spanning two dates show both dates.",
+    "The preview shows the full image height; share prices, widths and midpoints use the instrument price step.",
+    "Configured period endings offer a deferred high/low confirmation, with saved status and explicit corrections.",
+    "Closing an earlier current-day period returns to the active phase; historical browsing retains its phase."
   ],
   "verification": {
     "typecheck": "Passed, including cleaned public source.",
     "focusedUnitTests": {
-      "passed": 60,
-      "files": 5
+      "passed": 140,
+      "files": 15
     },
-    "publicChromiumJourneys": 14,
+    "publicChromiumJourneys": 18,
     "safeUpdateChecks": 2,
     "sourceAndDownloadsAudit": "Passed: source, website, nested downloads and reachable history contain no records, restricted-source mentions, private dataset names or data files.",
     "livePublicOrigin": {
-      "status": "Passed",
-      "chromiumJourneys": 14,
-      "publicOriginJourneys": 13,
-      "localOldBuildMigrationJourney": 1,
-      "matchingSiteFiles": 38,
-      "excludedDataUrlsReturning404": 8,
-      "pagesCommit": "150f5bf8473c39df2c468c725d3ec6660e70e5c2",
-      "deploymentRun": "https://github.com/ib-notes-app/ib-notes/actions/runs/41788054702"
+      "status": "Pending deployment verification"
     },
     "physicalPublicOriginInstall": "Pending",
-    "firefoxAndWebkit": "Not run; automation browsers unavailable.",
+    "firefoxAndWebkit": "Could not launch: automation browser binaries are unavailable.",
     "staticLiteralReview": {
-      "filesInspected": 190,
-      "candidates": 50,
+      "filesInspected": 193,
+      "candidates": 52,
       "newPriceOrHistoryLiterals": 0
     }
   }

@@ -2,6 +2,43 @@
 
 [Open IB Notes](https://ib-notes-app.github.io/ib-notes/) · [Getting started](QUICK_START.md) · [All guides](../README.md)
 
+## Forecast and sharing tell the same story
+
+Forecast and image cards now use the same summary for the stage of the day,
+with the estimate time shown. Before an IB edge breaks, all four outcomes stay
+visible: High only, Low only, Both and Neither. First-break odds are a separate
+question under Details, rather than a second headline that looks like a sequence.
+
+**Today in context** explains the recorded ON and IB sizes and where the IB sits
+within ON. When suitable earlier records exist, it also shows range comparisons
+and historical counts. Your journal and learning history stay separate. A past
+frequency is labeled separately from today's weighted model estimate.
+
+Return forecasts wait for a recorded edge break and an outside price. Once price
+is back inside, recorded return counts provide the context. There is no
+“Already inside” forecast placeholder before anything has broken.
+
+## See your whole image before sharing
+
+The preview now follows the full height of the image. Scroll through it to check
+the final rows and footer before **Download PNG**. Prices, widths and midpoints
+use your instrument's price step, without long trails of decimals.
+
+Events such as elections no longer appear to need a single numerical result.
+Event tracking windows that span two dates show both dates. Numerical release
+figures remain available when relevant; event notes remain private unless selected.
+
+## Check a period when it ends
+
+At a configured period end, the app offers its recorded high and low for
+confirmation. It waits while an entry or another screen is open. Once confirmed,
+the period shows **Saved · Closed · Confirmed** and has an explicit correction
+action. Missing prices stay missing; the clock does not invent a range.
+
+Closing an earlier period on the current session returns to the active period.
+Historical browsing keeps your selected period. Your journal records, original
+forecasts and forecast weights are preserved.
+
 ## Your day's structure stays on the map
 
 The selected day's own ON, 15R, A, B/IB and RTH ranges always remain visible

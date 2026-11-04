@@ -1,5 +1,6 @@
+import {formatTickRoundedPrice} from './mapFormatting';
 // SPDX-License-Identifier: MPL-2.0
-import {formatPriceNumber,type JournalSession} from '@ib-field-notes/domain';
+import {type JournalSession} from '@ib-field-notes/domain';
 import {createSessionClock} from '@ib-field-notes/session-templates';
 import type {DashboardShareCard,ShareFactSection} from './dashboardShare';
 import type {ImageCardResult} from './imageCard';
@@ -68,7 +69,7 @@ export function buildDashboardImageCard(session:JournalSession,card:DashboardSha
   if(card.meter&&card.meter.high>card.meter.low){
     const m=card.meter,width=m.high-m.low,min=m.extent?.low??Math.min(m.low-width*.3,m.price??m.low)-width*.1,
       max=m.extent?.high??Math.max(m.high+width*.3,m.price??m.high)+width*.1,x=(p:number)=>96+(p-min)/(max-min)*888;
-    const lowText=`${m.lowLabel} ${formatPriceNumber(m.low)}`,highText=`${m.highLabel} ${formatPriceNumber(m.high)}`;
+    const lowText=`${m.lowLabel} ${formatTickRoundedPrice(m.low,session.market.tickSize)}`,highText=`${m.highLabel} ${formatTickRoundedPrice(m.high,session.market.tickSize)}`;
     const lowWidth=shareTextWidth(lowText,23),highWidth=shareTextWidth(highText,23),gap=24;
     const lowLeft=Math.max(96,Math.min(x(m.low)-lowWidth/2,984-lowWidth-highWidth-gap));
     const highLeft=Math.min(984-highWidth,Math.max(x(m.high)-highWidth/2,lowLeft+lowWidth+gap));
@@ -79,8 +80,8 @@ export function buildDashboardImageCard(session:JournalSession,card:DashboardSha
       <line x1="96" x2="984" y1="${y}" y2="${y}" stroke="#52616f" stroke-width="6" stroke-linecap="round"/>
       <line x1="${x(m.low)}" x2="${x(m.high)}" y1="${y}" y2="${y}" stroke="${card.title==='ON Forecast'||card.title==='Overnight'?tones.green:tones.pink}" stroke-width="9"/>
       ${m.price==null?'':`<circle cx="${x(m.price)}" cy="${y}" r="8" fill="#f3ce68" stroke="#14171c" stroke-width="2"/>`}
-      ${m.extent?`${text(`${m.extent.lowLabel} ${formatPriceNumber(min)}`,96,y+38,'caption')}
-        <text x="984" y="${y+38}" text-anchor="end" class="caption">${xml(`${m.extent.highLabel} ${formatPriceNumber(max)}`)}</text>`:''}
+      ${m.extent?`${text(`${m.extent.lowLabel} ${formatTickRoundedPrice(min,session.market.tickSize)}`,96,y+38,'caption')}
+        <text x="984" y="${y+38}" text-anchor="end" class="caption">${xml(`${m.extent.highLabel} ${formatTickRoundedPrice(max,session.market.tickSize)}`)}</text>`:''}
       <text x="540" y="${y+38}" text-anchor="middle" class="foot">Dot: recorded price</text></g>`);
     y+=56;
   }
