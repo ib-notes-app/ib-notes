@@ -1,0 +1,11 @@
+{
+  "name": "@ib-field-notes/domain",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": "./src/index.ts",
+  "license": "MPL-2.0",
+  "dependencies": {
+    "@js-temporal/polyfill": "^0.5.1"
+  }
+}

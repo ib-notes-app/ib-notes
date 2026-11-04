@@ -1,0 +1,32 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+.final-day-review{width:100%;max-width:42rem;margin-inline:auto;padding:1rem;border:1px solid var(--line);border-radius:1.15rem;background:var(--paper)}
+.final-day-review form{display:grid;gap:.8rem}
+.final-day-heading{display:flex;justify-content:space-between;align-items:center;gap:.75rem;position:sticky;top:0;z-index:2;background:var(--paper);padding-block:.5rem}
+.final-day-heading h3,.final-day-heading p{margin:0}.final-day-heading p{color:var(--muted);font-size:.85rem;margin-top:.2rem}
+.final-day-heading button{min-height:44px;white-space:nowrap}
+.final-day-review fieldset{border:0;padding:0;margin:0;min-width:0;display:grid;gap:.75rem}
+.final-day-prices{display:grid;gap:.35rem}.final-day-row,.final-day-columns{display:grid;grid-template-columns:minmax(4.75rem,.8fr) repeat(2,minmax(0,1fr));gap:.5rem;align-items:center}
+.final-day-columns{color:var(--muted);font-size:.85rem}.final-day-row strong{font-size:.9rem}.final-day-row label{min-width:0;margin:0}.final-day-row input{width:100%;min-width:0;box-sizing:border-box;font-size:1rem;font-variant-numeric:tabular-nums;min-height:44px;padding:.55rem}
+.final-day-row[data-daily=true]{padding-block:.6rem;border-top:1px solid var(--line);margin-top:.3rem;color:var(--accent)}
+.final-day-close{display:grid;grid-template-columns:minmax(8rem,1fr) minmax(0,1fr);align-items:center;gap:.75rem}.final-day-close input{min-width:0;font-size:1rem;width:100%;box-sizing:border-box}
+.final-day-last-cp{margin:0;color:var(--muted);font-size:.85rem}.final-day-review .stage-helper{margin:0}.final-day-review [role=alert]{color:var(--accent);margin:0}
+.workspace-day-review{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:.3rem .65rem;width:fit-content;margin:.5rem auto 0;min-height:44px;border:1px solid var(--line);color:var(--ink);background:var(--paper-deep);border-radius:.7rem;padding:.6rem 1rem;font:inherit;font-weight:650}
+.workspace-day-review small{font-size:.75rem;font-weight:500;color:var(--muted)}
+.workspace-day-review[data-state=pending]{background:var(--accent);border-color:#f3b3d1;color:#281a23;box-shadow:0 2px 6px #0003}
+.workspace-day-review[data-state=pending] small{color:#452637}
+.workspace-day-review:focus-visible,.final-day-entries:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.workspace-day-review:disabled,.final-day-entries:disabled{opacity:.5}
+.final-day-entries{display:flex;justify-content:space-between;align-items:center;gap:1rem;width:100%;min-height:44px;margin-top:1rem;border:1px solid var(--line);border-radius:.7rem;background:var(--paper-deep);color:var(--ink);padding:.65rem .8rem;font:inherit;font-weight:600}
+.final-day-period{display:flex;align-items:center;justify-content:space-between;gap:.25rem;min-width:44px;min-height:44px;padding:.4rem;border:1px solid var(--line);border-radius:.55rem;background:var(--paper-deep);color:var(--ink);font:inherit;font-size:.85rem;font-weight:650;text-align:left}
+.final-day-period span{color:var(--accent)}
+.final-day-period:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.final-day-notes{display:grid;gap:.45rem;margin-top:.25rem}
+.final-day-notes>span{color:var(--accent);font-weight:650}
+.final-day-notes textarea{width:100%;min-height:8rem;resize:vertical;line-height:1.5}
+@media(max-width:380px){.final-day-review{padding:.75rem}.final-day-heading{gap:.5rem}.final-day-heading h3{font-size:1rem}.final-day-row,.final-day-columns{grid-template-columns:4.25rem repeat(2,minmax(0,1fr));gap:.35rem}}
+
+.final-day-review .visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
+.final-day-heading h3{font-size:1.05rem}.final-day-heading .primary-action{background:var(--accent);color:#281a23;border:1px solid #f3b3d1;border-radius:12px;font-size:1rem;font-weight:650;padding:.6rem .8rem}
+.final-day-review input,.final-day-review textarea{appearance:none;background:#161e28;color:var(--ink);border:1px solid #5c7185;border-radius:10px;min-height:44px;padding:.55rem;font:inherit;font-size:1rem}
+.final-day-review input:focus-visible,.final-day-review textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.final-day-review input:disabled,.final-day-review textarea:disabled{opacity:.65}.final-day-review .primary-action:disabled{opacity:.5}

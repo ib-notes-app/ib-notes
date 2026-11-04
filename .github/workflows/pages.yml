@@ -1,0 +1,56 @@
+name: Publish reviewed blank app
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Check out the reviewed files
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Verify the prepared website matches its download
+        run: |
+          python3 - <<'PY'
+          import hashlib, json, pathlib, zipfile
+          root = pathlib.Path('.')
+          info = json.loads((root / 'release-info.json').read_text())
+          archive = root / info['archive']
+          assert hashlib.sha256(archive.read_bytes()).hexdigest() == info['archiveSha256']
+          site = root / 'site'
+          assert json.loads((site / 'build-info.json').read_text())['distribution'] == 'public-blank'
+          files = {str(p.relative_to(site)): p for p in site.rglob('*') if p.is_file()}
+          assert not any(p.is_symlink() for p in site.rglob('*'))
+          with zipfile.ZipFile(archive) as package:
+              assert set(package.namelist()) == set(files)
+              for name, path in files.items():
+                  assert package.read(name) == path.read_bytes(), name
+          print(f'Verified {len(files)} prepared public files; no source build performed.')
+          PY
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+      - name: Upload only the prepared website
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: site
+      - name: Publish to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

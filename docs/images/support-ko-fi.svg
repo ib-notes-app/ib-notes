@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="296" height="56" viewBox="0 0 296 56" role="img" aria-labelledby="title description">
+  <title id="title">Support IB Notes on Ko-fi</title>
+  <desc id="description">Optional support for the free IB Notes journal.</desc>
+  <rect x="1" y="1" width="294" height="54" rx="12" fill="#ed91bd" stroke="#f7bbd7" stroke-width="2"/>
+  <g transform="translate(16 13)" stroke="#171a20" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M25 8h3a6 6 0 0 1 0 12h-3" fill="none"/>
+    <path d="M3 6h22v13a8 8 0 0 1-8 8h-6a8 8 0 0 1-8-8Z" fill="#fff8fc"/>
+    <path d="M14 22 8.5 17a3.4 3.4 0 0 1 5.5-4 3.4 3.4 0 0 1 5.5 4Z" fill="#dc4888" stroke="none"/>
+  </g>
+  <text x="60" y="34" fill="#171a20" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif" font-size="17" font-weight="650">Support IB Notes on Ko-fi</text>
+</svg>

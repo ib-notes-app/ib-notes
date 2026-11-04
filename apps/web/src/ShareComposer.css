@@ -1,0 +1,39 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+.daily-share-card { background:#202a35; border:1px solid #425365; border-radius:18px; padding:14px; min-width:0; }
+.daily-share-card .share-format-switch { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px; margin:0; }
+.daily-share-card .share-format-switch button,.daily-share-card .share-format-switch button:last-child { grid-column:auto; min-width:0; min-height:58px; padding:8px 5px; border-radius:12px; background:#19232e; }
+.daily-share-card .share-format-switch button[aria-pressed="true"] { background:#44303e; border-color:var(--accent); color:#f5d5e4; }
+.daily-share-card .share-format-switch strong { font-size:.875rem; }
+.daily-share-card .share-format-switch span { font-size:.6875rem; }
+.daily-share-card .share-preview-intro { margin:8px 0 12px; }
+.daily-share-card .share-preview-helper { margin:0; color:#c0cfdd; font-size:.8125rem; line-height:1.45; }
+.daily-share-card .share-container-select { display:grid; gap:6px; margin:0 0 12px; color:#e0e7ee; font-size:.875rem; }
+.daily-share-card .share-container-select select { width:100%; min-height:48px; border:1px solid #627a91; border-radius:12px; background:#19232e; font-size:1rem; padding:8px 10px; }
+.daily-share-card .share-container-select small { font-size:.8125rem; color:#c0cfdd; line-height:1.45; }
+.share-card-includes { border:0; padding:0; margin:0 0 12px; min-width:0; }
+.share-card-includes legend { padding:0; margin-bottom:8px; color:#edbed6; font-size:.875rem; font-weight:650; }
+.share-default-status { margin:0 0 10px; color:#bacbdd; font-size:.75rem; }
+.share-include-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px; }
+.share-include-choice { display:flex; align-items:center; gap:7px; min-width:0; min-height:48px; margin:0; padding:8px; border:1px solid #52677d; border-radius:11px; background:#19232e; color:#d5e0eb; font-size:.8125rem; cursor:pointer; }
+.share-include-choice:has(input:checked) { border-color:#bd8ba8; background:#3b2d3b; color:#f7dbea; }
+.share-include-choice input { appearance:auto; width:18px; height:18px; min-width:18px; margin:0; accent-color:var(--accent); }
+.share-include-choice:focus-within { outline:2px solid #b6d9ff; outline-offset:2px; }
+.daily-share-card label:has(input:disabled:not(:checked)) { opacity:.5; border-color:#455363; cursor:not-allowed; }
+.share-capacity { margin:9px 0 0; color:#bfcddd; font-size:.8125rem; line-height:1.45; }
+.share-card-selection { border:1px solid #52677d; border-radius:13px; background:#19232e; padding:12px; margin:0 0 12px; min-width:0; }
+.share-card-selection > p { margin:8px 0; font-size:.8125rem; color:#c0cfdd; line-height:1.5; }
+.share-card-selection .share-option-group { margin:0; border:0; padding:0; }
+.share-card-selection .share-level-tier { background:#202e3b; border-color:#52677d; border-radius:10px; }
+.share-level-sources { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px; }
+.share-level-sources button { min-width:0; min-height:44px; font-size:.8125rem; padding:6px; border-radius:10px; background:#253342; }
+.share-level-sources button[aria-pressed="true"] { border-color:var(--accent); color:#f7dbea; background:#44303e; }
+.daily-share-card .share-options,.share-caption-options { margin-top:12px; border:1px solid #52677d; border-radius:12px; padding:0 12px; background:#19232e; }
+.daily-share-card .share-options > summary,.share-caption-options > summary { min-height:48px; align-content:center; padding-block:10px; color:#c8dcef; font-size:.875rem; cursor:pointer; }
+.share-caption-options > summary span { color:#b7c6d5; font-size:.75rem; margin-left:8px; }
+.share-caption-options .share-draft-field { margin-top:8px; }
+.share-image-primary-actions { display:flex; margin-top:12px; }
+.share-image-primary-actions > .primary-action { width:100%; min-height:52px; margin:0; border:1px solid #f3aece; border-radius:13px; background:var(--accent); color:#271b24; font-size:1rem; font-weight:700; }
+.share-image-primary-actions > .primary-action:disabled { opacity:.55; }
+.daily-share-card .share-actions .primary-action { background:var(--accent); border-color:#f3aece; color:#271b24; }
+.daily-share-card .share-image-frame { border:1px solid #52677d; border-radius:13px; overflow:hidden; }
+@media(max-width:379px) { .share-include-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }

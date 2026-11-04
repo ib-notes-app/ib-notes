@@ -1,0 +1,12 @@
+{
+  "name": "@ib-field-notes/session-templates",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": "./src/index.ts",
+  "license": "MPL-2.0",
+  "dependencies": {
+    "@js-temporal/polyfill": "^0.5.1",
+    "@ib-field-notes/domain": "0.0.0"
+  }
+}

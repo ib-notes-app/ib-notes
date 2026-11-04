@@ -1,0 +1,31 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+.weekly-primary-stats > button { display:grid; align-content:center; gap:4px; min-width:0; min-height:76px; padding:12px; text-align:left; border:1px solid transparent; border-radius:13px; background:var(--paper-deep); color:#e5edf5; box-shadow:none; }
+.weekly-primary-stats > button[data-attention="true"] { border-color:#bd819f; background:#403040; }
+.weekly-primary-stats > button small { display:flex; align-items:center; gap:6px; color:#cad8e7; font-weight:500; }
+.weekly-primary-stats > button[data-attention="true"] small::after { content:'›'; margin-left:auto; font-size:1.2rem; }
+.weekly-primary-stats > button:focus-visible,.review-issues button:focus-visible { outline:2px solid #badcff; outline-offset:3px; }
+.weekly-history-empty { padding:16px; border:1px solid #4b6279; border-radius:13px; background:#202a34; scroll-margin-block:16px; }
+.weekly-history-empty h3 { margin:0 0 8px; font-size:1rem; }
+.weekly-history-empty p { margin:0; color:var(--muted); line-height:1.5; }
+.weekly-history-row { scroll-margin-block:16px; }
+.review-issues { margin-top:14px; padding:14px; border:1px solid #5c7188; border-radius:16px; background:#1c2937; min-width:0; }
+.review-issues > header { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.review-issues h3 { margin:0; color:#f0bdd7; }
+.review-issues button { min-height:44px; min-width:0; border:1px solid #617991; border-radius:11px; background:#29394b; color:#e4ecf5; padding:8px 11px; font-size:.875rem; line-height:1.35; }
+.review-issues p { color:#c5d2e0; font-size:.8125rem; line-height:1.5; }
+.review-issue-filters { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:7px; margin-top:12px; }
+.review-issue-filters > button[aria-pressed="true"] { border-color:#d996b8; background:#443043; color:#f8dbea; }
+.review-issue-days,.review-issue-ranges { list-style:none; margin:12px 0 0; padding:0; display:grid; gap:10px; }
+.review-issue-days > li { padding:12px; border:1px solid #4b6279; border-radius:13px; background:#172330; }
+.review-issue-day-heading { display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:7px; }
+.review-issue-day-heading > strong { font-size:.9375rem; }
+.review-issue-ranges button { display:flex; align-items:center; justify-content:space-between; gap:8px; width:100%; text-align:left; }
+.review-issue-ranges button > span:first-child { display:grid; gap:4px; }
+.review-issue-ranges small { color:#c0cfdf; font-weight:400; font-size:.75rem; line-height:1.45; }
+.review-stat-availability { margin-top:12px; padding:10px 12px; border:1px solid #4b6279; border-radius:12px; }
+.review-stat-availability > summary { min-height:44px; align-content:center; cursor:pointer; color:#c4d8ef; font-size:.875rem; }
+.review-stat-availability > summary small { display:block; margin-top:4px; font-size:.75rem; color:#b6c7da; }
+.review-stat-availability h4 { margin-bottom:8px; }
+.review-stat-availability ul { padding-left:18px; }
+.review-stat-availability li { margin-bottom:12px; font-size:.8125rem; }
+@media(max-width:359px) { .review-issues { padding:10px; } .review-issue-filters { grid-template-columns:minmax(0,1fr); } }

@@ -1,0 +1,44 @@
+{
+  "buildId": "public-blank-20261104T040614630Z",
+  "distribution": "public-blank",
+  "status": "Early public version; owner accepted private-phone contract-reference update. Public-device checks pending.",
+  "appUrl": "https://ib-notes-app.github.io/ib-notes/",
+  "archive": "downloads/IB-Notes-blank-slate.zip",
+  "archiveBytes": 4200628,
+  "archiveSha256": "42a5a445f1250c916910b8b0bd2b4449e575424c69bf63a7946767c718695249",
+  "bundledMarketHistory": false,
+  "bundledJournalRecords": false,
+  "bundledExamples": false,
+  "automaticNewsLookup": false,
+  "historicalForecasts": "Unavailable without suitable user-supplied learning history.",
+  "dataStorage": "Local SQLite in the browser; no journal synchronization.",
+  "preparedAt": "2026-11-03",
+  "changes": [
+    "Prior-contract references retain their month/year and exact source contract.",
+    "Home shows the closest two saved references on each side beyond the old map-distance cutoff.",
+    "Original prices, expiry groups, tracking, grades and forecast inputs remain separate.",
+    "Public source has no bundled-history loaders, private-dataset filenames or example records."
+  ],
+  "verification": {
+    "typecheck": "Passed",
+    "publicSourceRebuild": "Passed with existing local dependencies.",
+    "unitTests": {
+      "passed": 752,
+      "skipped": 1
+    },
+    "publicChromiumJourneys": 8,
+    "safeUpdateChecks": 2,
+    "sourceAndDownloadsAudit": "Passed: no records, provider mentions, private filenames or data files in the current tree and nested downloads.",
+    "visibleGitHistory": "Owner approved a clean starting commit; old history backed up privately.",
+    "livePublicOrigin": {
+      "status": "Pending deployment verification"
+    },
+    "physicalPublicOriginInstall": "Pending",
+    "firefoxAndWebkit": "Not rerun; browser bundles unavailable.",
+    "staticLiteralReview": {
+      "filesInspected": 189,
+      "candidates": 50,
+      "newPriceOrHistoryLiterals": 0
+    }
+  }
+}
