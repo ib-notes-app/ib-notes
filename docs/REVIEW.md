@@ -31,11 +31,15 @@ from this repository and its downloads. The private phone build is unchanged.
 The build used existing local dependencies; a fresh dependency installation
 was not part of that check.
 
-## Still pending
+## Live public checks
 
-Live verification for this build follows deployment; results are recorded in
+Eleven live Chromium journeys passed. All 38 served files match the reviewed
+package, and eight excluded-data URLs return 404. Results are recorded in
 [release-info.json](../release-info.json). Source and nested downloads contain
 no bundled records, restricted-source mentions or private-dataset filenames.
+
+## Still pending
+
 Actual-device installation and keyboard checks at the public address remain
 pending. Firefox and WebKit were not rerun because their automation browsers
 are unavailable. The wider legacy forecast suite was not rerun and is not
