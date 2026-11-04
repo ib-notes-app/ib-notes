@@ -689,11 +689,13 @@ function StructureMap({
   finalIb,
   significantLevels,
   levelMapReferences,
+  onManageMapLevels,
 }: {
   session: JournalSession;
   finalIb: ReturnType<typeof deriveFinalIb>;
   significantLevels: SignificantLevel[];
   levelMapReferences: Map<string, MapLevelReference>;
+  onManageMapLevels?:()=>void;
 }) {
   const { template: ES_TEMPLATE, checkpointInstant, sessionObservationInstant, checkpointLockReached, formatCheckpointTime } = useJournalClock();
   const activePhase=useWorkspaceActivePhase(session);
@@ -845,7 +847,7 @@ function StructureMap({
         <p className="empty-state">
           Start with ON high and low, or open A to record the opening range. Your map builds as you add observations.
         </p>
-        {contextCount > 0 && (
+        {(contextCount > 0 || onManageMapLevels) && (
           <MapContext
             session={session}
             count={contextCount}
@@ -855,6 +857,7 @@ function StructureMap({
             rthLow={rthLow}
             rthFinal={session.close.rthHigh !== null && session.close.rthLow !== null}
             levels={activeLevels}
+            onManageMapLevels={onManageMapLevels}
           />
         )}
       </>
@@ -1008,7 +1011,7 @@ function StructureMap({
             <span>{overnightAxisEnd}</span>
           </div>
         </div>
-        {contextCount > 0 && (
+        {(contextCount > 0 || onManageMapLevels) && (
           <MapContext
             session={session}
             count={contextCount}
@@ -1018,6 +1021,7 @@ function StructureMap({
             rthLow={rthLow}
             rthFinal={session.close.rthHigh !== null && session.close.rthLow !== null}
             levels={activeLevels}
+            onManageMapLevels={onManageMapLevels}
           />
         )}
       </>
@@ -1249,7 +1253,7 @@ function StructureMap({
           </div>
         </details>
       )}
-      {contextCount > 0 && (
+      {(contextCount > 0 || onManageMapLevels) && (
         <MapContext
           session={session}
           count={contextCount}
@@ -1259,6 +1263,7 @@ function StructureMap({
           rthLow={rthLow}
           rthFinal={session.close.rthHigh !== null && session.close.rthLow !== null}
           levels={activeLevels}
+            onManageMapLevels={onManageMapLevels}
         />
       )}
     </>
@@ -1274,6 +1279,7 @@ function MapContext({
   rthLow,
   rthFinal,
   levels,
+  onManageMapLevels,
 }: {
   session: JournalSession;
   count: number;
@@ -1283,9 +1289,12 @@ function MapContext({
   rthLow: number | null;
   rthFinal: boolean;
   levels: SignificantLevel[];
+  onManageMapLevels?:()=>void;
 }) {
   return (
-    <details className="map-ranges-detail map-context-detail">
+    <>
+    {onManageMapLevels&&<button type="button" className="map-levels-shortcut" onClick={onManageMapLevels}>Manage map levels <span aria-hidden="true">→</span></button>}
+    {count>0&&<details className="map-ranges-detail map-context-detail">
       <summary>Other map levels <span className="detail-count">{count}</span></summary>
       <div className="map-context-list">
         {(overnightHigh !== null || overnightLow !== null) && (
@@ -1296,17 +1305,18 @@ function MapContext({
           <div><strong>{rthFinal ? "Final RTH" : "Recorded RTH"}</strong><span>{formatPrice(rthHigh)} – {formatPrice(rthLow)}</span></div>
         )}
         {levels.map((level) => (
-          <div key={level.id}>
+          <button type="button" className="map-context-level" key={level.id} disabled={!onManageMapLevels} onClick={onManageMapLevels}>
             <strong>{displayLevelLabel(level) || `Significant ${level.levelType}`}<LevelContractBadge level={level} session={session}/></strong>
             <span>
               {level.shape === "single_price"
                 ? formatPrice(level.price)
                 : `${formatPrice(level.zoneHigh)} – ${formatPrice(level.zoneLow)}`}
             </span>
-          </div>
+          </button>
         ))}
       </div>
-    </details>
+    </details>}
+    </>
   );
 }
 
@@ -1653,6 +1663,7 @@ function SessionDashboard({
   finalIb,
   significantLevels,
   levelMapReferences,
+  onManageMapLevels,
   recordedDayType,
   closingOutcome,
   priorSessionTrashCount,
@@ -1692,6 +1703,7 @@ function SessionDashboard({
   onOpenLevel:(id:string)=>void;
   onPrepareForecast: () => Promise<void>;
   onOpenTrash: () => void;
+  onManageMapLevels?:()=>void;
 }) {
   const finalizedCode = session.close.finishedAt !== null
     ? closingOutcome?.breakCode ?? null
@@ -1728,6 +1740,7 @@ function SessionDashboard({
             finalIb={finalIb}
             significantLevels={significantLevels}
             levelMapReferences={levelMapReferences}
+            onManageMapLevels={onManageMapLevels}
           />
         </section>
       </div>
@@ -3518,6 +3531,7 @@ export function App() {
   const [workspaceReferences,setWorkspaceReferences]=useState<SignificantLevel[]>([]);
   const [workspaceNotice,setWorkspaceNotice]=useState('');
   const [workspaceLevelPanel,setWorkspaceLevelPanel]=useState<'level-library'|'level-detail'|null>(null);
+  const [mapLevelsRequest,setMapLevelsRequest]=useState<{id:number;sessionId:string}|undefined>();
   const [workspaceUndoAvailable,setWorkspaceUndoAvailable]=useState(false);
   const workspaceSaving=useRef(false);
   const [workspaceEventUndo,setWorkspaceEventUndo]=useState<{sessionId:string;createdAt:string;itemId:string;historyId:string|null;created:boolean}|null>(null);
@@ -3929,6 +3943,11 @@ export function App() {
   const mappedReferenceLevels=useMemo(()=>visibleReferenceLevels.filter(level=>level.currentStatus==='active'&&level.showOnMap&&
     (level.sessionEdge?.sessionId===session?.id||latestCp&&significantLevelDistanceFromPrice(level,latestCp.price)<=significantLevelPreferences.proximityPoints)),
     [visibleReferenceLevels,session?.id,latestCp,significantLevelPreferences.proximityPoints]);
+  // Current-session edges must carry explicit hidden choices into the map;
+  // omitting them would make edgeShown fall back to visible.
+  const structureMapLevels=useMemo(()=>[...mappedReferenceLevels.filter(level=>level.sessionEdge?.sessionId!==session?.id),
+    ...visibleReferenceLevels.filter(level=>level.sessionEdge?.sessionId===session?.id).map(level=>({...level,showOnMap:level.currentStatus==='active'&&level.showOnMap}))],
+    [mappedReferenceLevels,visibleReferenceLevels,session?.id]);
   const nearbySignificantLevels = useMemo(
     () => visibleSignificantLevels.filter(
           (level) =>
@@ -3973,7 +3992,8 @@ export function App() {
   // The persistent tabs handle category changes; only deeper pages need a
   // contextual return. Keep history intact for browser/device Back.
   const workspaceTabRoot=activePanel==='review-menu'||activePanel==='level-library'&&!workspaceNavigation.level;
-  const workspaceShowBack=workspaceNavigation.canGoBack&&!workspaceTabRoot;
+  const workspaceMapReturn=activePanel==='level-library'&&!workspaceNavigation.level&&workspaceNavigation.backTarget==='workspace-structure';
+  const workspaceShowBack=workspaceNavigation.canGoBack&&(!workspaceTabRoot||workspaceMapReturn);
   const displayedLevelPanel=activePanel==='level-library'||activePanel==='level-detail'?activePanel:workspacePreview?workspaceLevelPanel:null;
   const backLabel = backTarget === "dashboard" ? "Home"
     : backTarget === "settings" ? "Settings"
@@ -3993,6 +4013,12 @@ export function App() {
     else setActivePanel(panel);
   }
   function closeWorkspace(){workspaceNavigation.close();}
+  function openMapLevels(){
+    if(!session)return;
+    setFbdHistoryPackId(undefined);setFocusedLevelId(undefined);setMonthlyLevelFilter(undefined);
+    setMapLevelsRequest(previous=>({id:(previous?.id??0)+1,sessionId:session.id}));
+    openWorkspace('level-library','levels');
+  }
   function updateEventSession(next:JournalSession){
     setSession(current=>current?.id===next.id?next:current);
     setTrackingSessions(days=>days?days.some(day=>day.id===next.id)?days.map(day=>day.id===next.id?next:day):[...days,next]:null);
@@ -5948,13 +5974,13 @@ export function App() {
             <select aria-label="Reference in this area" value={activePanel==='level-library'?workspaceNavigation.level?.replace(/^journal:/,''):focusedLevelId} onChange={e=>activePanel==='level-library'?workspaceNavigation.replaceLevel(`journal:${e.target.value}`):openLevels(e.target.value)}>{workspaceReferences.map(l=><option key={l.id} value={l.id}>{l.sessionEdge?.code??l.label??'Reference'} · {workspaceFormatPrice(l.price??l.zoneLow!,session.market.tickSize)}</option>)}</select></label>}
         </header>}
         <section className="workspace-destination" hidden={activePanel!=='workspace-forecast'&&activePanel!=='workspace-structure'} aria-label={activePanel==='workspace-structure'?'Structure workspace':'Forecast workspace'}>
-          {PHONE_TEST?<>{activePanel==='workspace-structure'?<section className="map-card"><StructureMap session={session} finalIb={finalIb} significantLevels={mappedReferenceLevels} levelMapReferences={levelMapReferences}/></section>:<p>Forecasts are disabled for synthetic phone-test data. No research history is loaded.</p>}</>:<ForecastCard dashboard focused visible={activePanel==='workspace-forecast'||activePanel==='workspace-structure'} presentation={activePanel==='workspace-structure'?'structure':'forecast'} session={session} prior={trackingSessions===null?undefined:resolveForecastPrior({session,sessions:trackingSessions,historical:historicalSessions,
+          {PHONE_TEST?<>{activePanel==='workspace-structure'?<section className="map-card"><StructureMap session={session} finalIb={finalIb} significantLevels={structureMapLevels} levelMapReferences={levelMapReferences} onManageMapLevels={openMapLevels}/></section>:<p>Forecasts are disabled for synthetic phone-test data. No research history is loaded.</p>}</>:<ForecastCard dashboard focused visible={activePanel==='workspace-forecast'||activePanel==='workspace-structure'} presentation={activePanel==='workspace-structure'?'structure':'forecast'} session={session} prior={trackingSessions===null?undefined:resolveForecastPrior({session,sessions:trackingSessions,historical:historicalSessions,
             batches:historicalBatches,previousDate:previousPotentialRthDate,now:Temporal.Now.instant().toString()})}
             historical={historicalSessions} batches={historicalBatches} levels={significantLevels} sessions={trackingSessions??[]} news={contextBatches}
             lowBatches={fbdBatches} priceBatches={priceBatches} repository={repositoryRef.current} contextLevels={visibleSignificantLevels}
             levelDistance={significantLevelPreferences.proximityPoints} onOpenLevel={openLevels}
             onPrepare={async()=>{const next=await saveForecastInput(session);setSession(next);setMessage(next.forecast?'IB Forecast saved locally.':'Forecast inputs are not complete yet.');}}>
-            {activePanel==='workspace-structure'&&<><section className="map-card"><StructureMap session={session} finalIb={finalIb} significantLevels={mappedReferenceLevels} levelMapReferences={levelMapReferences}/></section><EventRanges session={session} onOpen={()=>openWorkspace('workspace-events')}/></>}
+            {activePanel==='workspace-structure'&&<><section className="map-card"><StructureMap session={session} finalIb={finalIb} significantLevels={structureMapLevels} levelMapReferences={levelMapReferences} onManageMapLevels={openMapLevels}/></section><EventRanges session={session} onOpen={()=>openWorkspace('workspace-events')}/></>}
           </ForecastCard>}
         </section>
         {activePanel==='workspace-events'&&workspaceEventsContent(session)}
@@ -5968,6 +5994,7 @@ export function App() {
           session={session}
           finalIb={finalIb}
           significantLevels={[...mappedSignificantLevels.filter(level => level.sessionEdge?.sessionId !== session.id), ...journalLevels.filter(level => level.sessionEdge?.sessionId === session.id).map(level => ({...level, showOnMap:level.currentStatus === "active" && level.showOnMap}))]}
+          onManageMapLevels={openMapLevels}
           levelMapReferences={levelMapReferences}
           recordedDayType={deriveRecordedBreakDayType(
             session.rthObservations,
@@ -6085,6 +6112,7 @@ export function App() {
             initialPackId={fbdHistoryPackId}
             initialLevelId={focusedLevelId}
             initialMonthlyFilter={monthlyLevelFilter}
+            mapRequest={mapLevelsRequest} mappedLevelIds={mappedReferenceLevels.map(level=>level.id)}
             onPacks={() => setActivePanel('historical-library-manage')}
             undoAvailable={significantLevelUndo !== null}
             onUndo={() => void undoSignificantLevelChange()}
@@ -6095,7 +6123,7 @@ export function App() {
             proximityPoints={significantLevelPreferences.proximityPoints}
             onSaveProximity={(points) => void saveSignificantLevelProximity(points)}
             onToggleMap={(level, enabled) =>
-              void setSignificantLevelMapVisibility(level, enabled)}
+              setSignificantLevelMapVisibility(level, enabled)}
             onAddNote={(level, text, localTime) =>
               void addSignificantLevelNote(level, text, localTime)}
             onRemoveNote={(level, noteId) =>
@@ -8789,7 +8817,7 @@ function SignificantLevelEpisodeConfirmation({
 
 function SignificantLevelLibrary({
   session, repository, lowBatches, priceBatches, contextBatches, initialPackId, initialLevelId, initialMonthlyFilter, onPacks,
-  focused = false, navigation,active=true,
+  focused = false, navigation,active=true,mapRequest,mappedLevelIds=[],
   levels,
   interactions,
   latestCp,
@@ -8814,13 +8842,14 @@ function SignificantLevelLibrary({
   initialPackId?: string; initialLevelId?: string; onPacks: () => void;
   initialMonthlyFilter?: MonthlyLevelFilter;
   focused?: boolean;active?:boolean;
+  mapRequest?:{id:number;sessionId:string};mappedLevelIds?:readonly string[];
   navigation?: {selectedId:string|null;onSelect:(id:string|null)=>void;backLabel?:string;showBack?:boolean};
   levels: SignificantLevel[];
   interactions: ReturnType<typeof deriveSignificantLevelInteractions>;
   latestCp: number | null;
   proximityPoints: number;
   onSaveProximity: (points: number) => void;
-  onToggleMap: (level: SignificantLevel, enabled: boolean) => void;
+  onToggleMap: (level: SignificantLevel, enabled: boolean) => Promise<void>;
   onAddNote: (level: SignificantLevel, text: string, localTime: string) => void;
   onRemoveNote: (level: SignificantLevel, noteId: string) => void;
   onAddMarketEvent: (
@@ -8853,7 +8882,7 @@ function SignificantLevelLibrary({
   onUndo: () => void;
 }) {
   return <LevelsWorkspace session={session} levels={levels} batches={lowBatches} repository={repository}
-    focused={focused} navigation={navigation} active={active}
+    focused={focused} navigation={navigation} active={active} mapRequest={mapRequest} mappedLevelIds={mappedLevelIds} onToggleMap={onToggleMap}
     initialMonthlyFilter={initialMonthlyFilter}
     priceBatches={priceBatches} contextBatches={contextBatches} initialPackId={initialPackId} initialLevelId={initialLevelId} onAdd={onAdd} onPacks={onPacks}
     mapSettings={<SignificantLevelProximityControl proximityPoints={proximityPoints} onSave={onSaveProximity} />}

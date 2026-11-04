@@ -80,6 +80,27 @@ Nearby low references may be grouped into an area. Expand it to inspect each
 exact reference. Grouping preserves the member records; several references in
 one zone are not automatically several independent defenses of that zone.
 
+## Clear map references quickly
+
+Open **Levels → Map levels**. It lists the enabled references for the selected
+journal and day, including ones too far away to appear on the map right now.
+**Shown now** marks the references currently displayed. The counts distinguish
+shown references from all enabled references.
+
+Tap **Hide** beside a reference to take it off the map. Its price, notes and
+history stay saved. You can hide several without opening each detail page.
+The list ignores the browser's search, Above/Below, tier and distance filters,
+so those filters cannot conceal an enabled reference here.
+
+From **Structure**, tap **Manage map levels**, or a listed reference under
+**Other map levels**, to open the same list. **Back to Structure** takes you
+back to the map. Tapping a reference in the manager opens its usual details;
+Back returns to the list.
+
+To show a hidden reference again, find it in the ordinary level browser,
+open its details and choose **Show on map**. Map visibility does not change
+the session's recorded prices or range measurements.
+
 ## Levels from an older contract
 
 Large moves can bring a much older reference back near your recorded price.
@@ -180,7 +201,8 @@ recommendation. Open the level's tier explanation rather than assuming its
 color means it will hold. IB pink and ON gray also identify session-reference
 types; they are not extra forecast confidence scores.
 
-Use **Show on map** or **Hide from map** in level details. If an enabled
+Use **Levels → Map levels → Hide** for quick cleanup, or **Show on map** /
+**Hide from map** in level details. If an enabled
 reference is not visible, check **Levels → Today & map distance**. Its distance
 setting can keep a far-away reference off today's map; the library record is
 still saved.

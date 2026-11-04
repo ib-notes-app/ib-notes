@@ -1,7 +1,7 @@
 import {LevelContractBadge} from './LevelContractBadge';
 import {levelContractReference} from '@ib-field-notes/domain';
 // SPDX-License-Identifier: MPL-2.0
-import { useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { deriveLowRecoveryTracking as deriveLowTracking, formatPriceNumber, historicalLowStatus, latestCpObservation, type SignificantLevel, type JournalSession,
   type FbdBatch, type HistoricalLow, type ContextBatch, type PriceHistoryBatch, type MonthlyLevelFilter } from '@ib-field-notes/domain';
 import type { JournalRepository } from '@ib-field-notes/storage-port';
@@ -53,12 +53,15 @@ function positionLabel(low:number,high:number,reference:number):string{
 }
 
 export function LevelsWorkspace({ session, levels, batches, priceBatches, contextBatches, repository,
-  initialPackId, initialLevelId, initialMonthlyFilter, onAdd, onPacks, renderLevel, mapSettings, undo, focused = false, navigation,active=true }: {
+  initialPackId, initialLevelId, initialMonthlyFilter, onAdd, onPacks, renderLevel, mapSettings, undo, focused = false, navigation,active=true,
+  mappedLevelIds=[],mapRequest,onToggleMap }: {
   session: JournalSession; levels: SignificantLevel[]; batches: FbdBatch[];
   priceBatches: PriceHistoryBatch[]; contextBatches: ContextBatch[]; repository: JournalRepository;
   initialPackId?: string; initialLevelId?: string; onAdd: () => void; onPacks: () => void;
   initialMonthlyFilter?: MonthlyLevelFilter;
   focused?: boolean;active?:boolean;
+  mappedLevelIds?:readonly string[];mapRequest?:{id:number;sessionId:string};
+  onToggleMap?:(level:SignificantLevel,enabled:boolean)=>Promise<void>;
   navigation?: {selectedId:string|null;onSelect:(id:string|null)=>void;backLabel?:string;showBack?:boolean};
   renderLevel: (level: SignificantLevel, tier: LevelQuality) => ReactNode; mapSettings: ReactNode; undo: ReactNode;
 }) {
@@ -86,6 +89,33 @@ export function LevelsWorkspace({ session, levels, batches, priceBatches, contex
   const [side,setSide]=useState<'all'|'above'|'below'>('all'),[distanceText,setDistanceText]=useState('');
   const [listOpen, setListOpen] = useState(!!initialPackId || !!initialMonthlyFilter || !!recordedCp), [page, setPage] = useState(0);
   const [expandedAreas,setExpandedAreas]=useState<Set<string>>(()=>new Set());
+  const mapSection=useRef<HTMLDetailsElement>(null);
+  const handledMapRequest=useRef<number|null>(null);
+  const mapSavePending=useRef(false);
+  const [mapOpen,setMapOpen]=useState(false),[mapSaving,setMapSaving]=useState<string|null>(null);
+  const mappedIds=new Set(mappedLevelIds);
+  // This list deliberately ignores browser filters and the distance limit:
+  // an enabled off-screen reference must still be easy to switch off.
+  const enabledMapLevels=useMemo(()=>levels.filter(level=>level.currentStatus==='active'&&level.showOnMap),[levels]);
+  useEffect(()=>{
+    if(!active||!mapRequest||mapRequest.sessionId!==session.id||handledMapRequest.current===mapRequest.id)return;
+    handledMapRequest.current=mapRequest.id;
+    setMapOpen(true);
+    let second:number;const first=requestAnimationFrame(()=>{second=requestAnimationFrame(()=>{
+      mapSection.current?.scrollIntoView({block:'start'});mapSection.current?.querySelector('summary')?.focus({preventScroll:true});
+    });});
+    return()=>{cancelAnimationFrame(first);if(second!==undefined)cancelAnimationFrame(second);};
+  },[active,mapRequest,session.id]);
+  async function hideMapLevel(level:SignificantLevel){
+    if(!onToggleMap||mapSavePending.current)return;mapSavePending.current=true;setMapSaving(level.id);
+    try{await onToggleMap(level,false);}finally{
+      mapSavePending.current=false;setMapSaving(null);requestAnimationFrame(()=>{
+        const section=mapSection.current;
+        if(section?.open&&!section.closest('[hidden]')&&document.activeElement===document.body)
+          (section.querySelector<HTMLButtonElement>('[data-map-hide]:not(:disabled)')??section.querySelector('summary'))?.focus({preventScroll:true});
+      });
+    }
+  }
   // Each fresh visit from Today/tab navigation starts from this day's recorded CP.
   // Detail Back remains within the same active browser, preserving its filters.
   useEffect(()=>{if(active){setReferenceOverride(null);setPage(0);if(recordedCp)setListOpen(true);}},[active,referenceScope]);
@@ -264,6 +294,21 @@ export function LevelsWorkspace({ session, levels, batches, priceBatches, contex
         </>}
       </details>
     </div> : selectedId&&preparing ? <p role="status">Loading level…</p> : focused ? <p role="status">This level is no longer available. Return to Today or open Levels.</p> : <>
+      {onToggleMap&&<details ref={mapSection} className="levels-map-enabled" open={mapOpen} onToggle={event=>setMapOpen(event.currentTarget.open)}>
+        <summary tabIndex={0}>Map levels <span>{mappedLevelIds.length} shown · {enabledMapLevels.length} enabled</span></summary>
+        <p className="levels-help">Hide a reference to clear it from the map. Its record and history stay saved. This list includes enabled levels outside the map distance.</p>
+        {enabledMapLevels.length?<ul aria-label="Enabled map levels">{enabledMapLevels.map(level=><li key={level.id}>
+          <button type="button" className="map-level-record" onClick={()=>{setSelectedId(`journal:${level.id}`);window.scrollTo({top:0});}}>
+            <strong>{level.sessionEdge?.code??displayLevelLabel(level)??`Significant ${level.levelType}`}</strong>
+            <span>{workspaceFormatPrice(level.price??level.zoneLow!,session.market.tickSize)}{level.price===null&&level.zoneHigh!==level.zoneLow?`–${workspaceFormatPrice(level.zoneHigh!,session.market.tickSize)}`:''}</span>
+            <LevelContractBadge level={level} session={session}/>
+            <small>{mappedIds.has(level.id)?'Shown now':recordedCp?'Enabled · Outside map distance':'Enabled · Waiting for CP'}</small>
+          </button>
+          <button type="button" data-map-hide="true" className="map-level-hide" disabled={mapSaving!==null}
+            aria-label={`Hide ${level.sessionEdge?.code??displayLevelLabel(level)??`Significant ${level.levelType}`} from map`}
+            onClick={()=>void hideMapLevel(level)}>{mapSaving===level.id?'Hiding…':'Hide'}</button>
+        </li>)}</ul>:<p className="levels-help">No levels enabled on the map.</p>}
+      </details>}
       <div className="levels-quick-filters" role="group" aria-label="Quick level filters">
         <div className="levels-reference-row"><label>Reference price<input type="text" inputMode="decimal" placeholder="Enter a price" value={referenceText}
           aria-describedby="levels-reference-hint" aria-invalid={nearRequested&&reference===null}

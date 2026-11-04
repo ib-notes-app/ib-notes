@@ -2,6 +2,17 @@
 
 [Open IB Notes](https://ib-notes-app.github.io/ib-notes/) · [Getting started](QUICK_START.md) · [All guides](../README.md)
 
+## Clear enabled map references in one place
+
+**Levels → Map levels** lists your enabled references with a quick **Hide**
+button on each row. See which ones are shown now and which are enabled outside
+the map distance. Hiding keeps the record and its history saved.
+
+**Structure → Manage map levels**, or a listed reference under Other map
+levels, opens that same section. Back returns to Structure. Hidden current-day
+IB and ON references also stay hidden after returning or reloading.
+[Read the map-level guide](LEVELS.md#clear-map-references-quickly).
+
 ## Clearer share-card footers and phase names
 
 Every image card now says **Not financial advice or trade signals**, including

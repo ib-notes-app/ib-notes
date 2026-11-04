@@ -1,11 +1,11 @@
 {
-  "buildId": "public-blank-20261104T050642586Z",
+  "buildId": "public-blank-20261104T054827864Z",
   "distribution": "public-blank",
-  "status": "Early public version; clearer sharing, matching phase labels and expiring level confirmations. Public-device checks pending.",
+  "status": "Early public version; enabled map-level management. Public-device checks pending.",
   "appUrl": "https://ib-notes-app.github.io/ib-notes/",
   "archive": "downloads/IB-Notes-blank-slate.zip",
-  "archiveBytes": 4202290,
-  "archiveSha256": "42ed916ae1c4d945841176ea0d14bc95c1edf23759d43994c510713d3801bfd3",
+  "archiveBytes": 4205558,
+  "archiveSha256": "6dd3adb417a8cb76e9ca5b762a16ec757c10840e62536b54764b59b8d71f9f09",
   "bundledMarketHistory": false,
   "bundledJournalRecords": false,
   "bundledExamples": false,
@@ -14,28 +14,22 @@
   "dataStorage": "Local SQLite in the browser; no journal synchronization.",
   "preparedAt": "2026-11-03",
   "changes": [
-    "Image cards always say Not financial advice or trade signals, including cards without forecasts.",
-    "One clear recording notice explains human error and gaps; reconstruction and source warnings remain visible.",
-    "ON, 15R, A, B, RTH and full-session cards avoid repeated footer notices and wrap longer qualifications.",
-    "Record price Details uses exactly ON, 15R, A, B and RTH.",
-    "Level confirmations expire and clear on navigation; save errors remain visible."
+    "Levels has one map-level manager with quick Hide controls for enabled references.",
+    "Shown and off-screen enabled references are distinguished independently of browser filters.",
+    "Structure opens the same manager; contextual Back returns to Structure.",
+    "Hidden current-session IB and ON references remain hidden after navigation and reload."
   ],
   "verification": {
     "typecheck": "Passed, including cleaned public source.",
     "focusedUnitTests": {
-      "passed": 69,
-      "files": 7
+      "passed": 39,
+      "files": 4
     },
-    "publicChromiumJourneys": 12,
+    "publicChromiumJourneys": 11,
     "safeUpdateChecks": 2,
-    "sourceAndDownloadsAudit": "Passed: source, website, nested downloads and reachable history have no records, restricted-source mentions, private dataset names or data files.",
+    "sourceAndDownloadsAudit": "Passed: source, website, nested downloads and reachable history contain no records, restricted-source mentions, private dataset names or data files.",
     "livePublicOrigin": {
-      "status": "Passed",
-      "chromiumJourneys": 12,
-      "matchingSiteFiles": 38,
-      "excludedDataUrlsReturning404": 8,
-      "pagesCommit": "1f1985bfc12d9606d14daa734ea7b8c6d50c32d2",
-      "deploymentRun": "https://github.com/ib-notes-app/ib-notes/actions/runs/41777742757"
+      "status": "Pending"
     },
     "physicalPublicOriginInstall": "Pending",
     "firefoxAndWebkit": "Not run; automation browsers unavailable.",
