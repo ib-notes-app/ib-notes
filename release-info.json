@@ -1,11 +1,11 @@
 {
-  "buildId": "public-blank-20261104T164643566Z",
+  "buildId": "public-blank-20261105T024209691Z",
   "distribution": "public-blank",
-  "status": "Early public version; consistent forecast sharing, range context and period-end review. Public-device checks pending.",
+  "status": "Early public version; consistent session and aggregate sharing cards. Physical-device checks pending.",
   "appUrl": "https://ib-notes-app.github.io/ib-notes/",
   "archive": "downloads/IB-Notes-blank-slate.zip",
-  "archiveBytes": 4220350,
-  "archiveSha256": "7ee5e3c75f892788c05940557617778bc95a16cca62f9e474116600924c83596",
+  "archiveBytes": 7806411,
+  "archiveSha256": "75d36394e46efd4d2fecc3af56eef6553620c09d06c366c6934a4506f0e936a5",
   "bundledMarketHistory": false,
   "bundledJournalRecords": false,
   "bundledExamples": false,
@@ -14,39 +14,31 @@
   "dataStorage": "Local SQLite in the browser; no journal synchronization.",
   "preparedAt": "2026-11-04",
   "changes": [
-    "Forecast and image cards use one stage-specific summary and estimate timestamp.",
-    "Neither remains visible among the four IB outcomes before a recorded edge break; first-break odds stay in Details.",
-    "Recorded ON/IB size and location gain source-labelled historical comparisons when suitable earlier records exist.",
-    "Return estimates appear after a break while outside; re-entries show recorded counts.",
-    "Non-numerical events need no release result; tracking windows spanning two dates show both dates.",
-    "The preview shows the full image height; share prices, widths and midpoints use the instrument price step.",
-    "Configured period endings offer a deferred high/low confirmation, with saved status and explicit corrections.",
-    "Closing an earlier current-day period returns to the active phase; historical browsing retains its phase."
+    "Session Image Cards share an outcome-first banner, labeled map midpoints and compact low/high/width tiles.",
+    "Selected sections control content and eligible highlights; observations and estimates retain their own times and counts.",
+    "Recorded ranges and history stay under Recap; Current conditions uses a timestamped range-position ruler.",
+    "Opening bands, IB outlooks and saved forecast-versus-result information use a consistent forecast panel.",
+    "Weekly, monthly and annual cards summarize outcomes, range sizes, recorded returns and closes at their own time scale.",
+    "Review breakdowns compare days, weeks or months and preserve unknown results, explicit note selection and readable overflow checks.",
+    "Period maps remain available after later phases begin, with focused writing pages and editable note times."
   ],
   "verification": {
     "typecheck": "Passed, including cleaned public source.",
     "focusedUnitTests": {
-      "passed": 140,
-      "files": 15
+      "passed": 93
     },
-    "publicChromiumJourneys": 18,
+    "packagedPublicChromiumJourneys": 22,
     "safeUpdateChecks": 2,
-    "sourceAndDownloadsAudit": "Passed: source, website, nested downloads and reachable history contain no records, restricted-source mentions, private dataset names or data files.",
-    "livePublicOrigin": {
-      "status": "Passed",
-      "chromiumJourneys": 18,
-      "publicOriginJourneys": 18,
-      "matchingSiteFiles": 38,
-      "excludedDataUrlsReturning404": 8,
-      "pagesCommit": "40d7198c11f0b944a18765bb489e15eb806df6ea",
-      "deploymentRun": "https://github.com/ib-notes-app/ib-notes/actions/runs/41875403385"
-    },
-    "physicalPublicOriginInstall": "Pending",
-    "firefoxAndWebkit": "Could not launch: automation browser binaries are unavailable.",
+    "sourceAndDownloadsAudit": "Passed: source, website, nested downloads and reachable history contain no restricted data, provider references or private dataset filenames.",
     "staticLiteralReview": {
-      "filesInspected": 193,
+      "filesInspected": 206,
       "candidates": 52,
       "newPriceOrHistoryLiterals": 0
-    }
+    },
+    "livePublicOrigin": {
+      "status": "Pending deployment verification"
+    },
+    "physicalPublicOriginInstall": "Pending",
+    "firefoxAndWebkit": "Automation browser binaries unavailable."
   }
 }

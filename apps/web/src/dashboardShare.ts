@@ -12,6 +12,7 @@ import {postIbForecastSummary} from './postIbForecastSummary';
 import {formatTickRoundedPrice} from './mapFormatting';
 import {ibForecastStory,onForecastStory,forecastStoryUpdates,rangeStory,recordedOnRange} from './forecastStory';
 import type {WorkspacePhase} from './workspaceModel';
+import type {SessionImageFacts} from './sessionImageFacts';
 
 export const SHARE_CONTAINERS = [
   ['structure','Current Structure'],['post-ib','Post-IB'],['ib-forecast','IB Forecast'],['ib-recap','IB Recap'],
@@ -24,9 +25,15 @@ export const DASHBOARD_SHARE_DETAILS=[
 ] as const;
 export type DashboardShareDetails=Record<typeof DASHBOARD_SHARE_DETAILS[number][0],boolean>;
 export const DEFAULT_DASHBOARD_SHARE_DETAILS:DashboardShareDetails={outcomes:false,evidence:false,comparison:false,context:false};
-export type ShareFact={label:string;value:string;tone?:'pink'|'green'|'blue'|'yellow'|'gray';detail?:string};
-export type ShareFactSection={title:string;rows:ShareFact[];footnote?:string};
+export type ShareFact={label:string;value:string;tone?:'pink'|'green'|'blue'|'yellow'|'gray';detail?:string;
+  reference?:{side:'Above'|'Below'|'Inside zone'|'No CP';distance:string|null;price:string;role:string};
+  range?:{low:number;high:number};
+  counters?:{label:string;value:number}[];
+  comparison?:{percent:number;days:number;range:'ON'|'IB'}};
+export type ShareFactSection={title:string;rows:ShareFact[];footnote?:string;layout?:'metrics'|'commentary'|'context'|'event'|'references'|'notes';
+  eventRange?:{high:string;low:string;midpoint:string;width:string;count:number;window:string|null}};
 export type DashboardShareCard={title:string;headline:string;caption:string;sections:ShareFactSection[];footnote:string;showTimes?:boolean;comparisonUnavailable?:string;experimental?:boolean;estimateAvailable?:boolean;
+  focus?:ShareFact;stage?:WorkspacePhase|'all';imageFacts?:SessionImageFacts;
   meter?:{low:number;high:number;price:number|null;lowLabel:string;highLabel:string;
     extent?:{low:number;high:number;lowLabel:string;highLabel:string}}};
 type Read=ReturnType<typeof useCurrentForecast>;
@@ -115,15 +122,13 @@ export function buildDashboardShareCard(container:ShareContainer,input:Dashboard
     const story=ibForecastStory({session:s,now:read.now,current:ib,outlook:read.outlook,updates,ready:read.ready,phase:input.phase,showTimes});
     card.estimateAvailable=story.available;card.headline=story.headline;card.caption=story.caption;
     add(story.title,story.rows.length?story.rows.map((row,i)=>({...row,...(i===0?{detail:[row.detail,story.caption].filter(Boolean).join(' · ')}:{})})):[{label:'Current estimate',value:story.headline}]);
-    if(story.outcomes.length){
-      const [h,l,b,n]=story.outcomes;
-      add('IB edges broken by RTH close',details.outcomes?story.outcomes:[
-        {label:`High only ${h!.value} · Low only ${l!.value}`,value:`Both ${b!.value} · Neither ${n!.value}`},
-      ]);
-    }
+    if(details.outcomes&&story.outcomes.length)add('IB edges broken by RTH close',story.outcomes);
     const context=rangeStory(s,ib,recordedOnRange(s,read.now),read.comparisons);
-    add('Today in context',context.rows.map(({detail,...row})=>row.label.includes('IBs at least')?{...row,detail:'Historical frequency · completed sessions'}:row));
-    if(details.evidence)add('Forecast details',[...story.details,...context.details]);
+    add('Today in context',context.rows.filter(row=>!row.label.includes('IBs at least')).map(({detail,...row})=>{
+      const comparison=read.comparisons?.find(c=>row.label===`${c.range} · ${c.source==='JOURNAL'?'your journal':'learning history'}`);
+      return {...row,...(comparison?{comparison:{percent:Math.floor(100*comparison.narrower/comparison.days),days:comparison.days,range:comparison.range}}:{})};
+    }));
+    if(details.evidence)add('Forecast details',[...story.details,...context.details,...context.rows.filter(row=>row.label.includes('IBs at least'))]);
     card.footnote=s.studyReplay?card.footnote:'Experimental estimate · historical frequencies are comparisons, not model probabilities.';
   }else if(container==='ib-recap'){
     const comparison=compareForecast(s),actual=comparison?.actual;
@@ -142,7 +147,11 @@ export function buildDashboardShareCard(container:ShareContainer,input:Dashboard
         `High: ${facts.path.split(' → ').filter(v=>v==='IBH break').length}`,
         `Low: ${facts.path.split(' → ').filter(v=>v==='IBL break').length}`,
         `Returns inside: ${returns.count}`,
-      ].join(' · '):'No post-lock interaction recorded'},
+      ].join(' · '):'No post-lock interaction recorded',counters:[
+        {label:'High breaks',value:facts.path?.split(' → ').filter(v=>v==='IBH break').length??0},
+        {label:'Low breaks',value:facts.path?.split(' → ').filter(v=>v==='IBL break').length??0},
+        {label:'Returns inside',value:returns.count},
+      ]},
       {label:'Close',value:facts.currentOrClose?.startsWith('Close ')?facts.currentOrClose.slice(6):'Day still open'},
     ]);
     if(details.comparison&&!card.comparisonUnavailable){
@@ -170,7 +179,10 @@ export function buildDashboardShareCard(container:ShareContainer,input:Dashboard
       card.estimateAvailable=onStory.available;card.headline=onStory.headline;card.caption=onStory.caption;
       add(onStory.title,onStory.rows.map((row,i)=>({...row,...(i===0?{detail:onStory.caption}:{})})));
       const context=rangeStory(s,null,recordedOnRange(s,read.now),read.comparisons);
-      add('Today in context',context.rows.map(({detail,...row})=>row));
+      add('Today in context',context.rows.map(({detail,...row})=>{
+        const comparison=read.comparisons?.find(c=>row.label===`${c.range} · ${c.source==='JOURNAL'?'your journal':'learning history'}`);
+        return {...row,...(comparison?{comparison:{percent:Math.floor(100*comparison.narrower/comparison.days),days:comparison.days,range:comparison.range}}:{})};
+      }));
       const widthComparison=overnight.study?.widthComparison;
       if(widthComparison&&Date.parse(widthComparison.at)<=Date.parse(read.now))add('ON at this point',[
         {label:'Earlier nights · same elapsed time',value:`As wide as or wider than ${Math.round(widthComparison.percentile)}% of ${widthComparison.days}`},

@@ -9,12 +9,13 @@ import type {
   WeeklySessionSummary,
   YearlySessionSummary,
 } from "@ib-field-notes/domain";
-import { buildPeriodImageCard, shareOutcomeLabel, shareWidth } from "./periodImageCard";
+import { buildPeriodImageCard, shareOutcomeLabel } from "./periodImageCard";
 import { periodShareSummary, type PeriodShareOptions } from './periodShareSummary';
 import {buildWeeklyMarketCard} from './weeklyMarketCard';
 import type {WeeklyMarketOptions} from './weeklyMarketFacts';
 
 export type WeeklyImageCardResult = {
+  width?:number; height?:number;
   svg: string;
   overflow: boolean;
   omittedLineCount: number;
@@ -263,16 +264,7 @@ export function buildMonthlyImageCardSvg(
   summary: MonthlySessionSummary, instrument: string, commentary: string[] = [],
   options: PeriodShareOptions = {},
 ): WeeklyImageCardResult {
-  const view = periodShareSummary(summary, options);
-  summary = view;
-  return buildPeriodImageCard({tickSize:options.tickSize,period:'MONTHLY',title:`${instrument} · ${displayMonth(summary.month)}`,
-    subtitle:'Recorded opening ranges and what followed',
-    summary,upcomingCount:view.upcomingDays.length,midpoint:returnDepth(summary,'MIDPOINT'),rowHeading:'WEEKS IN THIS MONTH',
-    columns:['Week starting','Sessions','Typical IB width','Complete days'],
-    rows:summary.weeks.map(week=>({date:displayDate(week.weekStart),outcome:String(week.journaledDays),
-      width:week.journaledDays ? shareWidth(week.medianIbWidth,options.tickSize) : '—',
-      status:week.journaledDays ? `${week.completedDays} of ${week.journaledDays}` : 'Upcoming'})),
-    commentary:selectedLines(commentary).flatMap(line=>wrapText(line,62))});
+  return buildPeriodImageCard(summary,instrument,selectedLines(commentary),options);
 }
 
 export function buildYearlyShortShareText(
@@ -353,14 +345,5 @@ export function buildYearlyImageCardSvg(
   summary: YearlySessionSummary, instrument: string, commentary: string[] = [],
   options: PeriodShareOptions = {},
 ): WeeklyImageCardResult {
-  const view = periodShareSummary(summary, options);
-  summary = view;
-  return buildPeriodImageCard({tickSize:options.tickSize,period:'YEARLY',title:`${instrument} · ${summary.year}`,
-    subtitle:'Recorded opening ranges and what followed',
-    summary,upcomingCount:view.upcomingDays.length,midpoint:returnDepth(summary,'MIDPOINT'),rowHeading:'MONTHS IN THIS YEAR',
-    columns:['Month','Sessions','Typical IB width','Complete days'],compactMonths:true,
-    rows:summary.months.map(month=>({date:displayMonth(month.month).replace(` ${summary.year}`,''),
-      outcome:String(month.journaledDays),width:shareWidth(month.medianIbWidth,options.tickSize),
-      status:month.journaledDays ? `${month.completedDays} of ${month.journaledDays} complete` : 'Upcoming'})),
-    commentary:selectedLines(commentary).flatMap(line=>wrapText(line,62))});
+  return buildPeriodImageCard(summary,instrument,selectedLines(commentary),options);
 }

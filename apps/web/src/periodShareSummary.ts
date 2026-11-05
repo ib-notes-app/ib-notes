@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MPL-2.0
 import { Temporal } from '@js-temporal/polyfill';
 import { summarizeDaySummaries, type WeeklyDaySummary, type WeeklySessionSummary,
-  type MonthlySessionSummary, type YearlySessionSummary } from '@ib-field-notes/domain';
+  type MonthlySessionSummary, type YearlySessionSummary, type JournalSession } from '@ib-field-notes/domain';
 
-type PeriodSummary = WeeklySessionSummary | MonthlySessionSummary | YearlySessionSummary;
-export type PeriodShareOptions = { asOfDate?: string; tickSize?:number };
+export type PeriodSummary = WeeklySessionSummary | MonthlySessionSummary | YearlySessionSummary;
+export type PeriodShareOptions = { asOfDate?: string; tickSize?:number; sessions?:JournalSession[]; timeZone?:string };
 
 /** The market's calendar date, independent of the user's display timezone. */
 export function periodShareDateAt(instant: string, timeZone: string): string {

@@ -3,8 +3,8 @@ import {useEffect,useId,useRef,type ReactNode} from 'react';
 import {createPortal} from 'react-dom';
 
 /** Native modal semantics, outside any animated/transformed application ancestor. */
-export function WorkspaceDialog({title,children,onClose,busy=false,className='',dismissLabel='Close',headerAction,dismissAriaLabel,manageHistory=false}:{title:string;children:ReactNode;
- onClose:()=>void;busy?:boolean;className?:string;dismissLabel?:'Back'|'Close'|'Cancel'|'Cancel/Close'|'Back to Review day'|'Back to price entry'|'Back to period'|'Back to entries'|'Back to issues';headerAction?:ReactNode;dismissAriaLabel?:string;manageHistory?:boolean}){
+export function WorkspaceDialog({title,children,onClose,busy=false,className='',dismissLabel='Close',headerAction,dismissAriaLabel,manageHistory=false,initialFocus}:{title:string;children:ReactNode;
+ onClose:()=>void;busy?:boolean;className?:string;dismissLabel?:'Back'|'Close'|'Cancel'|'Cancel/Close'|'Back to Review day'|'Back to price entry'|'Back to period'|'Back to entries'|'Back to issues'|'Done';headerAction?:ReactNode;dismissAriaLabel?:string;manageHistory?:boolean;initialFocus?:string}){
  const dialog=useRef<HTMLDialogElement>(null);
  const historyId=useId(),closeRef=useRef(onClose);closeRef.current=onClose;
  const dismiss=()=>{if(busy)return;if(manageHistory&&window.history.state?.ibWorkspaceDialog===historyId&&!window.history.state?.ibPriceReview)window.history.back();else onClose();};
@@ -14,6 +14,7 @@ export function WorkspaceDialog({title,children,onClose,busy=false,className='',
   const back=()=>{if(manageHistory&&window.history.state?.ibWorkspaceDialog!==historyId)closeRef.current();};
   if(manageHistory)window.addEventListener('popstate',back);
   document.body.style.overflow='hidden';node.showModal();
+  if(initialFocus)node.querySelector<HTMLElement>(initialFocus)?.focus({preventScroll:true});
   const viewport=window.visualViewport;
   const resize=()=>{
    const height=viewport?.height??innerHeight,top=viewport?.offsetTop??0;
@@ -21,9 +22,9 @@ export function WorkspaceDialog({title,children,onClose,busy=false,className='',
    node.style.setProperty('--workspace-viewport-top',`${top}px`);
    node.style.setProperty('--workspace-keyboard-bottom',`${Math.max(0,innerHeight-height-top)}px`);
   };
-  resize();viewport?.addEventListener('resize',resize);viewport?.addEventListener('scroll',resize);
+  resize();window.addEventListener('resize',resize);viewport?.addEventListener('resize',resize);viewport?.addEventListener('scroll',resize);
   return()=>{window.removeEventListener('popstate',back);
-    viewport?.removeEventListener('resize',resize);viewport?.removeEventListener('scroll',resize);node.close();document.body.style.overflow=overflow;prior?.focus({preventScroll:true});
+    window.removeEventListener('resize',resize);viewport?.removeEventListener('resize',resize);viewport?.removeEventListener('scroll',resize);node.close();document.body.style.overflow=overflow;prior?.focus({preventScroll:true});
     // StrictMode remounts effects immediately; only unwind a genuinely closed dialog.
     if(manageHistory)queueMicrotask(()=>{if(!node.open&&window.history.state?.ibWorkspaceDialog===historyId)window.history.back();});
   };

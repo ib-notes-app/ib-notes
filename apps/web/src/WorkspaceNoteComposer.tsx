@@ -18,7 +18,12 @@ export function formatEntryNote(value:string,start:number,end:number,format:Note
 
 export function WorkspaceNoteComposer({formId,value,onChange,onSubmit,busy,error,priceLabel,time,onTimeChange,events=[],eventId,onEventChange}:{formId:string;value:string;onChange:(value:string)=>void;onSubmit:()=>Promise<void>;busy:boolean;error:string|null;priceLabel?:string;time:string;onTimeChange:(time:string)=>void;events?:MarketContextItem[];eventId?:string;onEventChange?:(id:string)=>void}){
  const input=useRef<HTMLTextAreaElement>(null),selection=useRef<{start:number;end:number}|null>(null);
- useEffect(()=>{input.current?.focus({preventScroll:true});},[]);
+ useLayoutEffect(()=>{const node=input.current;if(!node)return;const dialog=node.closest('dialog');if(dialog)dialog.scrollTop=0;node.focus({preventScroll:true});},[]);
+ useEffect(()=>{const node=input.current,viewport=window.visualViewport;if(!node)return;
+  let frame=0;const reveal=()=>{cancelAnimationFrame(frame);frame=requestAnimationFrame(()=>{if(document.activeElement!==node)return;const form=node.closest('form');if(!form)return;const paper=node.getBoundingClientRect(),box=form.getBoundingClientRect();if(paper.bottom>box.bottom)form.scrollTop+=paper.bottom-box.bottom;else if(paper.top<box.top)form.scrollTop-=box.top-paper.top;});};
+  reveal();viewport?.addEventListener('resize',reveal);window.addEventListener('resize',reveal);
+  return()=>{cancelAnimationFrame(frame);viewport?.removeEventListener('resize',reveal);window.removeEventListener('resize',reveal);};
+ },[]);
  useLayoutEffect(()=>{if(selection.current&&input.current){input.current.focus({preventScroll:true});input.current.setSelectionRange(selection.current.start,selection.current.end);selection.current=null;}},[value]);
  const format=(kind:NoteFormat)=>{const node=input.current;if(!node)return;const next=formatEntryNote(value,node.selectionStart,node.selectionEnd,kind);selection.current=next;onChange(next.text);};
  return <form id={formId} className="workspace-note-composer" onSubmit={e=>{e.preventDefault();void onSubmit();}}>
@@ -27,11 +32,11 @@ export function WorkspaceNoteComposer({formId,value,onChange,onSubmit,busy,error
     onClick={e=>{try{e.currentTarget.showPicker?.();}catch{e.currentTarget.focus();}}}
     onKeyDown={e=>{if(e.key==='Enter'){e.preventDefault();input.current?.focus({preventScroll:true});}}}
     onChange={e=>onTimeChange(workspaceEntryClockText(e.target.value))}/></label></div>
-  {events.length>0&&onEventChange&&<label className="event-note-link">Attach note to event <small>optional</small><select aria-label="Note event" value={eventId??''} disabled={busy} onChange={e=>onEventChange(e.target.value)}><option value="">No event attachment</option>{events.filter(e=>!e.holiday).map(e=><option value={e.id} key={e.id}>{e.name}</option>)}</select></label>}
   <div className="workspace-note-format" role="group" aria-label="Note formatting">
    <button type="button" disabled={busy} onPointerDown={e=>e.preventDefault()} onClick={()=>format('bullets')}>• Bullets</button>
    <button type="button" disabled={busy} onPointerDown={e=>e.preventDefault()} onClick={()=>format('numbers')}>1. List</button>
-   <button type="button" disabled={busy} onPointerDown={e=>e.preventDefault()} onClick={()=>format('paragraph')}>¶ Paragraph</button>
+   <button type="button" aria-label="¶ Paragraph" title="New paragraph" disabled={busy} onPointerDown={e=>e.preventDefault()} onClick={()=>format('paragraph')}>¶</button>
+   {events.length>0&&onEventChange&&<select aria-label="Note event" title={events.find(e=>e.id===eventId)?.name??'Attach note to event (optional)'} value={eventId??''} disabled={busy} onChange={e=>onEventChange(e.target.value)}><option value="">Event</option>{events.filter(e=>!e.holiday).map(e=><option value={e.id} key={e.id}>{e.name}</option>)}</select>}
   </div>
   {error&&<p role="alert">{error}</p>}
   <label className="workspace-note-paper"><span className="workspace-visually-hidden">Entry note</span><textarea ref={input} aria-label="Entry note" placeholder="What did you notice?" value={value} readOnly={busy} onChange={e=>onChange(e.target.value)}/></label>

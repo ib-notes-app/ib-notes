@@ -17,6 +17,9 @@ export const SHARE_MAP_STYLES=`    .map-bg { fill: #1b1a1c; stroke: #3c373c; str
     .step-start { stroke: #f45ca9; stroke-width: 1; opacity: .3; }
     .ib-edge { stroke: #f45ca9; stroke-width: 3; }
     .ib-mid { stroke: #bb8ba3; stroke-width: 1.5; stroke-dasharray: 9 8; }
+    .mid-line { stroke: #c5adff; stroke-width: 1.5; stroke-dasharray: 9 8; }
+    .mid-label { fill: #c5adff; }
+    .map-price { font: 500 18px Arial, sans-serif; fill: #b9b6c0; }
     .price-path { fill: none; stroke: #f7d5e5; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
     .price-dot { fill: #f7d5e5; stroke: #1b1a1c; stroke-width: 1.5; }
     .price-dot[data-latest="true"] { fill: #f2b84b; }
@@ -38,7 +41,7 @@ export const SHARE_MAP_STYLES=`    .map-bg { fill: #1b1a1c; stroke: #3c373c; str
     .stat-meaning { font: 500 16px Arial, sans-serif; fill: #b5becb; }
 `;
 
-type Reference = { label: string; price: number; tone: "on" | "ib" | "level" };
+type Reference = { label: string; price: number; tone: "on" | "ib" | "mid" | "level" };
 export const shareLevelCode = (level: ShareMapLevel, index: number) => level.code ?? `L${index+1}`;
 const xml = (value: string) => value.replaceAll("&", "&amp;").replaceAll("<", "&lt;")
   .replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&apos;");
@@ -87,7 +90,9 @@ export function buildShareMap(session: JournalSession, options: {
   const references: Reference[] = [
     ...(options.overnight?.high != null ? [{ label: "ONH", price: options.overnight.high, tone: "on" as const }] : []),
     ...(options.overnight?.low != null ? [{ label: "ONL", price: options.overnight.low, tone: "on" as const }] : []),
+    ...(options.overnight?.high != null && options.overnight.low != null ? [{label:'ON mid',price:(options.overnight.high+options.overnight.low)/2,tone:'mid' as const}]:[]),
     ...(primary ? [{ label: options.rangeLabels?.high ?? "IBH", price: primary.high, tone: "ib" as const }, { label: options.rangeLabels?.low ?? "IBL", price: primary.low, tone: "ib" as const }] : []),
+    ...(primary ? [{label:options.through==='15R'?'15R mid':options.through==='A'?'A mid':'IB mid',price:(primary.high+primary.low)/2,tone:'mid' as const}]:[]),
     ...options.levels.flatMap(level => level.high === level.low
       ? [{ label: level.label, price: level.low, tone: "level" as const }]
       : [{ label: `${level.label} H`, price: level.high, tone: "level" as const }, { label: `${level.label} L`, price: level.low, tone: "level" as const }]),
@@ -98,7 +103,7 @@ export function buildShareMap(session: JournalSession, options: {
   const span = Math.max(Math.max(...prices) - Math.min(...prices), session.market.tickSize * 16);
   const padding = Math.max(session.market.tickSize * 4, span * .1);
   const minimum = Math.min(...prices) - padding, maximum = Math.max(...prices) + padding;
-  const plot = { x: 144, y: 312, width: options.levels.length ? 800 : 856, height: 370 };
+  const plot = { x: 196, y: 312, width: options.levels.length ? 748 : 804, height: 370 };
   const x = (percent: number) => plot.x + percent / 100 * plot.width;
   const phaseX=(percent:number)=>x(normalize(percent));
   const y = (price: number) => plot.y + (maximum - price) / (maximum - minimum) * plot.height;
@@ -122,8 +127,11 @@ export function buildShareMap(session: JournalSession, options: {
     <line x1="${phaseX(step.left)}" y1="${y(step.high)}" x2="${phaseX(step.left)}" y2="${y(step.low)}" class="step-start"/>
     <path d="M ${phaseX(step.left)} ${y(step.high)} H ${phaseX(step.left + step.width)} M ${phaseX(step.left)} ${y(step.low)} H ${phaseX(step.left + step.width)}" class="ib-edge"/>
     </g>`).join("");
+  // Midpoints are map-only references. Reuse the existing IB midpoint line;
+  // never add a second line or create a carried Significant Level.
   const midpoint = primary ? `<line x1="${plot.x}" y1="${y((primary.high + primary.low) / 2)}" x2="${x(100)}" y2="${y((primary.high + primary.low) / 2)}" class="ib-mid"/>` : "";
   const lines = references.filter(ref => ref.tone !== 'level').map(ref => {
+    if(ref.tone==='mid'&&primary&&ref.price===(primary.high+primary.low)/2)return '';
     const end = ref.tone === "ib" ? Math.max(0, ...steps.filter(step => step.high === ref.price || step.low === ref.price).map(step => step.left + step.width)) : 0;
     return `${end > 0 ? `<line x1="${plot.x}" y1="${y(ref.price)}" x2="${phaseX(end)}" y2="${y(ref.price)}" class="label-leader"/>` : ""}
       <line x1="${phaseX(end)}" y1="${y(ref.price)}" x2="${x(100)}" y2="${y(ref.price)}" class="${ref.tone}-line"/>`;
@@ -131,9 +139,9 @@ export function buildShareMap(session: JournalSession, options: {
   // Match the dashboard: range names on the left, selected L markers on the right.
   const labelPositions = (prices: number[]) => {
     const positions: number[]=[];
-    prices.forEach((price,index) => positions.push(Math.max(y(price), index ? positions[index-1]+28 : plot.y+14)));
+    prices.forEach((price,index) => positions.push(Math.max(y(price), index ? positions[index-1]+42 : plot.y+14)));
     for(let index=positions.length-1;index>=0;index--) positions[index]=Math.min(positions[index],
-      index===positions.length-1 ? plot.y+plot.height-14 : positions[index+1]-28);
+      index===positions.length-1 ? plot.y+plot.height-22 : positions[index+1]-42);
     return positions;
   };
   const ordered = references.filter(ref => ref.tone !== 'level').sort((left,right)=>right.price-left.price);
@@ -141,8 +149,9 @@ export function buildShareMap(session: JournalSession, options: {
   const compactLabel = (label:string) => label === 'DEV HIGH' ? 'IBH' : label === 'DEV LOW' ? 'IBL' : label;
   const labels = ordered.map((ref, index) => `<g class="map-reference ${ref.tone}-reference">
     <title>${xml(ref.label)} ${formatTickRoundedPrice(ref.price,session.market.tickSize)}</title>
-    <path d="M 136 ${labelY[index]} L ${plot.x} ${y(ref.price)}" class="label-leader"/>
-    <text x="132" y="${labelY[index]+6}" text-anchor="end" class="map-label ${ref.tone}-label">${xml(compactLabel(ref.label))}</text>
+    <path d="M 188 ${labelY[index]} L ${plot.x} ${y(ref.price)}" class="label-leader"/>
+    <text x="182" y="${labelY[index]}" text-anchor="end" class="map-label ${ref.tone}-label">${xml(compactLabel(ref.label))}</text>
+    <text x="182" y="${labelY[index]+22}" text-anchor="end" class="map-price">${formatTickRoundedPrice(ref.price,session.market.tickSize)}</text>
     </g>`).join("");
   const levelMarkers=options.levels.map((level,index)=>({...level, code:shareLevelCode(level,index)}))
     .sort((a,b)=>(b.high+b.low)-(a.high+a.low));
@@ -165,7 +174,7 @@ export function buildShareMap(session: JournalSession, options: {
   const gutters=`<line x1="${plot.x}" y1="${plot.y}" x2="${plot.x}" y2="${plot.y+plot.height}" class="gutter-line"/>`+
     (options.levels.length ? `<line x1="${x(100)}" y1="${plot.y}" x2="${x(100)}" y2="${plot.y+plot.height}" class="gutter-line"/>` : '');
   const minutes=(index:number)=>Math.round((boundaries[index]-boundaries[0])/60_000);
-  const legend=`<text x="84" y="278" class="stat-meaning">Pink: IB${options.overnight?' · Gray: ON':''}${options.includePath||current?' · Dots: price entries':''}${current?' · Gold dot: latest':''}${options.levels.length?' · L: selected levels':''}</text>
+  const legend=`<text x="84" y="278" class="stat-meaning">${primary?'Pink: '+(options.through==='15R'?'15R':options.through==='A'?'A':'IB'):''}${options.overnight?(primary?' · ':'')+'Gray: ON':''} · Violet: midpoint${options.includePath||current?' · Dots: price entries':''}${current?' · Gold: latest':''}${options.levels.length?' · L: levels':''}</text>
     <text x="84" y="300" class="stat-meaning">${options.overnight?'ON: overnight · ':''}H/L: high/low${primary ? ` · ${[`15R: ${minutes(1)} min`,`A: ${minutes(2)} min`,`B/IB: ${minutes(3)} min`,'RTH: regular session'].slice(0,segments).join(' · ')}` : ''}</text>`;
-  return {svg:`${background}${legend}${grid}${band}${silhouette}${midpoint}${lines}${levelLines}${path}${latestRing}${dots}${gutters}${labels}${levelLabels}${axis}`, overflow:references.length>8};
+  return {svg:`${background}${legend}${grid}${band}${silhouette}${midpoint}${lines}${levelLines}${path}${latestRing}${dots}${gutters}${labels}${levelLabels}${axis}`, overflow:ordered.length*42>plot.height||levelMarkers.length*42>plot.height};
 }

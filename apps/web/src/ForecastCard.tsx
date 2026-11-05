@@ -51,7 +51,7 @@ function priorLabel(prior: ForecastPriorDay): string {
 const noLevels: SignificantLevel[] = [];
 const noSessions: JournalSession[] = [], noNews: ContextBatch[] = [], noLowBatches: FbdBatch[] = [];
 const noPriceBatches:PriceHistoryBatch[]=[];
-export type MemoryInput = { sessions: JournalSession[]; news: ContextBatch[]; lowBatches: FbdBatch[]; priceBatches:PriceHistoryBatch[]; repository: JournalRepository | null; snapshotAt?:string };
+export type MemoryInput = { sessions: JournalSession[]; news: ContextBatch[]; lowBatches: FbdBatch[]; priceBatches:PriceHistoryBatch[]; repository: JournalRepository | null; snapshotAt?:string;recordedAsOf?:string };
 // Sharing reuses this read without mounting the dashboard's receipt writer.
 export function useCurrentForecast(session: JournalSession, historical: HistoricalIbSession[], batches: HistoricalIbImportBatch[], levels: SignificantLevel[], inputs: MemoryInput) {
   const closed=!!session.close.finishedAt, marketKey=JSON.stringify(session.market);
@@ -122,7 +122,7 @@ export function useCurrentForecast(session: JournalSession, historical: Historic
       ibLockAt: clock.checkpointInstant(session.rthDate, cp.ibLock).toString(),
       closeAt: clock.checkpointInstant(session.rthDate, cp.studyClose).toString() };
   }, [session,clockTick,inputs.snapshotAt]);
-  const current = useMemo(() => deriveSessionIbRead(session,readWindow,{provisional:true}), [session,readWindow]);
+  const current = useMemo(() => deriveSessionIbRead(session,inputs.recordedAsOf?{...readWindow,now:inputs.recordedAsOf}:readWindow,{provisional:true}), [session,readWindow,inputs.recordedAsOf]);
   const overnight = useMemo(() => deriveSessionOvernightRead(session,readWindow), [session,readWindow]);
   const comparisons=useMemo(()=>{
     const on=recordedOnRange(session,readWindow.now);

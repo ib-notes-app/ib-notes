@@ -4,52 +4,51 @@
 
 ## This update
 
-Forecast and image cards share the same stage summary and estimate time.
-Neither remains visible before an edge breaks. Recorded range size and location
-have historical comparisons when suitable records exist; counts and model
-estimates are labeled separately. Return forecasts wait for a recorded break,
-and re-entries have recorded counts. Ongoing events need no numerical result.
-The image preview shows its full height and share prices use the instrument step.
-Period endings offer a deferred range confirmation with explicit correction.
-Closing an earlier period on the current day returns to its active phase.
+Session and review Image Cards now share one visual style. Session cards keep
+recorded structure, recap, current conditions and estimates distinct. The map
+labels its midpoints. Saved forecasts and recorded results keep their own times
+and counts. Selected references, events and notes use the same compact style.
 
-This repository supplies app code, assets and instructions. It includes no
-CSVs, data packs, market history, journals, backups or seeded records.
-No price-filled documentation screenshots or example CSV rows are supplied.
+Weekly, monthly and annual cards focus on broader statistics: outcome frequencies,
+range sizes, recorded returns, closing locations and changes across days, weeks
+or months. Unknown outcomes stay separate and future plans are excluded. Saved
+forecast comparisons are reviewed counts, with ties identified; they are not new
+forecasts for the next time span. Short Post and Full Recap remain available.
+
+This repository supplies app code, graphics and instructions. It includes no
+CSVs, data packs, market history, journals, backups or seeded examples. Test
+records and price-filled screenshots are not distributed.
 
 ## Checks run
 
 - TypeScript and the public build from cleaned source passed.
-- 140 focused unit tests across 15 files passed during preparation.
-- Eighteen Chromium journeys passed on the packaged public app, including
-  empty startup, manual recording, level placement, forecast/card consistency,
-  tall previews, repeated returns, reload persistence and all five period endings.
+- Ninety-three focused unit tests passed for sharing, comparisons, reviewed
+  statistics, snapshot boundaries, reference roles and recording notices.
+- Twenty-two distinct Chromium journeys passed on the packaged public app.
+  They cover empty startup, manual recording, reload persistence, session and
+  aggregate sharing, selected notes, all twelve months, overflow protection,
+  text formats, small screens and focused writing.
 - Two exact-public-build update/offline checks passed with disposable records.
-- Source, website, nested downloads and reachable history passed the data audit.
-  The public source has no inactive private-dataset imports.
-- The numeric-literal review found no new price or history literals.
+- Source, website, nested downloads and reachable history passed the content
+  audit, with no restricted-source references or private dataset filenames.
+- The numeric-literal review found no new price/history literals.
 
-One older test expected the previous range-save wording. Its selector now uses
-**Confirm range** too. It also distinguishes descriptive range percentages from
-unavailable forecast odds. The corrected eighteen-journey run passes; this did
-not require an app change.
+Three older tests used links to the website root rather than the app's project
+path. Their links now respect that path, and all three follow-up journeys pass.
+No application change was needed for those test failures.
 
-All browser test observations are isolated development inputs and excluded
-from this repository and its downloads. Public preparation does not alter the
-separately updated private phone app. Existing local dependencies were used;
-a fresh dependency installation was not part of the check.
+All browser observations are isolated test inputs and excluded from this
+repository and its downloads. Preparation leaves the private phone app unchanged.
+Existing local dependencies were used; a fresh dependency installation was not
+part of these checks.
 
 ## Live public checks
 
-All eighteen Chromium journeys passed at the live public address. All 38 served
-files match the reviewed package, and eight excluded-data URLs return 404.
-Results are recorded in [release-info.json](../release-info.json). Source,
-nested downloads and reachable history contain no bundled records,
-restricted-source mentions or private dataset filenames.
+Deployment verification is pending. The published build and final live results
+are recorded in [release-info.json](../release-info.json).
 
 ## Still pending
 
-Actual-device installation and keyboard checks at the public address remain
-pending. Firefox and WebKit could not launch because their automation binaries
-are unavailable. The wider legacy forecast suite was not rerun and is not
-claimed as passing. No forecast accuracy improvement is claimed.
+Physical-device installation and keyboard checks at the public address remain
+pending. Firefox and WebKit automation binaries are unavailable. No forecast
+accuracy improvement or general release-readiness claim is made.

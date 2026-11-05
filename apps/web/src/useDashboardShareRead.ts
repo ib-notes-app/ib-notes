@@ -5,6 +5,7 @@ import type {ForecastUpdate,HistoricalIbImportBatch,HistoricalIbSession,JournalS
 import {useCurrentForecast,type MemoryInput} from './ForecastCard';
 import {useOvernightStudy} from './OvernightStudy';
 import {awaitForecastUpdateWrites} from './forecastUpdateHistory';
+import {createSessionClock} from '@ib-field-notes/session-templates';
 
 export type ShareForecastSources={historical:HistoricalIbSession[];batches:HistoricalIbImportBatch[];
   levels:SignificantLevel[];inputs:MemoryInput};
@@ -12,7 +13,11 @@ export function useDashboardShareRead(session:JournalSession,sources:ShareForeca
   // The preview is a single snapshot. Clock ticks cannot change a reviewed PNG.
   const capturedAt=useMemo(()=>Temporal.Now.instant().toString(),[session]);
   const snapshotAt=options.at??capturedAt;
-  const read=useCurrentForecast(session,sources.historical,sources.batches,sources.levels,{...sources.inputs,snapshotAt});
+  const closeAt=createSessionClock(session.market).checkpointInstant(session.rthDate,session.market.checkpoints.studyClose).toString();
+  // The recorded result can include after-close corrections. The observation
+  // cutoff and saved forecast selection remain fixed at the reviewed period.
+  const recordedAsOf=Temporal.Instant.compare(snapshotAt,closeAt)>=0?capturedAt:undefined;
+  const read=useCurrentForecast(session,sources.historical,sources.batches,sources.levels,{...sources.inputs,snapshotAt,recordedAsOf});
   const overnight=useOvernightStudy(session);
   const [history,setHistory]=useState<{scope:string;rows:ForecastUpdate[];loading:boolean;error:string|null}>({scope:'',rows:[],loading:true,error:null});
   const scope=`${session.journalId}:${session.id}:${session.createdAt}`;

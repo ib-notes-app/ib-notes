@@ -7,7 +7,7 @@ import {formatTickRoundedPrice} from './mapFormatting';
 
 export const forecastPercent=(p:number)=>p>0&&p<.01?'<1%':`${Math.round(p*100)}%`;
 export const forecastOutcomeNames={IBH:'Only IB high breaks',IBL:'Only IB low breaks',IBB:'Both IB edges break',IBN:'Neither IB edge breaks'};
-export type StoryRow={label:string;value:string;detail?:string};
+export type StoryRow={label:string;value:string;detail?:string;probability?:number};
 export type ForecastStory={title:string;headline:string;caption:string;rows:StoryRow[];outcomes:StoryRow[];details:StoryRow[];available:boolean;asOf:string|null};
 const clock=(s:JournalSession,at:string)=>new Intl.DateTimeFormat('en-US',{timeZone:s.displayTimeZone,hour:'numeric',minute:'2-digit'}).format(new Date(at));
 const lead=(values:Record<string,number>,names:Record<string,string>)=>{
@@ -36,7 +36,7 @@ export function ibForecastStory(args:{session:JournalSession;now:string;current:
   const original=s.forecast&&Date.parse(s.forecast.issuedAt)<=Date.parse(now)?s.forecast:null;
   const estimate=source?.estimate??original?.estimate,asOf=live?.asOf??saved?.issuedAt??original?.issuedAt??null;
   const stamp=args.showTimes===false?'':asOf?` · ${clock(s,asOf)}`:'';
-  const deadline=args.showTimes===false?'RTH close':clock(s,c.windows.RTH.end);
+  const deadline=args.showTimes===false?`RTH close${ended?'':` · ${Math.max(0,Math.ceil((Date.parse(c.windows.RTH.end)-Date.parse(now))/60000))} min left`}`:clock(s,c.windows.RTH.end);
   const story:ForecastStory={title:post?'RTH outlook':`${phase} · IB outlook`,headline:'Forecast unavailable',
     caption:`${live?'Model estimate':asOf?'Saved model estimate':'No compatible estimate'}${stamp} · by ${deadline}`,
     rows:[],outcomes:[],details:[],available:!!estimate,asOf};
@@ -65,7 +65,7 @@ export function ibForecastStory(args:{session:JournalSession;now:string;current:
   }else if(estimate){
     story.headline=lead(estimate.dayType,forecastOutcomeNames);
     story.rows.push({label:'Leading outcome by RTH close',value:story.headline});
-    story.outcomes=Object.entries(forecastOutcomeNames).map(([key,label])=>({label,value:forecastPercent(estimate.dayType[key as keyof typeof estimate.dayType])}));
+    story.outcomes=Object.entries(forecastOutcomeNames).map(([key,label])=>({label,value:forecastPercent(estimate.dayType[key as keyof typeof estimate.dayType]),probability:estimate.dayType[key as keyof typeof estimate.dayType]}));
   }
   if(!post&&estimate)story.rows.push({label:'Estimated IB width',value:`${formatTickRoundedPrice(estimate.width.median,s.market.tickSize)} pt`,
     detail:`Band ${formatTickRoundedPrice(estimate.width.low,s.market.tickSize)}–${formatTickRoundedPrice(estimate.width.high,s.market.tickSize)} pt`});
@@ -84,7 +84,7 @@ export function onForecastStory(args:{session:JournalSession;now:string;study:Pi
   const f=live??rows.at(-1)?.forecast??null;
   const timed=args.showTimes!==false;
   return {title:'ON · Opening outlook',headline:f?lead(f.probabilities,onBandNames):'Opening estimate unavailable',
-    caption:f?`${live?'Model estimate':'Saved model estimate'}${timed?` · ${clock(s,f.asOf)}`:''} · for RTH open${timed?` ${clock(s,f.until)}`:''}`:'Needs a recorded ON range and compatible earlier history',
+    caption:f?`${live?'Model estimate':'Saved model estimate'}${timed?` · ${clock(s,f.asOf)}`:''} · for RTH open${timed?` ${clock(s,f.until)}`:` · ${Math.max(0,Math.ceil((Date.parse(f.until)-Date.parse(now))/60000))} min until open`}`:'Needs a recorded ON range and compatible earlier history',
     rows:[{label:'Opening location · fixed ON range',value:f?lead(f.probabilities,onBandNames):'Opening estimate unavailable'}],
     outcomes:f?ON_BANDS.map(b=>({label:onBandNames[b],value:forecastPercent(f.probabilities[b])})):[],
     details:f?[{label:'Historical matches',value:`${f.selectedDays} of ${f.eligibleDays} earlier sessions`,detail:`${f.effectiveDays.toFixed(1)} equivalent sessions after weighting`}]:[],

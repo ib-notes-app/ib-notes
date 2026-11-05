@@ -17,6 +17,7 @@
 .share-include-choice { display:flex; align-items:center; gap:7px; min-width:0; min-height:48px; margin:0; padding:8px; border:1px solid #52677d; border-radius:11px; background:#19232e; color:#d5e0eb; font-size:.8125rem; cursor:pointer; }
 .share-include-choice:has(input:checked) { border-color:#bd8ba8; background:#3b2d3b; color:#f7dbea; }
 .share-include-choice input { appearance:auto; width:18px; height:18px; min-width:18px; margin:0; accent-color:var(--accent); }
+.share-include-choice span { min-width:0; overflow-wrap:anywhere; }
 .share-include-choice:focus-within { outline:2px solid #b6d9ff; outline-offset:2px; }
 .daily-share-card label:has(input:disabled:not(:checked)) { opacity:.5; border-color:#455363; cursor:not-allowed; }
 .share-capacity { margin:9px 0 0; color:#bfcddd; font-size:.8125rem; line-height:1.45; }
@@ -27,14 +28,26 @@
 .share-level-sources { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px; }
 .share-level-sources button { min-width:0; min-height:44px; font-size:.8125rem; padding:6px; border-radius:10px; background:#253342; }
 .share-level-sources button[aria-pressed="true"] { border-color:var(--accent); color:#f7dbea; background:#44303e; }
-.daily-share-card .share-options,.share-caption-options { margin-top:12px; border:1px solid #52677d; border-radius:12px; padding:0 12px; background:#19232e; }
-.daily-share-card .share-options > summary,.share-caption-options > summary { min-height:48px; align-content:center; padding-block:10px; color:#c8dcef; font-size:.875rem; cursor:pointer; }
-.share-caption-options > summary span { color:#b7c6d5; font-size:.75rem; margin-left:8px; }
-.share-caption-options .share-draft-field { margin-top:8px; }
+.daily-share-card .share-options { margin-top:12px; border:1px solid #52677d; border-radius:12px; padding:0 12px; background:#19232e; }
+.daily-share-card .share-options > summary { min-height:48px; align-content:center; padding-block:10px; color:#c8dcef; font-size:.875rem; cursor:pointer; }
+.share-capacity:empty,.share-preview-status:empty { margin:0; }
+.share-commentary-editor { display:grid; gap:10px; }
+.share-commentary-editor > label { font-weight:650; color:#edbed6; }
+.daily-share-card .share-commentary-editor textarea { display:block; box-sizing:border-box; width:100%; min-height:150px; resize:vertical; border:1px solid #627a91; border-radius:10px; padding:10px 12px; color:#e7edf3; font:inherit; font-size:1rem; line-height:1.75rem; background:repeating-linear-gradient(transparent,transparent calc(1.75rem - 1px),#41526455 calc(1.75rem - 1px),#41526455 1.75rem) #17232f; background-origin:content-box; }
+.share-commentary-editor textarea:focus { outline:2px solid #b6d9ff; outline-offset:2px; }
+.share-commentary-editor small,.share-post-hint { color:#bacbdd; font-size:.75rem; line-height:1.5; }
+.share-post-hint { margin:8px 0 0; text-align:center; }
 .share-image-primary-actions { display:flex; margin-top:12px; }
 .share-image-primary-actions > .primary-action { width:100%; min-height:52px; margin:0; border:1px solid #f3aece; border-radius:13px; background:var(--accent); color:#271b24; font-size:1rem; font-weight:700; }
 .share-image-primary-actions > .primary-action:disabled { opacity:.55; }
 .daily-share-card .share-actions .primary-action { background:var(--accent); border-color:#f3aece; color:#271b24; }
 .daily-share-card .share-image-frame { border:1px solid #52677d; border-radius:13px; overflow:hidden; aspect-ratio:auto; height:auto; }
 .daily-share-card .share-image-frame img { display:block; width:100%; height:auto; }
-@media(max-width:379px) { .share-include-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media(max-width:479px) { .share-include-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+.share-commentary-summary { display:flex; align-items:center; flex-wrap:wrap; gap:8px 12px; margin:0 0 12px; }
+.share-commentary-summary button { min-height:44px; padding:8px 12px; border-radius:10px; background:#253749; border:1px solid #617d97; color:#d7e5f1; }
+.share-commentary-summary span { color:#bacbdd; font-size:.75rem; }
+
+/* Every review uses the same content-sized portrait as daily Image Cards. */
+:is(.weekly-share-card,.monthly-share-card,.yearly-share-card) .share-image-frame { aspect-ratio:auto; height:auto; }
+:is(.weekly-share-card,.monthly-share-card,.yearly-share-card) .share-image-frame img { display:block; width:100%; height:auto; object-fit:contain; }

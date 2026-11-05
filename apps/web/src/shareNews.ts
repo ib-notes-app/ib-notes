@@ -19,7 +19,9 @@ export function buildShareNewsSections(session:JournalSession,asOf:string,showTi
     const windowTime=(at:string)=>range?.window.endAt&&date(range.window.startAt)!==date(range.window.endAt)?`${date(at)} ${time(at)}`:time(at);
     const period=r?.period?new Intl.DateTimeFormat('en-US',{timeZone:'UTC',month:'short',year:'numeric'}).format(new Date(`${r.period}-15T12:00:00Z`)):null;
     const source=r?newsResultSourceLabel(r):null;
-    return {title:`${item.name}${r&&NEWS_RESULT_NAMES[r.family]?` · ${NEWS_RESULT_NAMES[r.family]}`:''}`,footnote:showRange?'Recorded observations; gaps may exist. Check your sources.':'Check your sources.',rows:[
+    return {title:`${item.name}${r&&NEWS_RESULT_NAMES[r.family]?` · ${NEWS_RESULT_NAMES[r.family]}`:''}`,footnote:showRange?'Recorded observations; gaps may exist. Check your sources.':'Check your sources.',
+      ...(showRange&&range.high!==null&&range.low!==null&&range.midpoint!==null&&range.width!==null?{eventRange:{high:precise(range.high),low:precise(range.low),midpoint:precise(range.midpoint),width:precise(range.width),count:range.count,
+       window:showTimes?`${windowTime(range.window.startAt)}–${range.window.endAt?windowTime(range.window.endAt):'Until ended'}`:null}}:{}),rows:[
       ...(!r&&!numericalRelease&&!showRange?[{label:Date.parse(item.eventAt)>Date.parse(asOf)?'Scheduled event':'Event context',value:showTimes?time(item.eventAt):'Recorded event'}]:[]),
       ...(showRange?[...(showTimes?[{label:'Tracking window',value:`${windowTime(range.window.startAt)}–${range.window.endAt?windowTime(range.window.endAt):'Until ended'}`}]:[]),
         {label:'Recorded high / low',value:range.high===null?'No timed prices yet':`${precise(range.high)} / ${precise(range.low!)}`},

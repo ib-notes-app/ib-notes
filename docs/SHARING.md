@@ -35,6 +35,28 @@ quietly drop details or shrink everything into unreadable text.
 The preview uses the image's full height. Scroll to its final rows and footer;
 they are part of the downloaded PNG too.
 
+## What each part adds
+
+- **Structure map:** the recorded path and range references, with labeled
+  midpoints. A midpoint stays on the map rather than becoming a carried level.
+- **Recap:** recorded ranges, widths, break/return totals and suitable historical
+  comparisons. A gold width callout needs enough compatible earlier records;
+  its evidence names the source and sample size.
+- **Forecast:** the existing estimate, its target and its time. ON uses opening
+  bands; the IB periods use outcome bars. After the session, suitable saved
+  forecasts can be shown beside recorded results.
+- **Current conditions:** the latest recorded price, its time and position on
+  the viewed range. It is a recorded observation, not a live quote feed.
+- **Nearby levels:** selected references with above/below/inside labels and
+  distance from the recorded price. A reference called Low can be above price.
+- **Your notes, News & events, Commentary:** only the material you select or
+  write. Commentary starts blank rather than repeating the card's facts.
+
+Historical width comparisons have no fixed day-count limit. They use eligible
+earlier records from the named source. Your journal and learning history stay
+separate; the card prefers your journal when available. A range-comparison count
+is different from the similar cases used in a forecast.
+
 ## Read the forecast on the card
 
 The card uses the same stage summary and estimate wording as Forecast. Check its
@@ -54,6 +76,27 @@ context without a single numerical result or a claim that they caused a move.
 
 **Short Post** and **Full Recap** remain available if you want text. Weeks,
 months and years have their own recap sharing screens with Image Card first.
+
+## Share a week, month or year
+
+Open **Review**, choose the time span, then **Share week**, **Share month** or
+**Share year**. Image Card opens first, with the same visual language as session
+cards and statistics for the larger time span.
+
+The headline identifies the most common recorded IB outcome, including ties.
+The card shows outcome frequencies, narrowest/typical/widest IB sizes, returns
+after a recorded break, midpoint returns and closing locations. The breakdown
+compares days within a week, weeks within a month, or months within a year.
+Width bars compare range sizes rather than raw price levels.
+
+Each statistic keeps its own denominator. For example, recorded return days use
+days with a recorded first break; closing locations use known closes. Missing
+outcomes do not count as Neither, and future plans do not count as results.
+
+When comparable saved IB-lock forecasts exist, the card can show how often the
+recorded result was among their leading outcomes. Ties are identified. This is
+a reviewed count, not a new forecast or a promise of accuracy. Notes remain
+individually selectable, and Short Post and Full Recap remain available.
 
 ## Before posting
 

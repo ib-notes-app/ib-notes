@@ -18,10 +18,10 @@ function journalDays(sessions: JournalSession[], current: JournalSession) {
 
 type RolePath = { ids: Set<string>; prices: Array<{at: number; price: number}> };
 const rolePaths = new WeakMap<JournalSession[], Map<string, RolePath>>();
-function rolePath(days: JournalSession[], current: JournalSession, contract: string | null, sourceScoped: boolean): RolePath {
+function rolePath(days: JournalSession[], current: JournalSession, contract: string | null, sourceScoped: boolean, asOf?:string): RolePath {
   let paths = rolePaths.get(days);
   if (!paths) { paths = new Map(); rolePaths.set(days, paths); }
-  const cutoff = Date.parse(current.close.observedAt ?? current.updatedAt), knownCutoff = Date.parse(current.updatedAt);
+  const cutoff = Date.parse(asOf ?? current.close.observedAt ?? current.updatedAt), knownCutoff = Date.parse(current.updatedAt);
   const key = JSON.stringify([current.rthDate, contract, sourceScoped, cutoff, knownCutoff]);
   const cached = paths.get(key); if (cached) return cached;
   const compatible = days.filter(day => day.rthDate <= current.rthDate &&
@@ -40,7 +40,7 @@ function rolePath(days: JournalSession[], current: JournalSession, contract: str
 }
 
 /** A reading aid, not a strength score, lifecycle change or forecast input. */
-export function levelMapRole(level: SignificantLevel, sessions: JournalSession[] | null, current: JournalSession): MapLevelRole {
+export function levelMapRole(level: SignificantLevel, sessions: JournalSession[] | null, current: JournalSession, options:{asOf?:string}={}): MapLevelRole {
   if (level.sessionEdge?.status === 'forming') return 'reference';
   const original: MapLevelRole = level.levelType === 'high' ? 'resistance' : level.levelType === 'low' ? 'support' : 'reference';
   if (!sessions) return original;
@@ -53,9 +53,9 @@ export function levelMapRole(level: SignificantLevel, sessions: JournalSession[]
   }
   // Lows and highs follow price at their own boundary, independently of the
   // broader low-recovery tracker. Cache ordering/conflicts across all levels.
-  const {ids, prices} = rolePath(days, current, contract, !!level.studyReplay);
+  const {ids, prices} = rolePath(days, current, contract, !!level.studyReplay, options.asOf);
   const knownAt = Date.parse(level.sessionEdge?.availableAt ?? level.studyReplay?.knownAt ?? level.createdAt);
-  const cutoff = Date.parse(current.close.observedAt ?? current.updatedAt), knownCutoff = Date.parse(current.updatedAt);
+  const cutoff = Date.parse(options.asOf ?? current.close.observedAt ?? current.updatedAt), knownCutoff = Date.parse(current.updatedAt);
   if (level.sessionEdge && (knownAt > cutoff || Date.parse(level.sessionEdge.recordedAt) > knownCutoff)) return 'reference';
   const low = level.price ?? level.zoneLow, high = level.price ?? level.zoneHigh;
   if (low === null || high === null) return 'reference';

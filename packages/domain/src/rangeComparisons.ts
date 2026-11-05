@@ -4,6 +4,8 @@ import {studyPackCompatibility} from './studyPack';
 
 export type RangeComparison = {
   source:'JOURNAL'|'REFERENCE'; days:number; narrower:number; width:number; range:'ON'|'IB';
+  /** Unrounded strict directions for descriptive Image Card emphasis; ties count in neither. */
+  strict?:{narrower:number;wider:number};
   /** Completed IBs at least as wide as the current locked IB. Unweighted observations, not model odds. */
   wide?:{days:number;outcomes:Record<DayType,number>};
 };
@@ -25,6 +27,7 @@ export function deriveRangeComparisons(args:{session:JournalSession;now:string;o
   const local:Day[]=args.sessions.flatMap(day=>{
     if(day.journalId!==s.journalId||day.instrument!==s.instrument||day.rthDate>=s.rthDate||day.calendarStatus==='CLOSED'||day.studyReplay||
       !Number.isFinite(Date.parse(day.updatedAt))||Date.parse(day.updatedAt)>cutoff||day.market.tickSize!==s.market.tickSize||day.market.canonicalTimeZone!==s.market.canonicalTimeZone||
+      day.market.overnightStart!==s.market.overnightStart||[...day.market.weekdays].sort().join()!==[...s.market.weekdays].sort().join()||
       JSON.stringify(day.market.checkpoints)!==JSON.stringify(s.market.checkpoints))return [];
     const ib=deriveSessionRecordedIb(day,now),ibWidth=ib?width(ib.high,ib.low):null;
     const on=day.overnight.status==='confirmed'?width(day.overnight.high,day.overnight.low):null;
@@ -58,7 +61,8 @@ export function deriveRangeComparisons(args:{session:JournalSession;now:string;o
     if(!valid(current)||current<=0)return [];
     const eligible=rows.filter(r=>r[key]!==null);
     if(!eligible.length)return [];
-    const result:RangeComparison={source,range,width:current,days:eligible.length,narrower:eligible.filter(r=>r[key]!<current-1e-9).length};
+    const result:RangeComparison={source,range,width:current,days:eligible.length,narrower:eligible.filter(r=>r[key]!<current-1e-9).length,
+      strict:{narrower:eligible.filter(r=>r[key]!<current-1e-9).length,wider:eligible.filter(r=>r[key]!>current+1e-9).length}};
     if(range==='IB'){
       const wide=eligible.filter(r=>r.ib!>=current-1e-9&&r.outcome!==null);
       result.wide={days:wide.length,outcomes:{IBH:0,IBL:0,IBB:0,IBN:0}};

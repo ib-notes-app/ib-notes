@@ -30,7 +30,7 @@ export type OnForecast = { modelVersion:typeof ON_MODEL|'overnight-opening-bands
   baseline?:{probabilities:Record<OnBand,number>;effectiveDays:number;priceAgeMinutes:number|null;pricePosition:number|null} };
 export type OnForecastUpdate = { version:1; id:string; sessionId:string; journalId:string; contract:string|null;
   recordedAt:string; inputKey:string; sessionInputKey:string; origin:'LIVE'|'RECONSTRUCTED'; forecast:OnForecast };
-export type OvernightStudy = { read:OnRead; widthComparison:{percentile:number;median:number;days:number;at:string}|null;
+export type OvernightStudy = { read:OnRead; widthComparison:{percentile:number;median:number;days:number;at:string;strict?:{narrower:number;wider:number}}|null;
   initial:OnForecast|null; outlook:OnForecast|null; startsAt:string; live:boolean };
 const time=(at:string)=>Date.parse(at);
 const emptyCounts=()=>Object.fromEntries(ON_BANDS.map(b=>[b,0])) as Record<OnBand,number>;
@@ -277,7 +277,8 @@ export function deriveOvernightStudy(args:{session:JournalSession;window:OnWindo
       const p=historicalPoint(path,library,minute);return p&&p.coverage>=.8?[p.width*library.tickSize]:[];
     }).sort((a,b)=>a-b);
     if(values.length)widthComparison={percentile:100*values.filter(v=>v<=read.width!).length/values.length,
-      median:values[Math.floor(values.length/2)]!,days:values.length,at:read.knownAt};
+      median:values[Math.floor(values.length/2)]!,days:values.length,at:read.knownAt,
+      strict:{narrower:values.filter(v=>v<read.width!-1e-9).length,wider:values.filter(v=>v>read.width!+1e-9).length}};
   }
   return {read,widthComparison,initial,outlook,startsAt:new Date(begins).toISOString(),live};
 }

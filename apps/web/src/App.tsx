@@ -7,6 +7,7 @@ import {reviewIssues,type ReviewRepair,type ReviewOrigin,type ReviewIssuesReport
 import {WorkspaceRangeEditor,WorkspacePhaseRecords,WorkspaceEntryNoteEditor,type WorkspaceRecordControls} from './WorkspacePeriod';
 import {PHONE_TEST,phoneState,phoneStates} from './phoneTestMode';
 import {useWorkspaceNavigation} from './WorkspaceNavigation';
+import {periodMapRead} from './periodMapRead';
 import {WorkspaceDashboard,WorkspaceLevelCache,WorkspacePriceSheet,useWorkspaceActivePhase,type WorkspaceDestination} from './WorkspaceDashboard';
 import {useWorkspaceLevels} from './useWorkspaceLevels';
 import {WorkspaceDialog} from './WorkspaceDialog';
@@ -244,7 +245,9 @@ import { ForecastCard } from "./ForecastCard";
 import {useDashboardShareRead,type ShareForecastSources} from './useDashboardShareRead';
 import {SHARE_CONTAINERS,DASHBOARD_SHARE_DETAILS,DEFAULT_DASHBOARD_SHARE_DETAILS,buildDashboardShareCard,dashboardShareText,
   type ShareContainer,type DashboardShareDetails} from './dashboardShare';
-import {buildDashboardImageCard} from './dashboardImageCard';
+import {buildDashboardImageCard,shareCommentaryHeight} from './dashboardImageCard';
+import {ShareCommentaryEditor} from './ShareCommentaryEditor';
+import {useImageCardBanner} from './useImageCardBanner';
 import {buildNearbyShareSections,type ImageShareSections} from './imageShareContent';
 import {SESSION_SHARE_SCOPES,defaultSessionShareScope,sessionShareProjection,buildSessionShareCard,shareLevelAvailable,type SessionShareScope} from './sessionShare';
 import {readShareDefaults,rememberShareDefaults,readShareSelection,rememberShareSelection} from './sharePreferences';
@@ -692,6 +695,135 @@ function StructureMidpoint({phase,high,low,topFor,tickSize}:{phase:WorkspacePhas
   </div>;
 }
 
+/** Shared recorded-path renderer used by live Structure and retained period maps. */
+function RecordedRangeMap({session,structurePhase,currentRange,preFormationObservations,earlyReferences,levelReferences=[],markers=[],window,mapLabel='Current market structure map'}:{
+ session:JournalSession;structurePhase:WorkspacePhase;currentRange:{high:number|null;low:number|null};
+ preFormationObservations:JournalSession['cpObservations'];earlyReferences:Array<{id:string;label:string;price:number;tone?:'ib'|'overnight'}>;
+ levelReferences?:Array<{id:string;label:string;shortLabel:string;price:number;role:MapLevelReference['role'];quality:LevelQuality}>;
+ markers?:MapLevelReference[];window:{start:string;end:string};mapLabel?:string;
+}){
+    const overnightValues = [
+      ...earlyReferences.map(reference=>reference.price),
+      ...preFormationObservations.map((observation) => observation.price),
+      ...levelReferences.map((reference) => reference.price),
+    ];
+    const overnightMin = Math.min(...overnightValues);
+    const overnightMax = Math.max(...overnightValues);
+    const overnightSpan = Math.max(overnightMax - overnightMin, session.market.tickSize * 16);
+    const overnightPadding = Math.max(session.market.tickSize * 4, overnightSpan * 0.1);
+    const overnightScaleMin = overnightMin - overnightPadding;
+    const overnightScaleMax = overnightMax + overnightPadding;
+    const overnightScaleSpan = overnightScaleMax - overnightScaleMin;
+    const overnightTopFor = (price: number) =>
+      ((overnightScaleMax - price) / overnightScaleSpan) * 100;
+    const firstObservationMs = preFormationObservations.length > 0
+      ? Temporal.Instant.from(preFormationObservations[0].observedAt).epochMilliseconds
+      : null;
+    const lastObservationMs = preFormationObservations.length > 0
+      ? Temporal.Instant.from(preFormationObservations.at(-1)!.observedAt).epochMilliseconds
+      : null;
+    const overnightXFor = (observedAt: string) => {
+      const observedMs = Temporal.Instant.from(observedAt).epochMilliseconds;
+      if (
+        firstObservationMs === null ||
+        lastObservationMs === null ||
+        firstObservationMs === lastObservationMs
+      ) return 6;
+      return 6 +
+        ((observedMs - firstObservationMs) / (lastObservationMs - firstObservationMs)) * 88;
+    };
+    const overnightPathPoints = preFormationObservations.map((observation) => ({
+      ...observation,
+      x: overnightXFor(observation.observedAt),
+      y: overnightTopFor(observation.price),
+    }));
+
+ const time=(at:string)=>formatClockTime(formatObservationTime(at,session.displayTimeZone));
+ const overnightAxisStart=time(preFormationObservations[0]?.observedAt??window.start);
+ const overnightAxisEnd=time(preFormationObservations.at(-1)?.observedAt??window.end);
+ return (
+        <div className="map-shell" data-edge-markers={earlyReferences.length > 0} data-level-markers={markers.length > 0} role="group" aria-label={mapLabel}>
+          <div className="map-formation-canvas">
+            {earlyReferences.map((reference) => (
+              <span
+                key={reference.id}
+                className={reference.tone==='ib'?'ib-reference-line':'on-reference-line'} role="img"
+                style={{ top: `${overnightTopFor(reference.price)}%` }}
+                aria-label={`${reference.label} ${formatPriceNumber(reference.price)}`}
+              />
+            ))}
+            {levelReferences.map((reference) => (
+              <span
+                key={reference.id}
+                className="significant-level-reference-line" data-role={reference.role} data-quality={reference.quality} role="img"
+                style={{ top: `${overnightTopFor(reference.price)}%` }}
+                aria-label={`${reference.label} ${formatPriceNumber(reference.price)}`}
+              />
+            ))}
+            <StructureMidpoint phase={structurePhase} {...currentRange} topFor={overnightTopFor} tickSize={session.market.tickSize}/>
+            <MapReferenceLabelLayer
+              levels={markers}
+              references={[
+                ...earlyReferences.map((reference) => ({
+                  ...reference,
+                  shortLabel: reference.label,
+                  tone: reference.tone??"overnight" as const,
+                })),
+                ...levelReferences.map((reference) => ({
+                  ...reference,
+                  tone: "significant" as const,
+                })),
+              ]}
+              topFor={overnightTopFor}
+            />
+            {overnightPathPoints.length > 1 && (
+              <svg
+                className="ib-recorded-path"
+                viewBox="0 0 100 100"
+                preserveAspectRatio="none"
+                aria-hidden="true"
+              >
+                <polyline
+                  points={overnightPathPoints.map((point) => `${point.x},${point.y}`).join(" ")}
+                  vectorEffect="non-scaling-stroke"
+                />
+              </svg>
+            )}
+            {overnightPathPoints.map((point, index) => (
+              <span
+                key={point.id}
+                className="ib-path-dot" role="img"
+                data-latest={index === overnightPathPoints.length - 1}
+                style={{ left: `${point.x}%`, top: `${point.y}%` }}
+                aria-label={`${formatPriceNumber(point.price)} at ${formatClockTime(formatObservationTime(
+                  point.observedAt,
+                  session.displayTimeZone,
+                ))}`}
+              />
+            ))}
+          </div>
+          <div className="map-overnight-axis" role="group" aria-label={structurePhase==='ON'?'Recorded overnight time span':'Recorded session time span'}>
+            <span>{overnightAxisStart}</span>
+            <strong>{structurePhase==='ON'?'Overnight':structurePhase}</strong>
+            <span>{overnightAxisEnd}</span>
+          </div>
+        </div>
+ );
+}
+
+function PeriodStructureMap({session,phase}:{session:JournalSession;phase:WorkspacePhase}){
+ const now=Temporal.Now.instant().toString(),read=periodMapRead(session,phase,now),{range,points,window,ended}=read;
+ const labels=phase==='ON'?['ONH','ONL']:phase==='RTH'?['RTHH','RTHL']:[`${phase}H`,`${phase}L`];
+ const references=[range.high===null?null:{id:'period-high',label:labels[0]!,price:range.high,tone:phase==='ON'?'overnight' as const:'ib' as const},
+  range.low===null?null:{id:'period-low',label:labels[1]!,price:range.low,tone:phase==='ON'?'overnight' as const:'ib' as const}].filter((r):r is NonNullable<typeof r>=>r!==null);
+ return <section className="workspace-period-map" aria-label={`${phase} recorded structure`}>
+  <div className="section-heading map-heading"><h3>{phase} structure</h3><span className="status-dot">{ended?'Recorded':Date.parse(now)<Date.parse(window.start)?'Upcoming':'Forming'}</span></div>
+  {references.length||points.length?<RecordedRangeMap session={session} structurePhase={phase} currentRange={range} preFormationObservations={points}
+    earlyReferences={references} window={window} mapLabel={`${phase} recorded price map`}/>:<p className="empty-state">No recorded prices or range in this period yet.</p>}
+  <p className="workspace-period-map-caption">{phase==='A'?'A includes 15R. ':phase==='B'?'B prices · recorded B/IB bounds. ':phase==='RTH'?'Full RTH, including IB. ':''}{points.length} recorded {points.length===1?'price':'prices'} · Lines connect entries; gaps remain unknown.</p>
+ </section>;
+}
+
 function StructureMap({
   session,
   finalIb,
@@ -891,64 +1023,7 @@ function StructureMap({
   }
 
   if (!primaryRange) {
-    const overnightValues = [
-      ...earlyReferences.map(reference=>reference.price),
-      ...preFormationObservations.map((observation) => observation.price),
-      ...levelReferences.map((reference) => reference.price),
-    ];
-    const overnightMin = Math.min(...overnightValues);
-    const overnightMax = Math.max(...overnightValues);
-    const overnightSpan = Math.max(overnightMax - overnightMin, ES_TEMPLATE.tickSize * 16);
-    const overnightPadding = Math.max(ES_TEMPLATE.tickSize * 4, overnightSpan * 0.1);
-    const overnightScaleMin = overnightMin - overnightPadding;
-    const overnightScaleMax = overnightMax + overnightPadding;
-    const overnightScaleSpan = overnightScaleMax - overnightScaleMin;
-    const overnightTopFor = (price: number) =>
-      ((overnightScaleMax - price) / overnightScaleSpan) * 100;
-    const firstObservationMs = preFormationObservations.length > 0
-      ? Temporal.Instant.from(preFormationObservations[0].observedAt).epochMilliseconds
-      : null;
-    const lastObservationMs = preFormationObservations.length > 0
-      ? Temporal.Instant.from(preFormationObservations.at(-1)!.observedAt).epochMilliseconds
-      : null;
-    const overnightXFor = (observedAt: string) => {
-      const observedMs = Temporal.Instant.from(observedAt).epochMilliseconds;
-      if (
-        firstObservationMs === null ||
-        lastObservationMs === null ||
-        firstObservationMs === lastObservationMs
-      ) return 6;
-      return 6 +
-        ((observedMs - firstObservationMs) / (lastObservationMs - firstObservationMs)) * 88;
-    };
-    const overnightPathPoints = preFormationObservations.map((observation) => ({
-      ...observation,
-      x: overnightXFor(observation.observedAt),
-      y: overnightTopFor(observation.price),
-    }));
-    const overnightAxisStart = preFormationObservations[0]
-      ? formatClockTime(formatObservationTime(
-          preFormationObservations[0].observedAt,
-          session.displayTimeZone,
-        ))
-      : formatCheckpointTime(
-          session.rthDate,
-          ES_TEMPLATE.overnightStart,
-          session.displayTimeZone as SupportedDisplayTimeZone,
-        );
-    const overnightAxisEnd = preFormationObservations.at(-1)
-      ? formatClockTime(formatObservationTime(
-          preFormationObservations.at(-1)!.observedAt,
-          session.displayTimeZone,
-        ))
-      : formatCheckpointTime(
-          session.rthDate,
-          ES_TEMPLATE.checkpoints.overnightLock,
-          session.displayTimeZone as SupportedDisplayTimeZone,
-        );
-
-    return (
-      <>
+    return (<>
         <div className="section-heading map-heading">
           <div>
             <p className="eyebrow">Current structure</p>
@@ -958,72 +1033,9 @@ function StructureMap({
             {structurePhase==='ON'?(session.overnight.status === "confirmed" ? "Locked" : "Forming"):activePhase?'Forming':'Recorded'}
           </span>
         </div>
-        <div className="map-shell" data-edge-markers={earlyReferences.length > 0} data-level-markers={markers.length > 0} role="group" aria-label="Current market structure map">
-          <div className="map-formation-canvas">
-            {earlyReferences.map((reference) => (
-              <span
-                key={reference.id}
-                className="on-reference-line" role="img"
-                style={{ top: `${overnightTopFor(reference.price)}%` }}
-                aria-label={`${reference.label} ${formatPriceNumber(reference.price)}`}
-              />
-            ))}
-            {levelReferences.map((reference) => (
-              <span
-                key={reference.id}
-                className="significant-level-reference-line" data-role={reference.role} data-quality={reference.quality} role="img"
-                style={{ top: `${overnightTopFor(reference.price)}%` }}
-                aria-label={`${reference.label} ${formatPriceNumber(reference.price)}`}
-              />
-            ))}
-            <StructureMidpoint phase={structurePhase} {...currentRange} topFor={overnightTopFor} tickSize={ES_TEMPLATE.tickSize}/>
-            <MapReferenceLabelLayer
-              levels={markers}
-              references={[
-                ...earlyReferences.map((reference) => ({
-                  ...reference,
-                  shortLabel: reference.label,
-                  tone: "overnight" as const,
-                })),
-                ...levelReferences.map((reference) => ({
-                  ...reference,
-                  tone: "significant" as const,
-                })),
-              ]}
-              topFor={overnightTopFor}
-            />
-            {overnightPathPoints.length > 1 && (
-              <svg
-                className="ib-recorded-path"
-                viewBox="0 0 100 100"
-                preserveAspectRatio="none"
-                aria-hidden="true"
-              >
-                <polyline
-                  points={overnightPathPoints.map((point) => `${point.x},${point.y}`).join(" ")}
-                  vectorEffect="non-scaling-stroke"
-                />
-              </svg>
-            )}
-            {overnightPathPoints.map((point, index) => (
-              <span
-                key={point.id}
-                className="ib-path-dot" role="img"
-                data-latest={index === overnightPathPoints.length - 1}
-                style={{ left: `${point.x}%`, top: `${point.y}%` }}
-                aria-label={`${formatPriceNumber(point.price)} at ${formatClockTime(formatObservationTime(
-                  point.observedAt,
-                  session.displayTimeZone,
-                ))}`}
-              />
-            ))}
-          </div>
-          <div className="map-overnight-axis" role="group" aria-label={structurePhase==='ON'?'Recorded overnight time span':'Recorded session time span'}>
-            <span>{overnightAxisStart}</span>
-            <strong>{structurePhase==='ON'?'Overnight':structurePhase}</strong>
-            <span>{overnightAxisEnd}</span>
-          </div>
-        </div>
+      <RecordedRangeMap session={session} structurePhase={structurePhase} currentRange={currentRange} preFormationObservations={preFormationObservations}
+        earlyReferences={earlyReferences} levelReferences={levelReferences} markers={markers}
+        window={{start:sessionObservationInstant(session.rthDate,ES_TEMPLATE.overnightStart).toString(),end:checkpointInstant(session.rthDate,ES_TEMPLATE.checkpoints.overnightLock).toString()}}/>
         {(contextCount > 0 || onManageMapLevels) && (
           <MapContext
             session={session}
@@ -1862,6 +1874,7 @@ function WeeklyShareAction({
 }) {
   const shareOptions = usePeriodShareOptions();
   const [open, setOpen] = useState(false);
+  const bannerReady=useImageCardBanner(open);
   const [format, setFormat] = useState<ShareFormat>("image");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [shareStatus, setShareStatus] = useState<ShareStatus>("ready");
@@ -1890,12 +1903,12 @@ function WeeklyShareAction({
     [week, instrument, selectedCommentary, shareOptions],
   );
   const imageCard = useMemo(
-    () => buildWeeklyImageCardSvg(week, instrument, selectedCommentary, {...shareOptions,sessions:sourceSessions,timeZone:zone}),
-    [week, instrument, selectedCommentary, shareOptions,sourceSessions,zone],
+    () => open ? buildWeeklyImageCardSvg(week, instrument, selectedCommentary, {...shareOptions,sessions:sourceSessions,timeZone:zone}):{svg:'',overflow:false,omittedLineCount:0,altText:'',height:undefined},
+    [week, instrument, selectedCommentary, shareOptions,sourceSessions,zone,bannerReady,open],
   );
   const imageUrl = useMemo(
-    () => `data:image/svg+xml;charset=utf-8,${encodeURIComponent(imageCard.svg)}`,
-    [imageCard.svg],
+    () => open?`data:image/svg+xml;charset=utf-8,${encodeURIComponent(imageCard.svg)}`:'',
+    [imageCard.svg,open],
   );
   const nativeShareAvailable = typeof navigator.share === "function";
   const shortCount = Array.from(shortDraft).length;
@@ -1934,7 +1947,7 @@ function WeeklyShareAction({
   }
 
   async function downloadImage(): Promise<void> {
-    if (imageCard.overflow) return;
+    if (!bannerReady||imageCard.overflow) return;
     try {
       const png = await imageCardPngBlob(imageCard.svg);
       downloadFile(`ib-notes-week-${week.weekStart}.png`, png, "image/png");
@@ -1957,7 +1970,7 @@ function WeeklyShareAction({
     : shareStatus === "shared"
       ? "Share sheet completed."
       : shareStatus === "downloaded"
-        ? "Weekly 1080 × 1350 PNG downloaded."
+        ? `Weekly 1080 × ${imageCard.height??1350} PNG downloaded.`
         : shareStatus === "cancelled"
           ? "Share cancelled. Nothing was sent by IB Notes."
           : shareStatus === "error"
@@ -1970,7 +1983,7 @@ function WeeklyShareAction({
 
       <div className="share-format-switch" aria-label="Weekly share format">
         <button type="button" aria-pressed={format === "image"} onClick={() => setFormat("image")}>
-          <strong>Image Card</strong><span>4:5 PNG</span>
+          <strong>Image Card</strong><span>Portrait PNG</span>
         </button>
         <button type="button" aria-pressed={format === "short"} onClick={() => setFormat("short")}>
           <strong>Short Post</strong><span>280 characters</span>
@@ -2031,7 +2044,7 @@ function WeeklyShareAction({
             <img src={imageUrl} alt={imageCard.altText} />
           </div>
           <div className="share-image-resolution">
-            <strong>1080 × 1350 PNG</strong><span>4:5 portrait · generated locally</span>
+            <strong>1080 × {imageCard.height??1350} PNG</strong><span>Portrait · generated locally</span>
           </div>
           {imageCard.overflow && (
             <p className="share-image-overflow" role="alert">
@@ -2043,7 +2056,7 @@ function WeeklyShareAction({
       )}
 
       {format === "image" ? (
-        <button className="primary-action" type="button" disabled={imageCard.overflow} onClick={() => void downloadImage()}>
+        <button className="primary-action" type="button" disabled={!bannerReady||imageCard.overflow} onClick={() => void downloadImage()}>
           Download PNG
         </button>
       ) : (
@@ -2074,6 +2087,7 @@ function MonthlyShareAction({
 }) {
   const shareOptions = usePeriodShareOptions();
   const [open, setOpen] = useState(false);
+  const bannerReady=useImageCardBanner(open);
   const [format, setFormat] = useState<ShareFormat>("image");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [shareStatus, setShareStatus] = useState<ShareStatus>("ready");
@@ -2102,12 +2116,12 @@ function MonthlyShareAction({
     [month, instrument, selectedCommentary, shareOptions],
   );
   const imageCard = useMemo(
-    () => buildMonthlyImageCardSvg(month, instrument, selectedCommentary, shareOptions),
-    [month, instrument, selectedCommentary, shareOptions],
+    () => open ? buildMonthlyImageCardSvg(month, instrument, selectedCommentary, {...shareOptions,sessions:sourceSessions}):{svg:'',overflow:false,omittedLineCount:0,altText:'',height:undefined},
+    [month, instrument, selectedCommentary, shareOptions,sourceSessions,bannerReady,open],
   );
   const imageUrl = useMemo(
-    () => `data:image/svg+xml;charset=utf-8,${encodeURIComponent(imageCard.svg)}`,
-    [imageCard.svg],
+    () => open?`data:image/svg+xml;charset=utf-8,${encodeURIComponent(imageCard.svg)}`:'',
+    [imageCard.svg,open],
   );
   const nativeShareAvailable = typeof navigator.share === "function";
   const shortCount = Array.from(shortDraft).length;
@@ -2146,7 +2160,7 @@ function MonthlyShareAction({
   }
 
   async function downloadImage(): Promise<void> {
-    if (imageCard.overflow) return;
+    if (!bannerReady||imageCard.overflow) return;
     try {
       const png = await imageCardPngBlob(imageCard.svg);
       downloadFile(`ib-notes-month-${month.month}.png`, png, "image/png");
@@ -2169,7 +2183,7 @@ function MonthlyShareAction({
     : shareStatus === "shared"
       ? "Share sheet completed."
       : shareStatus === "downloaded"
-        ? "Monthly 1080 × 1350 PNG downloaded."
+        ? `Monthly 1080 × ${imageCard.height??1350} PNG downloaded.`
         : shareStatus === "cancelled"
           ? "Share cancelled. Nothing was sent by IB Notes."
           : shareStatus === "error"
@@ -2182,7 +2196,7 @@ function MonthlyShareAction({
 
       <div className="share-format-switch" aria-label="Monthly share format">
         <button type="button" aria-pressed={format === "image"} onClick={() => setFormat("image")}>
-          <strong>Image Card</strong><span>4:5 PNG</span>
+          <strong>Image Card</strong><span>Portrait PNG</span>
         </button>
         <button type="button" aria-pressed={format === "short"} onClick={() => setFormat("short")}>
           <strong>Short Post</strong><span>280 characters</span>
@@ -2243,7 +2257,7 @@ function MonthlyShareAction({
             <img src={imageUrl} alt={imageCard.altText} />
           </div>
           <div className="share-image-resolution">
-            <strong>1080 × 1350 PNG</strong><span>4:5 portrait · generated locally</span>
+            <strong>1080 × {imageCard.height??1350} PNG</strong><span>Portrait · generated locally</span>
           </div>
           {imageCard.overflow && (
             <p className="share-image-overflow" role="alert">
@@ -2255,7 +2269,7 @@ function MonthlyShareAction({
       )}
 
       {format === "image" ? (
-        <button className="primary-action" type="button" disabled={imageCard.overflow} onClick={() => void downloadImage()}>
+        <button className="primary-action" type="button" disabled={!bannerReady||imageCard.overflow} onClick={() => void downloadImage()}>
           Download PNG
         </button>
       ) : (
@@ -2286,6 +2300,7 @@ function YearlyShareAction({
 }) {
   const shareOptions = usePeriodShareOptions();
   const [open, setOpen] = useState(false);
+  const bannerReady=useImageCardBanner(open);
   const [format, setFormat] = useState<ShareFormat>("image");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [shareStatus, setShareStatus] = useState<ShareStatus>("ready");
@@ -2314,12 +2329,12 @@ function YearlyShareAction({
     [year, instrument, selectedCommentary, shareOptions],
   );
   const imageCard = useMemo(
-    () => buildYearlyImageCardSvg(year, instrument, selectedCommentary, shareOptions),
-    [year, instrument, selectedCommentary, shareOptions],
+    () => open ? buildYearlyImageCardSvg(year, instrument, selectedCommentary, {...shareOptions,sessions:sourceSessions}):{svg:'',overflow:false,omittedLineCount:0,altText:'',height:undefined},
+    [year, instrument, selectedCommentary, shareOptions,sourceSessions,bannerReady,open],
   );
   const imageUrl = useMemo(
-    () => `data:image/svg+xml;charset=utf-8,${encodeURIComponent(imageCard.svg)}`,
-    [imageCard.svg],
+    () => open?`data:image/svg+xml;charset=utf-8,${encodeURIComponent(imageCard.svg)}`:'',
+    [imageCard.svg,open],
   );
   const nativeShareAvailable = typeof navigator.share === "function";
   const shortCount = Array.from(shortDraft).length;
@@ -2358,7 +2373,7 @@ function YearlyShareAction({
   }
 
   async function downloadImage(): Promise<void> {
-    if (imageCard.overflow) return;
+    if (!bannerReady||imageCard.overflow) return;
     try {
       const png = await imageCardPngBlob(imageCard.svg);
       downloadFile(`ib-notes-year-${year.year}.png`, png, "image/png");
@@ -2381,7 +2396,7 @@ function YearlyShareAction({
     : shareStatus === "shared"
       ? "Share sheet completed."
       : shareStatus === "downloaded"
-        ? "Yearly 1080 × 1350 PNG downloaded."
+        ? `Yearly 1080 × ${imageCard.height??1350} PNG downloaded.`
         : shareStatus === "cancelled"
           ? "Share cancelled. Nothing was sent by IB Notes."
           : shareStatus === "error"
@@ -2394,7 +2409,7 @@ function YearlyShareAction({
 
       <div className="share-format-switch" aria-label="Yearly share format">
         <button type="button" aria-pressed={format === "image"} onClick={() => setFormat("image")}>
-          <strong>Image Card</strong><span>4:5 PNG</span>
+          <strong>Image Card</strong><span>Portrait PNG</span>
         </button>
         <button type="button" aria-pressed={format === "short"} onClick={() => setFormat("short")}>
           <strong>Short Post</strong><span>280 characters</span>
@@ -2455,7 +2470,7 @@ function YearlyShareAction({
             <img src={imageUrl} alt={imageCard.altText} />
           </div>
           <div className="share-image-resolution">
-            <strong>1080 × 1350 PNG</strong><span>4:5 portrait · generated locally</span>
+            <strong>1080 × {imageCard.height??1350} PNG</strong><span>Portrait · generated locally</span>
           </div>
           {imageCard.overflow && (
             <p className="share-image-overflow" role="alert">
@@ -2467,7 +2482,7 @@ function YearlyShareAction({
       )}
 
       {format === "image" ? (
-        <button className="primary-action" type="button" disabled={imageCard.overflow} onClick={() => void downloadImage()}>
+        <button className="primary-action" type="button" disabled={!bannerReady||imageCard.overflow} onClick={() => void downloadImage()}>
           Download PNG
         </button>
       ) : (
@@ -5980,7 +5995,7 @@ export function App() {
             if(destination==='trash')void openTrashPanel();
             else openWorkspace(destination==='import'?'historical-library-manage':`settings-${destination}`);
           }}
-          renderEvents={workspaceEventsContent} renderShare={workspacePeriodShare} renderReview={workspacePeriodReview} renderPeriod={workspacePeriodContent}
+          renderEvents={workspaceEventsContent} renderShare={workspacePeriodShare} renderReview={workspacePeriodReview} renderPeriod={workspacePeriodContent} renderPeriodMap={(target,phase)=><PeriodStructureMap session={target} phase={phase}/>}
           onOpen={destination=>{setWorkspaceReferences([]);if(destination==='levels'){setFocusedLevelId(undefined);setFbdHistoryPackId(undefined);setMonthlyLevelFilter(undefined);}
             openWorkspace(({forecast:'workspace-forecast',structure:'workspace-structure',levels:'level-library',review:'review-menu'} as const)[destination],destination);}}
           onLevel={members=>{setWorkspaceReferences(members);setWorkspaceOrigin('levels');setEntryOrigin('dashboard');setFocusedLevelId(undefined);setFbdHistoryPackId(undefined);setMonthlyLevelFilter(undefined);workspaceNavigation.openLevel('level-library',`journal:${members[0]!.id}`);}}
@@ -6008,7 +6023,7 @@ export function App() {
         {activePanel==='workspace-events'&&workspaceEventsContent(session)}
       </>}
       {session&&reviewRepairPeriod&&session.id===reviewRepairPeriod.sessionId&&activePanel==='review-menu'&&<WorkspacePriceSheet key={`${reviewRepairPeriod.sessionId}:${reviewRepairPeriod.openedAt}`} session={session}
-        initial={workspaceEntryTarget(session,reviewRepairPeriod.target as WorkspacePhase,reviewRepairPeriod.openedAt)} mode="period" returnToIssues onClose={()=>setReviewRepairPeriod(null)}
+        initial={workspaceEntryTarget(session,reviewRepairPeriod.target as WorkspacePhase,reviewRepairPeriod.openedAt)} mode="period" renderPeriodMap={(target,phase)=><PeriodStructureMap session={target} phase={phase}/>} returnToIssues onClose={()=>setReviewRepairPeriod(null)}
         onSave={saveWorkspacePrice} renderReview={workspacePeriodReview} renderShare={workspacePeriodShare}
         renderPeriod={(phase,done,editFinalized,onBusy,formId,openedAt)=>workspacePeriodContent(phase,done,editFinalized,onBusy,formId,openedAt,false,reviewRepairPeriod.focus)}/>}
       {session && !workspacePreview && activePanel === "dashboard" && (
@@ -6584,7 +6599,7 @@ export function App() {
         )}
 
         {session && activePanel === "close" && <FinalDayReview key={session.id} session={session} onConfirm={confirmFinalDay} onViewEntries={()=>workspacePreview?openWorkspace('session-notes'):setActivePanel('session-notes')}
-          renderPeriod={(phase,openedAt,done)=><WorkspacePriceSheet session={session} initial={workspaceEntryTarget(session,phase,openedAt)} mode="period" returnToReviewDay onClose={done} onSave={saveWorkspacePrice} renderReview={workspacePeriodReview} renderPeriod={(...args)=>workspacePeriodContent(...args,true)}/>}/>}
+          renderPeriod={(phase,openedAt,done)=><WorkspacePriceSheet session={session} initial={workspaceEntryTarget(session,phase,openedAt)} mode="period" renderPeriodMap={(target,phase)=><PeriodStructureMap session={target} phase={phase}/>} returnToReviewDay onClose={done} onSave={saveWorkspacePrice} renderReview={workspacePeriodReview} renderPeriod={(...args)=>workspacePeriodContent(...args,true)}/>}/>}
 
       </div>
 
@@ -7054,6 +7069,7 @@ type ShareOptionalItem = {
   label: string;
   line: string;
   kind: "commentary" | "level";
+  note?:{label:string;text:string};
   levelOption?: ShareLevelOption;
 };
 
@@ -7139,6 +7155,7 @@ function shareOptionalItems(
     label: note.label,
     line: `${note.label}: ${note.text}`,
     kind: "commentary" as const,
+    note:{label:note.label,text:note.text},
   }));
 
   for (const option of buildShareLevelOptions(session, significantLevels)) {
@@ -7401,6 +7418,7 @@ function SharePreview({
   const significantLevels=useMemo(()=>sourceLevels.filter(l=>shareLevelAvailable(l,projection.cutoff)),[sourceLevels,projection.cutoff]);
   const nearbyLevels=useMemo(()=>(projection.ended?sourceLevels:sourceNearbyLevels).filter(l=>shareLevelAvailable(l,projection.cutoff)),[sourceLevels,sourceNearbyLevels,projection.ended,projection.cutoff]);
   const [defaults]=useState(()=>readShareDefaults(sourceSession.journalId));
+  const bannerReady=useImageCardBanner();
   const [selection]=useState(()=>readShareSelection(sourceSession.journalId,sourceSession.id,sourceSession.createdAt));
   const [defaultsSaved,setDefaultsSaved]=useState(true);
   const qualitySources = useContext(LevelQualityContext);
@@ -7412,8 +7430,27 @@ function SharePreview({
   const shareZones=useMemo(()=>[...TIME_ZONES,...[...new Set([session.displayTimeZone,shareTimeZone])]
     .filter(id=>id!=='none'&&!TIME_ZONES.some(zone=>zone.id===id)).map(id=>({id,label:id}))],
     [session.displayTimeZone,shareTimeZone]);
-  const container=shareScope==='ON'?'on':'ib';
+  const container=projection.through==='ON'?'on':'ib';
   const [imageSections,setImageSections]=useState<ImageShareSections>(defaults.sections);
+  // User commentary is a blank, per-period draft. Never generate it from facts
+  // or save private prose among the device's reusable card settings.
+  const [commentaryDrafts,setCommentaryDrafts]=useState<Partial<Record<SessionShareScope,{enabled:boolean;text:string}>>>({});
+  const commentaryDraft=commentaryDrafts[shareScope]??{enabled:false,text:''};
+  const draftTexts=useRef<Partial<Record<SessionShareScope,string>>>({});
+  const [commentaryPending,setCommentaryPending]=useState(false);
+  const [commentaryEditing,setCommentaryEditing]=useState(false);
+  function changeCommentary(change:Partial<typeof commentaryDraft>){
+    setCommentaryDrafts(current=>({...current,[shareScope]:{...commentaryDraft,text:draftTexts.current[shareScope]??commentaryDraft.text,...change}}));
+    setCommentaryPending(false);
+  }
+  function changeSharingPeriod(scope:SessionShareScope){
+    if(commentaryPending)changeCommentary({text:draftTexts.current[shareScope]??commentaryDraft.text});
+    setShareScope(scope);setCommentaryPending(false);
+  }
+  function changeSharingFormat(next:ShareFormat){
+    if(commentaryPending)changeCommentary({text:draftTexts.current[shareScope]??commentaryDraft.text});
+    setFormat(next);
+  }
   const [levelSelection,setLevelSelection]=useState<'nearby'|'visited'>(defaults.levels);
   const [dashboardDetails,setDashboardDetails]=useState<DashboardShareDetails>(defaults.details);
   const [selectedSections,setSelectedSections]=useState<ShareContainer[]>([]);
@@ -7473,9 +7510,9 @@ function SharePreview({
       const quality = marker?.quality ?? strongestQuality(option.area.members.map(level =>
         levelQuality(level, trackingSessions, session, qualitySources, significantLevels).quality));
       const tier=strongestQuality(option.area.members.map(level=>levelQuality(level,trackingSessions,session,qualitySources,significantLevels).tier)) as 'common'|'rare'|'legendary';
-      return [{id:item.id,...option.mapLevel, code:marker?.code ?? `L${++nextCode}`, role:marker?.role, quality,tier, detail:option.detail}];
+      return [{id:item.id,...option.mapLevel, code:marker?.code ?? `L${++nextCode}`, role:levelMapRole(option.area.members[0],trackingSessions,session,{asOf:projection.cutoff}), quality,tier, detail:option.detail}];
     });
-  }, [levelItems, levelMapReferences, trackingSessions, session, qualitySources, significantLevels]);
+  }, [levelItems, levelMapReferences, trackingSessions, session, qualitySources, significantLevels, projection.cutoff]);
   const pickerItems=useMemo(()=>levelItems.flatMap(item=>item.levelOption?[{id:item.id,label:item.label,levelOption:item.levelOption,
     tier:strongestQuality(item.levelOption.area.members.map(level=>levelQuality(level,trackingSessions,session,qualitySources,significantLevels).tier)) as 'common'|'rare'|'legendary'}]:[]),
     [levelItems,trackingSessions,session,qualitySources,significantLevels]);
@@ -7487,18 +7524,18 @@ function SharePreview({
     const members=item.levelOption.area.members,member=members[0];
     const edge=members.length===1?member.sessionEdge?.code:undefined;
     return {id:item.id,...item.levelOption.mapLevel,tier:item.tier,quality:edge?.startsWith('IB')?'ib' as const:edge?'on' as const:item.tier,
-      role:levelMapRole(member,trackingSessions,session)};
-  }),[nearbyItems,trackingSessions,session]);
-  const selectedCard=buildSessionShareCard(shareScope,publicCardInput,imageSections);
+      role:levelMapRole(member,trackingSessions,session,{asOf:projection.cutoff})};
+  }),[nearbyItems,trackingSessions,session,projection.cutoff]);
+  const selectedCard=useMemo(()=>buildSessionShareCard(shareScope,publicCardInput,imageSections,{actualSession:sourceSession,sharedAt:capturedAt}),[shareScope,JSON.stringify(publicCardInput),imageSections,sourceSession,capturedAt]);
   const comparisonUnavailable=snapshot.loading?'Reading saved forecasts…':selectedCard.comparisonUnavailable;
   const preparing=imageSections.forecast&&(snapshot.loading||
     (container==='on'&&imageSections.forecast&&snapshot.overnight.loading)||
     (container==='ib'&&imageSections.forecast&&!session.close.finishedAt&&!!session.forecast&&
       forecastSources.historical.length>0&&!!snapshot.read.current&&!snapshot.read.ready&&!snapshot.read.historyError));
-  const mapFacts=deriveCompactShareFacts(shareSession,shareSession.market.tickSize,showTimes);
+  const mapFacts=useMemo(()=>deriveCompactShareFacts(shareSession,shareSession.market.tickSize,showTimes),[shareSession,showTimes]);
   // Candidate choices use exactly the same renderer as the downloaded card:
   // capacity follows readable rows and wrapping, rather than an arbitrary count.
-  function previewCard(change:{sections?:ImageShareSections;options?:ImageCardOptions;details?:DashboardShareDetails;optional?:string[];nearby?:string[]}={}){
+  function previewCard(change:{sections?:ImageShareSections;options?:ImageCardOptions;details?:DashboardShareDetails;optional?:string[];nearby?:string[];commentary?:string}={}){
     const sections=change.sections??imageSections,options=change.options??imageCardOptions,
       details=change.details??dashboardDetails,optional=change.optional??selectedOptionalIds,nearby=change.nearby??selectedNearbyIds;
     const visited=visitedMapChoices.filter(item=>optional.includes(item.id)),
@@ -7507,32 +7544,43 @@ function SharePreview({
     const map=sections.structure?buildShareMap(shareSession,{through:projection.through,
       overnight:options.includeOvernight?mapFacts.overnightRange:null,includePath:options.includePath,
       includeCurrentOrClose:options.includeCurrentOrClose,levels,rangeLabels:shareScope==='15R'?{high:'15R H',low:'15R L'}:shareScope==='A'?{high:'A H',low:'A L'}:null}):undefined;
-    const notes=commentaryItems.filter(item=>optional.includes(item.id)).map(item=>item.line);
-    const card=buildSessionShareCard(shareScope,{...publicCardInput,details},sections);
-    if(sections.structure&&options.includeCurrentOrClose&&!sections.conditions&&mapFacts.currentOrClose)
-      card.caption+=` · Recorded ${mapFacts.currentOrClose}`;
+    const notes=commentaryItems.filter(item=>optional.includes(item.id));
+    const card=buildSessionShareCard(shareScope,{...publicCardInput,details},sections,{...options,actualSession:sourceSession,sharedAt:capturedAt});
+    if(sections.structure&&options.includeCurrentOrClose&&!sections.conditions&&!card.imageFacts?.hero&&mapFacts.currentOrClose)
+      card.caption=[card.caption,`Recorded ${mapFacts.currentOrClose}`].filter(Boolean).join(' · ');
     return buildDashboardImageCard(shareSession,card,[
       ...(sections.levels?buildShareVisitedLevels(visited,shareSession.market.tickSize):[]),
       ...(sections.levels?buildNearbyShareSections({...publicCardInput,levels:references}):[]),
-      ...(options.includeEvents?buildShareNewsSections(shareSession,projection.cutoff,showTimes):[]),
-      ...(sections.notes&&notes.length?[{title:'Selected notes',rows:notes.map(value=>({label:'Note',value}))}]:[]),
+      ...(options.includeEvents?buildShareNewsSections(shareSession,projection.cutoff,showTimes).map(section=>({...section,layout:'event' as const})):[]),
+      ...(sections.notes&&notes.length?[{title:'Your notes',layout:'notes' as const,rows:notes.map(item=>({label:item.note?.label??item.label,value:item.note?.text??item.line}))}]:[]),
+      ...((change.commentary??(commentaryDraft.enabled?commentaryDraft.text:'' )).trim()?[{title:'Commentary',layout:'commentary' as const,rows:[{label:'',value:change.commentary??commentaryDraft.text}]}]:[]),
     ],map);
   }
-  const imageCard=previewCard();
-  const capacity=useMemo(()=>{
-    const sections=new Set<keyof ImageShareSections>(),options=new Set<keyof ImageCardOptions>(),details=new Set<keyof DashboardShareDetails>(),optional=new Set<string>(),nearby=new Set<string>();
+  const imageCard=useMemo(()=>previewCard(),[bannerReady,shareSession,shareScope,projection.through,projection.cutoff,JSON.stringify(publicCardInput),visitedMapChoices,nearbyMapChoices,optionalItems,imageSections,imageCardOptions,dashboardDetails,selectedOptionalIds,selectedNearbyIds,commentaryDraft.enabled,commentaryDraft.text]);
+  // Evaluate each possible addition only when content choices change. Commentary
+  // consumes measured pixels from these budgets, not N more SVG/map renders.
+  const capacityBudgets=useMemo(()=>{
+    type Budget={overflow:boolean;space:number};
+    const sections=new Map<keyof ImageShareSections,Budget>(),options=new Map<keyof ImageCardOptions,Budget>(),details=new Map<keyof DashboardShareDetails,Budget>(),optional=new Map<string,Budget>(),nearby=new Map<string,Budget>();
+    const budget=(change:Parameters<typeof previewCard>[0])=>{const image=previewCard({...change,commentary:''});return {overflow:image.overflow,space:image.remainingHeight??0};};
     for(const key of Object.keys(imageSections) as Array<keyof ImageShareSections>)
-      if(!imageSections[key]&&previewCard({sections:{...imageSections,[key]:true}}).overflow)sections.add(key);
+      if(!imageSections[key])sections.set(key,budget({sections:{...imageSections,[key]:true}}));
     for(const key of ['includeOvernight','includePath','includeCurrentOrClose','includeEvents'] as const)
-      if(!imageCardOptions[key]&&previewCard({options:{...imageCardOptions,[key]:true}}).overflow)options.add(key);
+      if(!imageCardOptions[key])options.set(key,budget({options:{...imageCardOptions,[key]:true}}));
     for(const [key] of DASHBOARD_SHARE_DETAILS)
-      if(!dashboardDetails[key]&&previewCard({details:{...dashboardDetails,[key]:true}}).overflow)details.add(key);
+      if(!dashboardDetails[key])details.set(key,budget({details:{...dashboardDetails,[key]:true}}));
     for(const item of optionalItems)
-      if(!selectedOptionalIds.includes(item.id)&&previewCard({optional:[...selectedOptionalIds,item.id]}).overflow)optional.add(item.id);
-    for(const item of nearbyItems)
-      if(!selectedNearbyIds.includes(item.id)&&previewCard({nearby:[...selectedNearbyIds,item.id]}).overflow)nearby.add(item.id);
+      if((item.kind==='commentary'?imageSections.notes:imageSections.levels)&&!selectedOptionalIds.includes(item.id))optional.set(item.id,budget({optional:[...selectedOptionalIds,item.id]}));
+    if(imageSections.levels)for(const item of nearbyItems)
+      if(!selectedNearbyIds.includes(item.id))nearby.set(item.id,budget({nearby:[...selectedNearbyIds,item.id]}));
+    return {sections,options,details,optional,nearby};
+  },[shareSession,shareScope,projection.through,projection.cutoff,JSON.stringify(publicCardInput),visitedMapChoices,nearbyMapChoices,optionalItems,imageSections,imageCardOptions,dashboardDetails,selectedOptionalIds,selectedNearbyIds]);
+  const capacity=useMemo(()=>{
+    const height=shareCommentaryHeight(commentaryDraft.enabled?commentaryDraft.text:'');
+    const blocked=<T,>(items:Map<T,{overflow:boolean;space:number}>)=>new Set([...items].filter(([,item])=>item.overflow||item.space<height).map(([key])=>key));
+    const sections=blocked(capacityBudgets.sections),options=blocked(capacityBudgets.options),details=blocked(capacityBudgets.details),optional=blocked(capacityBudgets.optional),nearby=blocked(capacityBudgets.nearby);
     return {sections,options,details,optional,nearby,full:imageCard.overflow||sections.size+options.size+details.size+optional.size+nearby.size>0};
-  },[shareSession,shareScope,projection.through,projection.cutoff,JSON.stringify(publicCardInput),JSON.stringify(visitedMapChoices),JSON.stringify(nearbyMapChoices),JSON.stringify(optionalItems),imageSections,imageCardOptions,dashboardDetails,selectedOptionalIds,selectedNearbyIds,levelSelection]);
+  },[capacityBudgets,imageCard.overflow,commentaryDraft.enabled,commentaryDraft.text]);
   const capacityReason='Card full — remove an item to add another.';
   const selectedCount=format==='image'?optionalItems.filter(item=>selectedOptionalIds.includes(item.id)&&
     (item.kind==='commentary'?imageSections.notes:imageSections.levels)).length+
@@ -7541,18 +7589,11 @@ function SharePreview({
     () => `data:image/svg+xml;charset=utf-8,${encodeURIComponent(imageCard.svg)}`,
     [imageCard.svg],
   );
-  const generatedImageCaption=imageCard.caption??imageCard.altText;
-  const [captionEdit,setCaptionEdit]=useState<{source:string;text:string}|null>(null);
-  const captionField=useRef<HTMLTextAreaElement>(null);
-  // A changed selection must hide a stale edited draft before effects run.
-  const imageCaption=captionEdit?.source===generatedImageCaption?captionEdit.text:generatedImageCaption;
-  const imageCaptionCount=Array.from(imageCaption).length;
-  const imageHasContent=imageSections.structure||imageSections.recap||imageSections.forecast||imageSections.conditions;
-  const imageActionsDisabled=imageCard.overflow||preparing||!imageHasContent;
-  useEffect(()=>{
-    setCaptionEdit(null);
-    if(captionField.current)captionField.current.scrollTop=0;
-  },[generatedImageCaption]);
+  const imageHasContent=imageSections.structure||imageSections.recap||imageSections.forecast||imageSections.conditions||
+    imageSections.levels&&(selectedNearbyIds.length>0||selectedOptionalIds.some(id=>levelItems.some(item=>item.id===id)))||
+    imageSections.notes&&selectedOptionalIds.some(id=>commentaryItems.some(item=>item.id===id))||
+    imageCardOptions.includeEvents&&shareSession.marketContextItems.length>0||commentaryDraft.enabled&&!!commentaryDraft.text.trim();
+  const imageActionsDisabled=!bannerReady||imageCard.overflow||preparing||commentaryPending||!imageHasContent;
 
 
   useEffect(() => {
@@ -7564,7 +7605,7 @@ function SharePreview({
 
   useEffect(() => {
     setShareStatus("ready");
-  }, [format, shortPostDraft, fullText, imageCard.svg, imageCaption]);
+  }, [format, shortPostDraft, fullText, imageCard.svg]);
 
   const text = format === "short" ? shortPostDraft : fullText;
   const shortPostCharacterCount = Array.from(shortPostDraft).length;
@@ -7602,14 +7643,6 @@ function SharePreview({
     }
   }
 
-  async function copyImageCaption():Promise<void>{
-    if(imageActionsDisabled||!imageCaption.trim())return;
-    try{
-      await copyShareText(imageCaption);
-      setShareStatus('copied');
-    }catch{setShareStatus('error');}
-  }
-
   async function share(): Promise<void> {
     if (format === "image" || !nativeShareAvailable || (format === "short" && shortPostOverLimit)) return;
     try {
@@ -7637,7 +7670,7 @@ function SharePreview({
   }
 
   const statusText = shareStatus === "copied"
-    ? format==='image'?"Caption copied.":"Share text copied."
+    ? "Share text copied."
     : shareStatus === "shared"
       ? "Share sheet completed."
       : shareStatus === "downloaded"
@@ -7646,7 +7679,7 @@ function SharePreview({
         ? "Share cancelled. Nothing was sent by IB Notes."
         : shareStatus === "error"
           ? "The selected share format could not be prepared."
-          : "Nothing leaves this device until you choose Copy, Share, or Download.";
+          : "";
 
   const shareOptions = (
 <details
@@ -7751,7 +7784,7 @@ function SharePreview({
         <button
           type="button"
           aria-pressed={format === "image"}
-          onClick={() => setFormat("image")}
+          onClick={() => changeSharingFormat("image")}
         >
           <strong>Image Card</strong>
           <span>Save a picture</span>
@@ -7759,7 +7792,7 @@ function SharePreview({
         <button
           type="button"
           aria-pressed={format === "short"}
-          onClick={() => setFormat("short")}
+          onClick={() => changeSharingFormat("short")}
         >
           <strong>Short Post</strong>
           <span>280 characters</span>
@@ -7767,7 +7800,7 @@ function SharePreview({
         <button
           type="button"
           aria-pressed={format === "full"}
-          onClick={() => setFormat("full")}
+          onClick={() => changeSharingFormat("full")}
         >
           <strong>Full Recap</strong>
           <span>All details</span>
@@ -7779,16 +7812,23 @@ function SharePreview({
       <div className="share-presentation-options">
       {format==='image'&&<>
         <label className="share-container-select"><span>Session</span>
-          <select aria-label="Sharing period" value={shareScope} onChange={e=>setShareScope(e.target.value as SessionShareScope)}>
+          <select aria-label="Sharing period" value={shareScope} onChange={e=>changeSharingPeriod(e.target.value as SessionShareScope)}>
             {SESSION_SHARE_SCOPES.map(([id,label])=><option key={id} value={id}>{label}</option>)}
-          </select><small>{shareScope==='all'?'The combined day, including post-IB RTH.':'This period with the preceding ranges for context.'}</small>
+          </select>
         </label>
-        <p className="share-default-status">{defaultsSaved?'Your card settings are remembered on this device.':'Card settings apply to this share; browser storage is unavailable.'}</p>
+        {!defaultsSaved&&<p className="share-default-status">Browser storage is unavailable; these choices apply to this card.</p>}
         <fieldset ref={imageControlsRef} tabIndex={-1} className="share-card-includes"><legend>Include on this card</legend><div className="share-include-grid">
           {(['structure','recap','forecast'] as const).map(id=><label className="share-include-choice" key={id}><input type="checkbox" checked={imageSections[id]} disabled={capacity.sections.has(id)} title={capacity.sections.has(id)?capacityReason:undefined} onChange={e=>setImageSections(v=>({...v,[id]:e.target.checked}))}/><span>{id==='structure'?'Structure map':id==='recap'?'Recap':'Forecast'}</span></label>)}
           {([['conditions','Current conditions'],['levels','Nearby levels'],['notes','Your notes']] as const).map(([id,label])=><label className="share-include-choice" key={id}><input type="checkbox" checked={imageSections[id]} disabled={capacity.sections.has(id)} title={capacity.sections.has(id)?capacityReason:undefined} onChange={e=>setImageSections(v=>({...v,[id]:e.target.checked}))}/><span>{label}</span></label>)}
           <label className="share-include-choice"><input type="checkbox" checked={imageCardOptions.includeEvents} disabled={capacity.options.has('includeEvents')} title={capacity.options.has('includeEvents')?capacityReason:undefined} onChange={e=>setImageCardOption('includeEvents',e.target.checked)}/><span>News &amp; events</span></label>
-        </div><p id="share-capacity" className="share-capacity" role="status">{capacity.full?capacityReason+' Shaded choices will not fit at a readable size.':'Choices that exceed one card are shaded. Remove a selection to make room.'}</p></fieldset>
+          <label className="share-include-choice"><input type="checkbox" checked={commentaryDraft.enabled} onChange={e=>{changeCommentary({enabled:e.target.checked});if(e.target.checked){setCommentaryEditing(true);setCommentaryPending(true);}}}/><span>Commentary</span></label>
+        </div><p id="share-capacity" className="share-capacity" role="status">{capacity.full?capacityReason+' Shaded choices will not fit.':''}</p></fieldset>
+        {commentaryDraft.enabled&&<div className="share-commentary-summary"><button type="button" className="secondary-action" onClick={()=>{setCommentaryEditing(true);setCommentaryPending(true);}}>Edit commentary</button><span>{commentaryDraft.text.trim()?'Included on this card':'No commentary written yet'}</span></div>}
+        {commentaryDraft.enabled&&commentaryEditing&&<ShareCommentaryEditor key={shareScope} initialText={commentaryDraft.text}
+          context={`${session.instrument} · ${session.rthDate} · ${shareScope==='all'?'Full session':shareScope}`}
+          onDraft={text=>{draftTexts.current[shareScope]=text;}}
+          onCommit={text=>{changeCommentary({text});setCommentaryEditing(false);}}/>}
+        {commentaryPending&&<p className="share-capacity" role="status">Updating commentary preview…</p>}
         {imageSections.levels&&<div className="share-card-selection">
           <div className="share-level-sources" role="group" aria-label="Levels to share">{(['nearby','visited'] as const).map(source=><button key={source} type="button" aria-pressed={levelSelection===source} onClick={()=>setLevelSelection(source)}>{source==='nearby'?'Nearby references':'Visited today'}</button>)}</div>
           <p>Choose each level to include. Nearby references do not imply a recorded visit.</p>
@@ -7855,23 +7895,7 @@ function SharePreview({
       {format === "image" ? (
         <>
           <div className="share-image-primary-actions"><button className="primary-action" type="button" disabled={imageActionsDisabled} onClick={()=>void downloadImageCard()}>Download PNG</button></div>
-          <details className="share-caption-options" open><summary>Caption for your post <span>Optional</span></summary>
-          <label className="share-draft-field share-caption-field">
-            <span>Caption for your post</span>
-            <small>Add your own sentence here. Changing image details rebuilds the caption.</small>
-            <textarea ref={captionField} aria-label="Image caption" aria-describedby="image-caption-count" value={imageCaption}
-              disabled={preparing} rows={4}
-              onChange={event=>setCaptionEdit({source:generatedImageCaption,text:event.target.value})}/>
-          </label>
-          <div id="image-caption-count" className="share-character-count share-caption-count" data-over-limit={imageCaptionCount>280}>
-            <strong>{imageCaptionCount} characters</strong>
-            <span>{imageCaptionCount>280?'Over 280 · shorten for a regular X post.':'X target: 280 characters'}</span>
-          </div>
-          <div className="share-actions">
-            <button className="secondary-action" type="button" disabled={imageActionsDisabled||!imageCaption.trim()}
-              onClick={()=>void copyImageCaption()}>{shareStatus==='copied'?'Copied':'Copy caption'}</button>
-          </div>
-          </details>
+          <p className="share-post-hint">Add your post text in X or your chosen app.</p>
         </>
       ) : (
         <div className="share-actions">

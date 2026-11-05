@@ -38,6 +38,8 @@ export type ImageCardResult = {
   omittedLineCount: number;
   altText: string;
   caption?: string;
+  /** Renderer capacity for another section, before the fixed maximum height. */
+  remainingHeight?:number;
 };
 
 type CardRangeState = {

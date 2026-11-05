@@ -2,7 +2,7 @@
 import {deriveSessionFinalIb,roundPriceToTick,type DayType,type ForecastUpdate,type JournalSession,
   type WeeklySessionSummary} from '@ib-field-notes/domain';
 import {createSessionClock} from '@ib-field-notes/session-templates';
-import {periodShareSummary,type PeriodShareOptions} from './periodShareSummary';
+import {periodShareSummary,type PeriodShareOptions,type PeriodSummary} from './periodShareSummary';
 
 export type WeeklyMarketOptions=PeriodShareOptions&{sessions?:JournalSession[];timeZone?:string};
 export type MarketRange={low:number;high:number;width:number};
@@ -52,9 +52,11 @@ export function weeklyIbLockForecast(session:JournalSession){
 }
 
 /** Explicit public facts only; no notes, receipt payloads, internal IDs or quality labels. */
-export function weeklyMarketFacts(summary:WeeklySessionSummary,instrument:string,options:WeeklyMarketOptions={}){
+export function periodMarketFacts(summary:PeriodSummary,instrument:string,options:WeeklyMarketOptions={}){
   const view=periodShareSummary(summary,options),sources=options.sessions??[];
-  const days:WeeklyMarketDay[]=view.days.filter(d=>d.rthDate>=summary.weekStart&&d.rthDate<=summary.weekEnd).map(day=>{
+  const start='weekStart' in summary?summary.weekStart:'monthStart' in summary?summary.monthStart:summary.yearStart;
+  const end='weekEnd' in summary?summary.weekEnd:'monthEnd' in summary?summary.monthEnd:summary.yearEnd;
+  const days:WeeklyMarketDay[]=view.days.filter(d=>d.rthDate>=start&&d.rthDate<=end).map(day=>{
     const s=sources.find(s=>s.id===day.sessionId&&s.rthDate===day.rthDate&&s.instrument===instrument);
     if(!s)return {date:day.rthDate,on:null,ib:null,rth:null,ibWidth:day.finalIbWidth,close:null,
       actual:day.dayType,contract:null,forecast:null};
@@ -79,4 +81,8 @@ export function weeklyMarketFacts(summary:WeeklySessionSummary,instrument:string
     weekRange:contracts.length===1&&days.every(d=>d.contract===contracts[0])&&rths.length===days.length&&rths.length?
       Math.max(...rths.map(r=>r.high))-Math.min(...rths.map(r=>r.low)):null,widest,
     closeOutside:{count:comparableClose.filter(d=>d.close!<d.ib!.low||d.close!>d.ib!.high).length,total:comparableClose.length}};
+}
+
+export function weeklyMarketFacts(summary:WeeklySessionSummary,instrument:string,options:WeeklyMarketOptions={}){
+  return periodMarketFacts(summary,instrument,options);
 }

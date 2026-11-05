@@ -3,6 +3,7 @@ import {createSessionClock} from '@ib-field-notes/session-templates';
 import type {JournalSession} from '@ib-field-notes/domain';
 import {buildDashboardShareCard,type DashboardShareInput,type DashboardShareCard,type ShareFactSection} from './dashboardShare';
 import {shareFooterNotices} from './shareFooter';
+import {formatTickRoundedPrice} from './mapFormatting';
 
 export const IMAGE_SHARE_TOPICS=[['ib','Initial Balance'],['on','Overnight'],['structure','Structure map']] as const;
 export type ImageShareTopic=typeof IMAGE_SHARE_TOPICS[number][0];
@@ -29,6 +30,11 @@ export function buildTopicShareCard(topic:Exclude<ImageShareTopic,'structure'>,i
  const card:DashboardShareCard={...source,title:topic==='ib'?'Initial Balance':'Overnight',sections:[],experimental:selected.forecast,
   comparisonUnavailable:recap.comparisonUnavailable,
   footnote:'Recorded observations may miss movement between entries.'};
+ if(selected.forecast&&forecast.estimateAvailable){
+  const outlook=forecast.sections.find(section=>section.title.includes('outlook'));
+  const focus=outlook?.rows.find(row=>row.label!=='Recorded so far'&&row.label!=='Estimated IB width');
+  if(focus)card.focus={...focus,detail:[...new Set([focus.detail,forecast.caption].filter(Boolean))].join(' · ')};
+ }
  if(selected.recap&&post&&input.read.current?.phase==='LOCKED'){
   card.headline=post.headline;card.caption=post.caption;
  }
@@ -47,6 +53,10 @@ export function buildTopicShareCard(topic:Exclude<ImageShareTopic,'structure'>,i
    !selected.recap||topic!=='ib'||row.label!=='Locked IB range'
   )})));
   card.meter=conditions.meter;
+  if(selected.structure&&conditions.meter?.extent){
+   const range=conditions.meter.extent;
+   card.sections.find(section=>section.title==='Recorded position')?.rows.push({label:'Recorded RTH low / high',value:`${formatTickRoundedPrice(range.low,input.session.market.tickSize)}–${formatTickRoundedPrice(range.high,input.session.market.tickSize)}`,range:{low:range.low,high:range.high}});
+  }
  }
  // Broad context is an explicit detail and appears once when source cards are combined.
  if(input.details.context){
@@ -64,5 +74,12 @@ export function buildTopicShareCard(topic:Exclude<ImageShareTopic,'structure'>,i
 export function buildNearbyShareSections(input:DashboardShareInput):ShareFactSection[]{
  if(!input.levels?.length)return [];
  const nearby=buildDashboardShareCard('nearby',input);
- return nearby.sections.map(section=>({...section,title:'Selected nearby levels',footnote:nearby.footnote}));
+ const latest=input.session.cpObservations.filter(p=>Date.parse(p.observedAt)<=Date.parse(input.read.now)).sort((a,b)=>a.observedAt.localeCompare(b.observedAt)).at(-1);
+ const fmt=(n:number)=>formatTickRoundedPrice(n,input.session.market.tickSize);
+ return nearby.sections.map(section=>({...section,title:'Selected nearby levels',layout:'references' as const,footnote:nearby.footnote,rows:section.rows.map((row,i)=>{
+  const level=input.levels![i];if(!level)return row;
+  const side=!latest?'No CP':latest.price<level.low?'Above':latest.price>level.high?'Below':'Inside zone';
+  const distance=!latest?null:side==='Above'?level.low-latest.price:side==='Below'?latest.price-level.high:0;
+  return {...row,reference:{side,distance:distance===null?null:`${fmt(distance)} pt`,price:level.low===level.high?fmt(level.low):`${fmt(level.low)}–${fmt(level.high)}`,role:level.role??'reference'}};
+ })}));
 }

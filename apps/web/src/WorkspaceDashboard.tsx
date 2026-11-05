@@ -41,14 +41,14 @@ export function useWorkspaceActivePhase(session:JournalSession|null){
     return()=>{clearInterval(timer);window.removeEventListener('focus',refresh);document.removeEventListener('visibilitychange',refresh);};},[session]);
   return phase;
 }
-export function WorkspaceDashboard({session,sessions,levels,hidden,onDate,onUtility,renderReview,renderPeriod,renderShare,renderEvents,
+export function WorkspaceDashboard({session,sessions,levels,hidden,onDate,onUtility,renderReview,renderPeriod,renderPeriodMap,renderShare,renderEvents,
   onOpen,onLevel,onSave,onUndo,onReviewDay,onReviewWeek,notice,undoAvailable,loading,loadError,savedDates,levelsLoading=false,levelsError=null,periodRequest}:{session:JournalSession;sessions:JournalSession[];levels:SignificantLevel[];
   onReviewDay?:()=>void;onReviewWeek:(weekStart:string)=>void;
   periodRequest?:{id:number;journalId:string;date:string;phase:WorkspacePhase}|null;
   levelsLoading?:boolean;levelsError?:string|null;
   hidden:boolean;loading:boolean;loadError:boolean;savedDates:string[];onDate:(date:string)=>void;onUtility:(destination:WorkspaceUtility)=>void;
   renderEvents?:(session:JournalSession,onBusy:(busy:boolean)=>void,onSaved:(undo:()=>Promise<string|null>)=>void)=>ReactNode;renderReview:(phase:WorkspacePhase,editable:boolean,editFinalized:boolean,controls:WorkspaceRecordControls)=>ReactNode;
-  renderPeriod:(phase:WorkspacePhase,done:()=>void,editFinalized:boolean,onBusy:(busy:boolean)=>void,formId:string,openedAt:string)=>ReactNode;renderShare?:(phase:WorkspacePhase)=>ReactNode;onOpen:(destination:WorkspaceDestination)=>void;
+  renderPeriodMap?:(session:JournalSession,phase:WorkspacePhase)=>ReactNode;renderPeriod:(phase:WorkspacePhase,done:()=>void,editFinalized:boolean,onBusy:(busy:boolean)=>void,formId:string,openedAt:string)=>ReactNode;renderShare?:(phase:WorkspacePhase)=>ReactNode;onOpen:(destination:WorkspaceDestination)=>void;
   onLevel:(levels:SignificantLevel[])=>void;onSave:(entry:WorkspaceEntry)=>Promise<string|null>;onUndo:()=>void;notice:string;undoAvailable:boolean}){
   const [now,setNow]=useWorkspaceNow(),scope=`${session.journalId}:${session.rthDate}`,clock=workspaceClock(session,now);
   const attention=useMemo(()=>reviewIssues(session,now),[session,clock.phase,clock.closed]);
@@ -159,7 +159,7 @@ export function WorkspaceDashboard({session,sessions,levels,hidden,onDate,onUtil
       else{setCalendar(false);onReviewWeek(weekStart);}
     }}/>}
     {notice&&<div className="workspace-notice" role="status">{notice}{undoAvailable&&<button type="button" onClick={onUndo}>Undo</button>}</div>}
-    {sheet&&<WorkspacePriceSheet key={`${sheet.entry.sessionId}:${sheet.entry.phase}:${sheet.entry.observedAt}`} session={session.id===sheet.session.id?session:sheet.session} initial={sheet.entry} mode={sheet.mode} confirmEnded={sheet.confirmEnded} renderReview={renderReview} renderPeriod={renderPeriod} renderShare={renderShare} renderEvents={renderEvents} onSave={onSave} onClose={closeSheet} onContinueCurrent={()=>{
+    {sheet&&<WorkspacePriceSheet key={`${sheet.entry.sessionId}:${sheet.entry.phase}:${sheet.entry.observedAt}`} session={session.id===sheet.session.id?session:sheet.session} initial={sheet.entry} mode={sheet.mode} confirmEnded={sheet.confirmEnded} renderReview={renderReview} renderPeriod={renderPeriod} renderPeriodMap={renderPeriodMap} renderShare={renderShare} renderEvents={renderEvents} onSave={onSave} onClose={closeSheet} onContinueCurrent={()=>{
       const now=Temporal.Now.instant().toString(),current=workspaceClock(session,now);
       if(!current.current||current.closed||!current.phase)return;
       setViews(old=>({...old,[scope]:{phase:current.phase!,follow:true}}));
@@ -168,10 +168,10 @@ export function WorkspaceDashboard({session,sessions,levels,hidden,onDate,onUtil
   </section>;
 }
 
-export function WorkspacePriceSheet({session,initial,onSave,onClose,onContinueCurrent,mode='price',renderReview,renderPeriod,renderShare,renderEvents,returnToReviewDay=false,returnToIssues=false,confirmEnded=false}:{session:JournalSession;initial:WorkspaceEntry;
+export function WorkspacePriceSheet({session,initial,onSave,onClose,onContinueCurrent,mode='price',renderReview,renderPeriod,renderPeriodMap,renderShare,renderEvents,returnToReviewDay=false,returnToIssues=false,confirmEnded=false}:{session:JournalSession;initial:WorkspaceEntry;
   onSave:(entry:WorkspaceEntry)=>Promise<string|null>;onClose:()=>void;mode?:'price'|'review'|'period';
   onContinueCurrent?:()=>void;confirmEnded?:boolean;
-  returnToReviewDay?:boolean;returnToIssues?:boolean;renderShare?:(phase:WorkspacePhase)=>ReactNode;
+  renderPeriodMap?:(session:JournalSession,phase:WorkspacePhase)=>ReactNode;returnToReviewDay?:boolean;returnToIssues?:boolean;renderShare?:(phase:WorkspacePhase)=>ReactNode;
   renderEvents?:(session:JournalSession,onBusy:(busy:boolean)=>void,onSaved:(undo:()=>Promise<string|null>)=>void)=>ReactNode;
   renderReview?:(phase:WorkspacePhase,editable:boolean,editFinalized:boolean,controls:WorkspaceRecordControls)=>ReactNode;renderPeriod?:(phase:WorkspacePhase,done:()=>void,editFinalized:boolean,onBusy:(busy:boolean)=>void,formId:string,openedAt:string)=>ReactNode}){
   const [view,setView]=useState<'price'|'review'|'period'|'note'|'share'|'events'>(mode),[editingFinalized,setEditingFinalized]=useState(false);
@@ -247,7 +247,8 @@ export function WorkspacePriceSheet({session,initial,onSave,onClose,onContinueCu
   const title=guarded?(view==='period'?'Edit finalized period':'Edit price'):view==='events'?'Events':view==='share'?'Share session':view==='note'?'Add note':view==='price'?'Record price':view==='period'?'Edit period':recordSelection?(recordSelection.canEdit?(recordSelection.kind==='note'?'Edit note':'Edit price'):'Entry details'):'View entries';
   const openNote=()=>{
     noteClockWasManual.current=timeWasEdited.current;
-    const at=!timeWasEdited.current?workspaceEntryNow(session,entry.phase,Temporal.Now.instant().toString()):null;
+    // A fresh note captures now; reopening a draft preserves its chosen instant.
+    const at=!entry.note?.trim()?workspaceEntryNow(session,entry.phase,Temporal.Now.instant().toString()):null;
     if(at){const stamp=workspaceEntryTimeFields(at,session.displayTimeZone);setDateText(stamp.date);setTimeText(stamp.time);}
     // A note describes this entry's captured instant, even while the user writes.
     timeWasEdited.current=true;setError(null);setSaved(null);
@@ -283,7 +284,7 @@ export function WorkspacePriceSheet({session,initial,onSave,onClose,onContinueCu
     }catch(cause){setError(cause instanceof Error?cause.message:'Unable to save. Your input is preserved.');}
     finally{submitting.current=false;setBusy(false);}
   };
-  return <WorkspaceDialog title={view==='period'&&!guarded?confirmEnded&&!periodStatus.confirmed?`Confirm ${initial.phase} range`:`${initial.phase} period`:title} busy={busy} onClose={view==='events'?backFromEvents:view==='share'?backFromShare:view==='note'?()=>backFromNote():reviewing?backFromEntries:onClose} manageHistory={returnToReviewDay||returnToIssues} dismissLabel={view==='events'?'Back to price entry':view==='share'?'Back to period':view==='note'?'Back':reviewing?reviewBackLabel:returnToIssues?'Back to issues':returnToReviewDay?'Back to Review day':view==='price'?'Cancel/Close':'Close'} dismissAriaLabel={view==='events'?'Back to price entry':view==='share'?'Back to period':view==='note'?'Back to price entry':reviewing?reviewBackLabel:returnToIssues?'Back to issues':returnToReviewDay?'Back to Review day':view==='period'?'Close period editor':undefined} className={!guarded?(view==='events'?'workspace-events-sheet':view==='share'?'workspace-phase-share-sheet':view==='note'?'workspace-note-sheet':view==='price'?'workspace-price-sheet':view==='period'?'workspace-period-sheet':'workspace-records-sheet'):''}
+  return <WorkspaceDialog title={view==='period'&&!guarded?confirmEnded&&!periodStatus.confirmed?`Confirm ${initial.phase} range`:`${initial.phase} period`:title} busy={busy} onClose={view==='events'?backFromEvents:view==='share'?backFromShare:view==='note'?()=>backFromNote():reviewing?backFromEntries:onClose} manageHistory={returnToReviewDay||returnToIssues} dismissLabel={view==='events'?'Back to price entry':view==='share'?'Back to period':view==='note'?'Back':reviewing?reviewBackLabel:returnToIssues?'Back to issues':returnToReviewDay?'Back to Review day':view==='price'?'Cancel/Close':'Close'} dismissAriaLabel={view==='events'?'Back to price entry':view==='share'?'Back to period':view==='note'?'Back to price entry':reviewing?reviewBackLabel:returnToIssues?'Back to issues':returnToReviewDay?'Back to Review day':view==='period'?'Close period editor':undefined} className={!guarded?(view==='events'?'workspace-events-sheet':view==='share'?'workspace-phase-share-sheet':view==='note'?'workspace-note-sheet workspace-writing-sheet':view==='price'?'workspace-price-sheet':view==='period'?'workspace-period-sheet':'workspace-records-sheet'):''}
     headerAction={!guarded&&view==='note'?<button className="workspace-save" type="submit" form={noteFormId} disabled={busy} aria-label={entry.price.trim()?'Save price and note':'Save note'}>{busy?'Saving…':'SAVE'}</button>:
       !guarded&&!periodReadOnly&&(view==='period'||recordSelection?.canEdit)?<button className="workspace-save" type="submit" form={view==='review'?correctionFormId:formId} disabled={busy}>{busy?'Saving…':view==='period'?confirmingPeriod?'Confirm range':'Save range':recordSelection?.kind==='note'?'Save note':'Save correction'}</button>:undefined}>
     {!guarded&&(view==='price'||view==='note')?<div className="workspace-sheet-target workspace-record-target">
@@ -293,6 +294,7 @@ export function WorkspacePriceSheet({session,initial,onSave,onClose,onContinueCu
     </div>:<p className="workspace-sheet-target">{initial.instrument} · {initial.rthDate} · {view==='share'?'':`${view==='period'?initial.phase:workspacePhaseNames[entry.phase]} · `}{zone}</p>}
     {mode==='period'&&view==='period'&&renderShare&&!confirmEnded&&<button className="workspace-period-share" type="button" disabled={busy} onClick={openShare}>Share this period</button>}
     {view==='period'&&<div className="workspace-period-status" data-confirmed={periodStatus.confirmed} role="status">{periodStatus.confirmed?'✓ Saved · Closed · Confirmed':periodStatus.ended?'Period ended · Confirm the high and low':periodStatus.saved?'Saved · Period in progress':'Period in progress'}</div>}
+    {mode==='period'&&view==='period'&&!confirmEnded&&renderPeriodMap?.(session,initial.phase)}
     {!guarded&&mode==='period'&&<div hidden={view!=='period'}>{periodReadOnly?<div className="workspace-confirmed-range"><dl><div><dt>{initial.phase} high</dt><dd>{workspaceFormatPrice(periodStatus.range.high!,session.market.tickSize)}</dd></div><div><dt>{initial.phase} low</dt><dd>{workspaceFormatPrice(periodStatus.range.low!,session.market.tickSize)}</dd></div></dl><button type="button" onClick={()=>setEditingPeriod(true)}>Edit confirmed range</button></div>:renderPeriod?.(initial.phase,onClose,editingFinalized,setBusy,formId,openedAt)}{(initial.phase!=='RTH'||unusualPeriod)&&<button className="workspace-period-entries" type="button" disabled={busy} onClick={openRecords}>{unusualPeriod?'Check unusual entries':'Entries'}</button>}</div>}
     {guarded?<div className="workspace-finalized-confirmation"><p>{dayGuarded?'This day was explicitly finished. Saving an edit will make it provisional for another closing review. Opening or closing this panel changes nothing.':'This period is saved, closed and confirmed. Choose Edit to correct its recorded prices.'}</p>
       <button className="workspace-save" type="button" onClick={()=>{if(dayGuarded)setEditingFinalized(true);setEditingPeriod(true);setView(mode==='period'?'period':'price');}}>{dayGuarded?mode==='period'?'Edit finalized period':'Confirm edit price':'Edit confirmed period'}</button>

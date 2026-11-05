@@ -2,6 +2,38 @@
 
 [Open IB Notes](https://ib-notes-app.github.io/ib-notes/) · [Getting started](QUICK_START.md) · [All guides](../README.md)
 
+## Clearer cards for every part of the session
+
+Image Cards now share one look from ON through RTH: a bold outcome or period
+heading, aqua lows, pink highs, compact range tiles and a plum forecast panel.
+Your selected sections control what appears. Removing a section also removes
+any highlight that depended on it.
+
+The map labels its midpoints and prices. **Recap** contains recorded range
+sizes and comparisons with earlier history. **Current conditions** shows the
+latest recorded price on a small range ruler. Forecasts keep their target and
+estimate time together, and saved estimates can be compared with later results.
+Earlier snapshots keep their own counts instead of borrowing closing totals.
+
+Nearby references show whether they are above, below or around the recorded
+price. Notes are easier to read, and event ranges use the same low/high/midpoint
+colors. The full-session card keeps recorded break and return totals.
+
+## Reviews tell the bigger story
+
+Weekly, monthly and annual cards now use the same visual style with broader
+statistics: which IB outcomes occurred, typical range sizes, recorded returns
+after breaks and where sessions closed relative to IB.
+
+Weekly cards compare days, monthly cards compare weeks, and annual cards compare
+months. Counts show what they are based on, and unknown outcomes stay separate.
+When comparable saved forecasts exist, a reviewed count shows whether their
+leading outcomes included the recorded result. Tied estimates are labeled.
+These are summaries of your records, not predictions for the next week or year.
+
+Selected notes still require your choice. Check the complete preview before
+downloading; an overfull selection blocks export instead of shrinking the text.
+
 ## Forecast and sharing tell the same story
 
 Forecast and image cards now use the same summary for the stage of the day,
