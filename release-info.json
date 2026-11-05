@@ -36,7 +36,13 @@
       "newPriceOrHistoryLiterals": 0
     },
     "livePublicOrigin": {
-      "status": "Pending deployment verification"
+      "status": "Passed",
+      "checkedAt": "2026-11-05T03:01:40.442258+00:00",
+      "appCommit": "6e4dc6961e864ab48e68397c34de111ccdefc4a3",
+      "pagesRun": "41958612637",
+      "chromiumJourneys": 22,
+      "servedFilesMatched": 39,
+      "excludedDataUrlsReturned404": 8
     },
     "physicalPublicOriginInstall": "Pending",
     "firefoxAndWebkit": "Automation browser binaries unavailable."

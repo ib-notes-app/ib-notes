@@ -44,8 +44,14 @@ part of these checks.
 
 ## Live public checks
 
-Deployment verification is pending. The published build and final live results
-are recorded in [release-info.json](../release-info.json).
+Build `public-blank-20261105T024209691Z` is live. All 22 sharing journeys
+passed again at the public address, including the weekly, monthly and annual
+PNG exports. All 39 served files match the reviewed package; eight excluded-data
+URLs return 404. The final source, history, nested-download and live-content
+audit has no findings.
+
+Publication: app commit `6e4dc69`, successful [Pages run 41958612637](https://github.com/ib-notes-app/ib-notes/actions/runs/41958612637).
+The exact build and results are recorded in [release-info.json](../release-info.json).
 
 ## Still pending
 
