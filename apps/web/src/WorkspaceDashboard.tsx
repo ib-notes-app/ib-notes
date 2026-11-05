@@ -6,7 +6,7 @@ import {Temporal} from '@js-temporal/polyfill';
 import {deriveSessionMissingFields,type JournalSession,type SignificantLevel} from '@ib-field-notes/domain';
 import {reviewIssues} from './reviewIssues';
 import {EventEntryTag} from './EventStudy';
-import {workspaceClock,workspaceFormatPrice,workspaceCp,workspaceDefaultPhase,workspaceEntryTarget,workspaceEntryNow,workspaceLevels,workspacePhaseNames,workspacePhases,workspaceRecordedRange,
+import {workspaceClock,workspaceFormatPrice,workspaceCp,workspaceLastSavedCp,workspaceDefaultPhase,workspaceEntryTarget,workspaceEntryNow,workspaceLevels,workspacePhaseNames,workspacePhases,workspaceRecordedRange,
   type WorkspaceEntry,type WorkspacePhase} from './workspaceModel';
 import {WorkspaceDialog} from './WorkspaceDialog';
 import {WorkspaceNoteComposer} from './WorkspaceNoteComposer';
@@ -177,6 +177,7 @@ export function WorkspacePriceSheet({session,initial,onSave,onClose,onContinueCu
   const [view,setView]=useState<'price'|'review'|'period'|'note'|'share'|'events'>(mode),[editingFinalized,setEditingFinalized]=useState(false);
   const [editingPeriod,setEditingPeriod]=useState(false);
   const [entry,setEntry]=useState(initial),[busy,setBusy]=useState(false),[error,setError]=useState<string|null>(null),[saved,setSaved]=useState<string|null>(null);
+  const lastSavedCp=useMemo(()=>workspaceLastSavedCp(session),[session]);
   const unusualPeriod=useMemo(()=>reviewIssues(session,initial.observedAt).unusualPhases.includes(initial.phase),[session,initial.observedAt,initial.phase]);
   const currentView=useRef(view),currentNote=useRef(entry.note);currentView.current=view;currentNote.current=entry.note;
   const formId=useId(),correctionFormId=useId(),reviewHistoryId=useId(),noteFormId=useId();
@@ -271,7 +272,7 @@ export function WorkspacePriceSheet({session,initial,onSave,onClose,onContinueCu
       const message=await onSave({...entry,observedAt,editFinalized:editingFinalized});
       if(message)setError(message);else{
         const noteOnly=!entry.price.trim()&&!!entry.note?.trim();delete priceDrafts.current[entry.kind];
-        setSaved(noteOnly?'Note saved.':`${entry.kind} saved · ${workspaceFormatPrice(Number(entry.price),session.market.tickSize)}`);
+        setSaved(noteOnly?'Note saved.':entry.kind==='CP'?null:`${entry.kind} saved · ${workspaceFormatPrice(Number(entry.price),session.market.tickSize)}`);
         setEntry(old=>({...old,price:'',note:'',eventId:undefined}));
         const nextAt=Temporal.Now.instant().toString();setOpenedAt(nextAt);
         if(entry.kind==='CP'||noteOnly||!timeWasEdited.current){
@@ -337,7 +338,7 @@ export function WorkspacePriceSheet({session,initial,onSave,onClose,onContinueCu
         priceDrafts.current={};setEntry(old=>({...old,phase,price:known===null?'':workspaceFormatPrice(known,session.market.tickSize)}));setTimeText('');setError(null);setSaved(null);
       }}>{workspacePhases.map(p=><option key={p} value={p}>{p}</option>)}</select></label></div>
       {onContinueCurrent&&continuePhase&&!entry.price.trim()&&!entry.note?.trim()&&<button className="workspace-continue-phase" type="button" disabled={busy} onClick={onContinueCurrent}>Record in {workspacePhaseNames[continuePhase]}</button>}
-      {saved&&<p className="workspace-entry-saved" role="status">{saved}{saved==='Event saved.'&&eventUndo.current&&<button type="button" disabled={busy} onClick={async()=>{setBusy(true);try{const error=await eventUndo.current!();if(error)setError(error);else{setSaved('Event change undone.');eventUndo.current=null;}}finally{setBusy(false);}}}>Undo event</button>}</p>}
+      {(lastSavedCp||saved)&&<p className="workspace-entry-saved" role="status">{lastSavedCp&&<span>Last price entered and saved · <strong>{workspaceFormatPrice(lastSavedCp.price,session.market.tickSize)}</strong></span>}{saved&&<>{lastSavedCp?' · ':''}{saved}</>}{saved==='Event saved.'&&eventUndo.current&&<button type="button" disabled={busy} onClick={async()=>{setBusy(true);try{const error=await eventUndo.current!();if(error)setError(error);else{setSaved('Event change undone.');eventUndo.current=null;}}finally{setBusy(false);}}}>Undo event</button>}</p>}
       {historical&&<p className="workspace-historical-entry">Historical entry · Enter a time within this phase.</p>}
       </div>
     </form>}

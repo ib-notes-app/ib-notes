@@ -27,6 +27,10 @@ That's it. The sheet stays open so you can record another price without extra
 taps. **Cancel/Close** leaves the sheet; earlier successful saves stay saved.
 Choose **High** or **Low** to record the period extremes instead of CP.
 
+After a CP save, **Last price entered and saved** stays visible below the
+four smaller buttons, even after closing/reopening or reloading. It changes
+only after another CP is saved. A draft or a note-only save does not replace it.
+
 The time on the right updates while you record the current period. Tap it to
 adjust when an observation happened. After saving a backdated CP in the current
 period, the clock returns to the current time for your next entry. Historical

@@ -53,6 +53,16 @@ export function workspaceCp(session:JournalSession,_phase:WorkspacePhase,now:str
   return session.cpObservations.filter(cp=>ms(cp.observedAt)>=start&&ms(cp.observedAt)<=ms(now)&&ms(cp.observedAt)<=end&&
     (!cp.recordedAt||ms(cp.recordedAt)<=ms(now))).sort((a,b)=>ms(a.observedAt)-ms(b.observedAt)||a.id.localeCompare(b.id)).at(-1)??null;
 }
+/** Save receipt, not market position: a backdated CP can be the last one entered. */
+export function workspaceLastSavedCp(session:JournalSession){
+  const rthSavedAt=new Map(session.rthObservations.map(p=>[p.cpObservationId,p.recordedAt]));
+  const savedAt=(cp:JournalSession['cpObservations'][number])=>ms(cp.recordedAt??rthSavedAt.get(cp.id)??cp.observedAt);
+  return session.cpObservations.reduce<typeof session.cpObservations[number]|null>((last,cp)=>{
+    if(!Number.isFinite(cp.price))return last;
+    const at=savedAt(cp),lastAt=last?savedAt(last):-Infinity;
+    return Number.isFinite(at)&&at>=lastAt?cp:last;
+  },null);
+}
 export type WorkspaceEntry={sessionId:string;journalId:string;rthDate:string;instrument:string;phase:WorkspacePhase;observedAt:string;kind:'CP'|'High'|'Low';price:string;note?:string;eventId?:string;editFinalized?:boolean};
 export function workspaceEntryTarget(session:JournalSession,phase:WorkspacePhase,now:string):WorkspaceEntry{
   const w=workspaceWindows(session)[phase],t=Math.max(ms(w.start),Math.min(ms(now),ms(w.end)-1000));

@@ -1,5 +1,17 @@
 # What's new
 
+## Your last saved price stays visible
+
+Record price now shows **Last price entered and saved** with the saved CP
+below Entries, Add Note, Event and Details. It remains there when you close
+and reopen the sheet or reload the app, until another CP is successfully saved.
+Typing, canceling, a failed save or a note without a price does not replace it.
+Each day keeps its own value.
+
+If you save a backdated price, this receipt names that latest save. The
+dashboard still uses observation time to show the latest recorded position.
+
+
 ## Clearer history limits on forecasts
 
 When few learning sessions have an IB range as wide or narrow as yours, the

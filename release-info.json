@@ -1,11 +1,11 @@
 {
-  "buildId": "public-blank-20261105T170044621Z",
+  "buildId": "public-blank-20261105T233231314Z",
   "distribution": "public-blank",
-  "status": "Early public version; limited forecast range history notice and easier period range entry. Physical-device checks pending.",
+  "status": "Early public version; persistent last-saved-price receipt. Physical-device checks pending.",
   "appUrl": "https://ib-notes-app.github.io/ib-notes/",
   "archive": "downloads/IB-Notes-blank-slate.zip",
-  "archiveBytes": 7807743,
-  "archiveSha256": "ac9e0726c5e9b10c1ae7253375fea14cfa492eb1062f9c267a48cd2d891d9db5",
+  "archiveBytes": 7808119,
+  "archiveSha256": "564f3580df18e4d648a0e1d7cbdce00705155b5a752774f349f2591bd947275e",
   "bundledMarketHistory": false,
   "bundledJournalRecords": false,
   "bundledExamples": false,
@@ -14,30 +14,24 @@
   "dataStorage": "Local SQLite in the browser; no journal synchronization.",
   "preparedAt": "2026-11-05",
   "changes": [
-    "Live RTH Forecast and selected Image Cards show when few completed learning IBs reached the current range size.",
-    "Range-history counts remain separate from journal comparisons and model probabilities; the odds calculation is unchanged.",
-    "Period High/Low fields come first, with fixed actions and the retained map below the range controls.",
-    "No historical data, user records, seeded examples or data-bearing screenshots are supplied."
+    "Record price keeps Last price entered and saved with the last successfully saved CP.",
+    "The receipt remains after closing, reopening or reloading; drafts, canceled entries and note-only saves do not replace it.",
+    "A backdated CP can be the last saved entry while the dashboard still shows the latest price by observation time.",
+    "Each selected day retains its own saved-price receipt. No schema or forecast calculation changes."
   ],
   "verification": {
     "typecheck": "Passed, including cleaned public source.",
+    "focusedUnitTests": {
+      "passed": 29
+    },
+    "packagedPublicChromiumJourneys": 17,
     "safeUpdateChecks": 2,
-    "sourceAndDownloadsAudit": "Passed: clean source, website, nested downloads and reachable history; no restricted data, provider references or private dataset filenames.",
+    "sourceAndDownloadsAudit": "Passed: source, website, nested downloads and reachable history contain no restricted data, provider references or private dataset filenames.",
     "livePublicOrigin": {
-      "status": "Passed",
-      "checkedAt": "2026-11-05T17:11:06.495412+00:00",
-      "appCommit": "4ec624b46cc7e025054825fe15ccb0e8c7241577",
-      "pagesRun": "42071573462",
-      "chromiumJourneys": 11,
-      "servedFilesMatched": 39,
-      "excludedDataUrlsReturned404": 8
+      "status": "Pending"
     },
     "physicalPublicOriginInstall": "Pending",
     "firefoxAndWebkit": "Automation browser binaries unavailable.",
-    "focusedUnitTests": {
-      "passed": 30
-    },
-    "packagedPublicChromiumJourneys": 11,
     "staticLiteralReview": {
       "filesInspected": 207,
       "candidates": 52,
