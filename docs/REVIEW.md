@@ -27,7 +27,11 @@ backups, seeded examples, test records or price-filled screenshots.
 - The numeric scan introduced no new price/history literals.
 
 Browser observations are isolated test records, excluded from public files.
-Live publication verification is pending. Final results are recorded in
+Build `public-blank-20261105T233231314Z` is live. All seventeen journeys also passed at the public
+address. All 39 served files match the reviewed package; eight excluded-data
+URLs return 404. Publication: app commit `d77facd`, successful
+[Pages run 42130723188](https://github.com/ib-notes-app/ib-notes/actions/runs/42130723188).
+The live content audit has no findings. Details are in
 [release-info.json](../release-info.json).
 Physical public-phone installation and keyboard acceptance remain pending.
 Browser viewport checks do not establish a physical Safari pass. Firefox and
