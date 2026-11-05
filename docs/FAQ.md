@@ -204,6 +204,13 @@ No. Recording builds your journal; historical odds need suitable learning
 history. CSV learning is an explicit import option, and some forecasts need
 minute-price paths that daily summaries do not contain.
 
+### What does Limited range history mean?
+
+Few completed learning IBs were as wide or narrow as the current IB. The
+forecast and its image card show that count so you can recognize a thin
+comparison. It is separate from the probability and from your journal's range
+ranking. The app still includes no bundled history.
+
 ### How can 37% be the most likely result? Is a forecast a guarantee?
 
 One outcome can lead when the remaining probability is spread across others.

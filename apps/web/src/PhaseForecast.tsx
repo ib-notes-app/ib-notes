@@ -27,7 +27,7 @@ export function PhaseForecast({session,now,current,outlook,ready,historyAvailabl
   const recordedReturns=deriveRecordedIbReturns(current,session.market.tickSize);
   const time=(at:string)=>new Intl.DateTimeFormat('en-US',{timeZone:session.displayTimeZone,hour:'numeric',minute:'2-digit'}).format(new Date(at));
   const remaining=outlook?.remainingEdge;
-  const story=ibForecastStory({session,now,current,outlook,updates,ready});
+  const story=ibForecastStory({session,now,current,outlook,updates,ready,comparisons});
   const context=rangeStory(session,current,recordedOnRange(session,now),comparisons);
   const displayReady=ready||!historyAvailable;
   const pending=PUBLIC_BLANK&&!historyAvailable?'No historical data is included. Historical forecast probabilities need compatible learning history.':!current?.width?'Record an opening range for an estimate.':!historyAvailable?'Earlier compatible IB history is needed for odds.':!ready?'Comparing earlier sessions…':'No compatible estimate is available.';
@@ -43,6 +43,7 @@ export function PhaseForecast({session,now,current,outlook,ready,historyAvailabl
         </div>}
       </div>
       <p className="phase-forecast-stamp">{story.caption}{!postIb&&` · IB locks ${time(clock.windows.B.end)}`}</p>
+      {story.notice&&<p className="phase-forecast-partial" aria-label="Forecast history support">{story.notice}</p>}
       {(partial||gaps.length>0)&&<p className="phase-forecast-partial" aria-label="Forecast input status">
         <strong>Partial forecast</strong>{gaps.length>0&&` · Missing ${gaps.join(' · ')}`}</p>}
     </>}

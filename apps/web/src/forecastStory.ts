@@ -4,11 +4,12 @@ import {deriveRecordedIbReturns,firstRecordedIbBreak,onBandNames,ON_BANDS,derive
   type RangeComparison,type deriveSessionIbRead} from '@ib-field-notes/domain';
 import {workspaceClock,type WorkspacePhase} from './workspaceModel';
 import {formatTickRoundedPrice} from './mapFormatting';
+import {forecastRangeSupport} from './forecastRangeSupport';
 
 export const forecastPercent=(p:number)=>p>0&&p<.01?'<1%':`${Math.round(p*100)}%`;
 export const forecastOutcomeNames={IBH:'Only IB high breaks',IBL:'Only IB low breaks',IBB:'Both IB edges break',IBN:'Neither IB edge breaks'};
 export type StoryRow={label:string;value:string;detail?:string;probability?:number};
-export type ForecastStory={title:string;headline:string;caption:string;rows:StoryRow[];outcomes:StoryRow[];details:StoryRow[];available:boolean;asOf:string|null};
+export type ForecastStory={title:string;headline:string;caption:string;rows:StoryRow[];outcomes:StoryRow[];details:StoryRow[];available:boolean;asOf:string|null;notice?:string};
 const clock=(s:JournalSession,at:string)=>new Intl.DateTimeFormat('en-US',{timeZone:s.displayTimeZone,hour:'numeric',minute:'2-digit'}).format(new Date(at));
 const lead=(values:Record<string,number>,names:Record<string,string>)=>{
   const top=Math.max(...Object.values(values));
@@ -27,7 +28,7 @@ export function forecastStoryUpdates(s:JournalSession,updates:ForecastUpdate[],n
 
 /** One public presentation of the existing estimates. No new probabilities or saved receipts. */
 export function ibForecastStory(args:{session:JournalSession;now:string;current:ReturnType<typeof deriveSessionIbRead>;
-  outlook:BestFitOutlook|null;updates:ForecastUpdate[];ready:boolean;phase?:WorkspacePhase;showTimes?:boolean}):ForecastStory{
+  outlook:BestFitOutlook|null;updates:ForecastUpdate[];ready:boolean;phase?:WorkspacePhase;showTimes?:boolean;comparisons?:RangeComparison[]}):ForecastStory{
   const {session:s,now,current,ready}=args,c=workspaceClock(s,now),phase=args.phase??c.phase??'RTH';
   const post=phase==='RTH',ended=c.closed||!!s.close.finishedAt;
   const rows=forecastStoryUpdates(s,args.updates,now).filter(u=>u.phase===(post?'LOCKED':'FORMING'));
@@ -72,6 +73,7 @@ export function ibForecastStory(args:{session:JournalSession;now:string;current:
   if(estimate&&!first)story.details.push({label:'First edge to break · separate question',value:lead(estimate.firstBreak,{IBH:'IB high first',IBL:'IB low first',none:'Neither breaks'}),
     detail:'This includes both-edge days. It is not a sequence following the leading outcome.'});
   if(source)story.details.push({label:'Historical matches',value:`${source.matchingDays} of ${source.historicalDays} earlier sessions`,detail:`${source.effectiveDays.toFixed(1)} equivalent sessions after weighting · ${source.support} support`});
+  if(post&&!ended&&estimate&&current?.phase==='LOCKED')story.notice=forecastRangeSupport(current.width,args.comparisons);
   return story;
 }
 

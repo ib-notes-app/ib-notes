@@ -1,5 +1,24 @@
 # What's new
 
+## Clearer history limits on forecasts
+
+When few learning sessions have an IB range as wide or narrow as yours, the
+live RTH forecast shows a short **Limited range history** message. The same
+message appears on an image card when Forecast is selected. It describes how
+much comparable range history is available; it is not another probability.
+
+The odds calculation has not changed. A rare range is a reason to be careful
+with an estimate, not proof that either edge will or will not break. No learning
+history is bundled with the app, and missing history still means Unavailable.
+
+## Easier period range entry
+
+High and Low now come first when you edit ON, 15R, A, B or RTH. Save/Confirm
+and Close stay above the scrolling content, with the period map below the
+range fields. This reduces searching around when the keyboard opens. Actual
+keyboard behavior still depends on the phone and browser.
+
+
 [Open IB Notes](https://ib-notes-app.github.io/ib-notes/) · [Getting started](QUICK_START.md) · [All guides](../README.md)
 
 ## Clearer cards for every part of the session

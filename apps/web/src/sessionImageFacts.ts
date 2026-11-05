@@ -68,7 +68,7 @@ export function sessionImageFacts(scope:SessionShareScope,input:DashboardShareIn
  const empty=!finite(r.low)&&!finite(r.high)&&!latest;
  const hero:SessionImageFacts['hero']=!empty&&(selected.recap||selected.conditions||selected.structure)
   ?{value:code==='IBN'&&!s.close.finishedAt?'No IB break yet':code??phase,label:'',...(code?{code}:{})}:undefined;
- const story=selected.forecast&&phase!=='ON'?ibForecastStory({session:s,now,current,outlook:input.read.outlook,updates:input.updates,ready:input.read.ready,phase,showTimes:input.showTimes}):null;
+ const story=selected.forecast&&phase!=='ON'?ibForecastStory({session:s,now,current,outlook:input.read.outlook,updates:input.updates,ready:input.read.ready,phase,showTimes:input.showTimes,comparisons:input.read.comparisons}):null;
  let snapshot:SessionImageFacts['snapshot'];
  if(story?.asOf&&story.asOf!==now&&Date.parse(story.asOf)<Date.parse(now)){
   const at=story.asOf;
@@ -108,6 +108,7 @@ export function sessionImageFacts(scope:SessionShareScope,input:DashboardShareIn
   bands:(['BELOW','LOWER','LOWER_MIDDLE','UPPER_MIDDLE','UPPER','ABOVE'] as const).map((b,i)=>({label:['Below','Lower ¼','Lower mid','Upper mid','Upper ¼','Above'][i],probability:f.probabilities[b],selected:f.probabilities[b]===Math.max(...Object.values(f.probabilities))})),
   reference:`Fixed ON ${fmt(f.low)}–${fmt(f.high)}${input.showTimes===false?'':` · ${stamp(f.referenceAt)}`}`,
  }:story?.available?{
+  reference:story.notice,
   question:phase==='RTH'?undefined:'Which IB outcome is most likely by RTH close?',
   outcomes:story.outcomes.filter(row=>row.probability!==undefined).map(row=>({label:row.label,value:row.value,probability:row.probability!})),
   support:story.rows.filter((row,i)=>row.label==='Estimated IB width'||row.label.startsWith('Chance ')&&i!==story.rows.findIndex(r=>r.label!=='Recorded so far'&&r.label!=='Estimated IB width')),

@@ -4,57 +4,40 @@
 
 ## This update
 
-Session and review Image Cards now share one visual style. Session cards keep
-recorded structure, recap, current conditions and estimates distinct. The map
-labels its midpoints. Saved forecasts and recorded results keep their own times
-and counts. Selected references, events and notes use the same compact style.
+Live RTH forecasts and image cards can show **Limited range history** when
+few completed learning IBs were as wide or narrow as the current range. The
+message describes history coverage; it does not change the odds or establish
+their accuracy on rare days. Local journal rankings remain separate.
 
-Weekly, monthly and annual cards focus on broader statistics: outcome frequencies,
-range sizes, recorded returns, closing locations and changes across days, weeks
-or months. Unknown outcomes stay separate and future plans are excluded. Saved
-forecast comparisons are reviewed counts, with ties identified; they are not new
-forecasts for the next time span. Short Post and Full Recap remain available.
+Period High/Low fields now come first, with the map below them and fixed
+Save/Confirm and Close actions. The existing confirmation and draft behavior
+is preserved.
 
 This repository supplies app code, graphics and instructions. It includes no
 CSVs, data packs, market history, journals, backups or seeded examples. Test
 records and price-filled screenshots are not distributed.
 
-## Checks run
+## Checks
 
-- TypeScript and the public build from cleaned source passed.
-- Ninety-three focused unit tests passed for sharing, comparisons, reviewed
-  statistics, snapshot boundaries, reference roles and recording notices.
-- Twenty-two distinct Chromium journeys passed on the packaged public app.
-  They cover empty startup, manual recording, reload persistence, session and
-  aggregate sharing, selected notes, all twelve months, overflow protection,
-  text formats, small screens and focused writing.
-- Two exact-public-build update/offline checks passed with disposable records.
+- The cleaned-source TypeScript and public production build passed.
+- Thirty focused unit tests passed for range coverage, forecasts and image cards.
+- Eleven Chromium journeys passed on the packaged public app: thin history,
+  ordinary ranges, breaks, section choices, sharing, empty startup, manual
+  recording and keyboard viewport behavior across all five periods.
+- Two exact-public-build safe-update/offline checks passed with disposable data.
 - Source, website, nested downloads and reachable history passed the content
-  audit, with no restricted-source references or private dataset filenames.
-- The numeric-literal review found no new price/history literals.
+  audit, with no restricted data, provider references or private dataset names.
+- The numeric scan introduced no new price/history literals.
 
-Three older tests used links to the website root rather than the app's project
-path. Their links now respect that path, and all three follow-up journeys pass.
-No application change was needed for those test failures.
+Browser observations use isolated test records, excluded from public files.
+Live deployment verification is pending; final results are recorded in
+[release-info.json](../release-info.json).
+Physical public-phone installation and keyboard acceptance remain pending.
+Browser viewport simulations do not establish a physical Safari pass. Firefox
+and WebKit automation binaries are unavailable in this environment.
 
-All browser observations are isolated test inputs and excluded from this
-repository and its downloads. Preparation leaves the private phone app unchanged.
-Existing local dependencies were used; a fresh dependency installation was not
-part of these checks.
+## Getting the update
 
-## Live public checks
-
-Build `public-blank-20261105T024209691Z` is live. All 22 sharing journeys
-passed again at the public address, including the weekly, monthly and annual
-PNG exports. All 39 served files match the reviewed package; eight excluded-data
-URLs return 404. The final source, history, nested-download and live-content
-audit has no findings.
-
-Publication: app commit `6e4dc69`, successful [Pages run 41958612637](https://github.com/ib-notes-app/ib-notes/actions/runs/41958612637).
-The exact build and results are recorded in [release-info.json](../release-info.json).
-
-## Still pending
-
-Physical-device installation and keyboard checks at the public address remain
-pending. Firefox and WebKit automation binaries are unavailable. No forecast
-accuracy improvement or general release-readiness claim is made.
+Save current input and export a backup. Open your usual app address online
+and choose **Update safely** when offered. Do not clear browser data to force
+an update. [Update help](TROUBLESHOOTING.md).

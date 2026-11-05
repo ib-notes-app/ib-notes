@@ -24,11 +24,11 @@ export function WorkspaceRangeEditor({phase,high,low,note,openPrice,showCommenta
    const at=Temporal.PlainDateTime.from(time).toZonedDateTime(timeZone,{disambiguation:'reject'}).toInstant().toString();
    setError(await onSave({high:parse(h),low:parse(l),cp:null,note:comment,...(openPrice!==undefined?{rthOpen:parse(open)}:{})},at));
   }catch(e){setError(e instanceof Error?e.message:'Unable to save.');}finally{submitting.current=false;setBusy(false);}}}>
-  <p className="workspace-range-help">{completed?'Completed period range':'Range so far'} · CP stays separate.</p>
   <div className="workspace-range-edges">
   <label data-attention={!h.trim()||!!attention.high}>{phase} high<input aria-label={`${phase} high`} ref={focusField==='high'?focusInput:undefined} type="text" inputMode="decimal" autoFocus={focusField==='high'} autoComplete="off" value={h} disabled={busy} aria-describedby={!h.trim()||attention.high?`${formId}-high-help`:undefined} onChange={e=>setHigh(e.target.value)}/>{(!h.trim()||attention.high)&&<small id={`${formId}-high-help`}>{attention.high??'High not recorded · Enter if known.'}</small>}</label>
   <label data-attention={!l.trim()||!!attention.low}>{phase} low<input aria-label={`${phase} low`} ref={focusField==='low'?focusInput:undefined} type="text" inputMode="decimal" autoFocus={focusField==='low'} autoComplete="off" value={l} disabled={busy} aria-describedby={!l.trim()||attention.low?`${formId}-low-help`:undefined} onChange={e=>setLow(e.target.value)}/>{(!l.trim()||attention.low)&&<small id={`${formId}-low-help`}>{attention.low??'Low not recorded · Enter if known.'}</small>}</label>
   </div>
+  <p className="workspace-range-help">{completed?'Completed period range':'Range so far'} · CP stays separate.</p>
   {openPrice!==undefined&&<label>RTH open (optional)<input ref={focusField==='open'?focusInput:undefined} inputMode="decimal" autoFocus={focusField==='open'} value={open} disabled={busy} onChange={e=>setOpen(e.target.value)}/></label>}
   <details><summary>Range time</summary><label>Range known by<input type="datetime-local" step="1" value={time} disabled={busy} onChange={e=>setTime(e.target.value)}/></label><p>This records when the range was known, not the exact occurrence of either extreme.</p></details>
   {showCommentary&&<details><summary>Commentary</summary><label>Period commentary<textarea value={comment} disabled={busy} onChange={e=>setComment(e.target.value)}/></label></details>}

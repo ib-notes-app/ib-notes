@@ -95,6 +95,12 @@ different from predictions actually saved during a live session.
 indicates that the IB is based on partial recorded prices. Check and correct
 your session measurements rather than guessing the missing value.
 
+**Limited range history** means very few completed learning IBs were this
+wide or narrow. The count describes the available history, not a new probability
+or the number of matches selected by the forecast. Your journal comparisons are
+separate. This message also appears on image cards with Forecast selected. Its
+absence is not a guarantee that an estimate is reliable.
+
 **Unavailable** means the app cannot produce that estimate from its current
 inputs and compatible history. It does not mean a 0% chance. **Updating…**
 means a calculation is in progress, not a probability.

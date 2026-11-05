@@ -186,10 +186,12 @@ main.workspace-preview[data-workspace-home="true"] { display:flex; flex-directio
 .workspace-sheet .a-fifteen-review { display:none; }
 .workspace-sheet .focused-stage-card { padding:0; border:0; background:transparent; }
 .workspace-sheet .stage-content { padding:0; }
-.workspace-period-sheet > header { margin-bottom:6px; }
+.workspace-period-sheet[open] { display:flex; flex-direction:column; height:min(760px,calc(var(--workspace-viewport-height,100dvh) - 24px)); overflow:hidden; }
+.workspace-period-sheet > header { position:relative; top:auto; flex-shrink:0; margin-bottom:6px; }
 .workspace-period-sheet > header h2 { margin-right:auto; }
 .workspace-period-sheet > header .workspace-save { width:auto; min-width:88px; min-height:44px; font-size:.8125rem; }
-.workspace-period-sheet > .workspace-sheet-target { margin-bottom:4px; }
+.workspace-period-sheet > .workspace-sheet-target { flex-shrink:0; margin-bottom:4px; }
+.workspace-period-sheet > .workspace-period-content { flex:1 1 auto; min-height:0; overflow-y:auto; overscroll-behavior:contain; padding:4px; }
 .workspace-period-map { margin:10px 0 12px; min-width:0; }
 .workspace-period-map .map-heading { margin:0 0 6px; }
 .workspace-period-map h3 { margin:0; color:#d5e0ec; font-size:1rem; }

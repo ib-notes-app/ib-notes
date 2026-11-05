@@ -1,50 +1,41 @@
 {
-  "buildId": "public-blank-20261105T024209691Z",
+  "buildId": "public-blank-20261105T170044621Z",
   "distribution": "public-blank",
-  "status": "Early public version; consistent session and aggregate sharing cards. Physical-device checks pending.",
+  "status": "Early public version; limited forecast range history notice and easier period range entry. Physical-device checks pending.",
   "appUrl": "https://ib-notes-app.github.io/ib-notes/",
   "archive": "downloads/IB-Notes-blank-slate.zip",
-  "archiveBytes": 7806411,
-  "archiveSha256": "75d36394e46efd4d2fecc3af56eef6553620c09d06c366c6934a4506f0e936a5",
+  "archiveBytes": 7807743,
+  "archiveSha256": "ac9e0726c5e9b10c1ae7253375fea14cfa492eb1062f9c267a48cd2d891d9db5",
   "bundledMarketHistory": false,
   "bundledJournalRecords": false,
   "bundledExamples": false,
   "automaticNewsLookup": false,
   "historicalForecasts": "Unavailable without suitable user-supplied learning history.",
   "dataStorage": "Local SQLite in the browser; no journal synchronization.",
-  "preparedAt": "2026-11-04",
+  "preparedAt": "2026-11-05",
   "changes": [
-    "Session Image Cards share an outcome-first banner, labeled map midpoints and compact low/high/width tiles.",
-    "Selected sections control content and eligible highlights; observations and estimates retain their own times and counts.",
-    "Recorded ranges and history stay under Recap; Current conditions uses a timestamped range-position ruler.",
-    "Opening bands, IB outlooks and saved forecast-versus-result information use a consistent forecast panel.",
-    "Weekly, monthly and annual cards summarize outcomes, range sizes, recorded returns and closes at their own time scale.",
-    "Review breakdowns compare days, weeks or months and preserve unknown results, explicit note selection and readable overflow checks.",
-    "Period maps remain available after later phases begin, with focused writing pages and editable note times."
+    "Live RTH Forecast and selected Image Cards show when few completed learning IBs reached the current range size.",
+    "Range-history counts remain separate from journal comparisons and model probabilities; the odds calculation is unchanged.",
+    "Period High/Low fields come first, with fixed actions and the retained map below the range controls.",
+    "No historical data, user records, seeded examples or data-bearing screenshots are supplied."
   ],
   "verification": {
     "typecheck": "Passed, including cleaned public source.",
-    "focusedUnitTests": {
-      "passed": 93
-    },
-    "packagedPublicChromiumJourneys": 22,
     "safeUpdateChecks": 2,
-    "sourceAndDownloadsAudit": "Passed: source, website, nested downloads and reachable history contain no restricted data, provider references or private dataset filenames.",
-    "staticLiteralReview": {
-      "filesInspected": 206,
-      "candidates": 52,
-      "newPriceOrHistoryLiterals": 0
-    },
+    "sourceAndDownloadsAudit": "Passed: clean source, website, nested downloads and reachable history; no restricted data, provider references or private dataset filenames.",
     "livePublicOrigin": {
-      "status": "Passed",
-      "checkedAt": "2026-11-05T03:01:40.442258+00:00",
-      "appCommit": "6e4dc6961e864ab48e68397c34de111ccdefc4a3",
-      "pagesRun": "41958612637",
-      "chromiumJourneys": 22,
-      "servedFilesMatched": 39,
-      "excludedDataUrlsReturned404": 8
+      "status": "Pending"
     },
     "physicalPublicOriginInstall": "Pending",
-    "firefoxAndWebkit": "Automation browser binaries unavailable."
+    "firefoxAndWebkit": "Automation browser binaries unavailable.",
+    "focusedUnitTests": {
+      "passed": 30
+    },
+    "packagedPublicChromiumJourneys": 11,
+    "staticLiteralReview": {
+      "filesInspected": 207,
+      "candidates": 52,
+      "newPriceOrHistoryLiterals": 0
+    }
   }
 }
