@@ -6,6 +6,7 @@ import type { AuctionForecastContext } from './auctionForecast';
 import type { RemainingEdgeForecast } from './remainingEdgeForecast';
 import type { FormingWidthForecast } from './formingWidthForecast';
 import type { IbReturnForecast } from './ibReturnForecast';
+import type {PreBreakForecast} from './preBreakForecast';
 import { deriveSessionRecordedIb, type JournalSession } from './index';
 import {eventContextForForecast} from './eventPriceMoves';
 
@@ -23,6 +24,7 @@ export type ForecastUpdate = {
   remainingEdge?: RemainingEdgeForecast;
   formingWidth?: FormingWidthForecast;
   ibReturn?: IbReturnForecast;
+  preBreak?:PreBreakForecast;
   sourceRowIds: string[]; referenceBatchIds: string[];
   contextSources: { levels: string[]; lowBatches: string[]; newsBatches: string[]; priceBatches?: string[] };
 };
@@ -45,10 +47,14 @@ function studyInstant(session: JournalSession, clock: string): number {
   }).toInstant().epochMilliseconds;
 }
 
+/** A live outlook can exist without an original 15R forecast. In that case
+ * its receipt is scoped to this journal incarnation, without inventing one. */
+export const forecastReceiptOrigin=(session:JournalSession)=>session.forecast?.issuedAt??session.createdAt;
+
 export function canRecordForecastUpdate(session: JournalSession, issuedAt: string): boolean {
   const at = Date.parse(issuedAt);
-  if (!session.forecast || session.close.finishedAt || !Number.isFinite(at) ||
-      at < Date.parse(session.forecast.issuedAt)) return false;
+  if (session.close.finishedAt || session.calendarStatus==='CLOSED' || !Number.isFinite(at) ||
+      at < Date.parse(forecastReceiptOrigin(session))) return false;
   return at >= studyInstant(session, session.market.checkpoints.overnightLock) &&
     at < studyInstant(session, session.market.checkpoints.studyClose);
 }
@@ -58,7 +64,7 @@ export function appendForecastUpdate(session: JournalSession, update: ForecastUp
   if (!canRecordForecastUpdate(session, update.issuedAt) ||
       update.version !== 1 || !/^[a-f0-9]{64}$/.test(update.id) ||
       update.sessionId !== session.id || update.journalId !== session.journalId ||
-      update.contract !== session.contract || update.originalIssuedAt !== session.forecast!.issuedAt ||
+      update.contract !== session.contract || update.originalIssuedAt !== forecastReceiptOrigin(session) ||
       update.sessionUpdatedAt !== session.updatedAt || update.asOf !== update.issuedAt ||
       (session.forecastUpdates ?? []).some(row => row.id === update.id)) return session;
   const day = Object.values(update.estimate.dayType), first = Object.values(update.estimate.firstBreak);
@@ -89,6 +95,18 @@ export function appendForecastUpdate(session: JournalSession, update: ForecastUp
     !Number.isFinite(reach.baselineEffectiveDays)||reach.baselineEffectiveDays<0||reach.baselineEffectiveDays>future.eligibleDays+1e-6||
     !Number.isFinite(reach.unconditionedProbability)||reach.unconditionedProbability<0||reach.unconditionedProbability>1))return session;
   if(update.modelVersion==='ib-best-fit-distance-v1'&&!reach)return session;
+  const pre=update.preBreak;
+  if(pre&&(pre.version!=='ib-prebreak-survival-v1'||update.phase!=='LOCKED'||update.recordedEdges!==null||
+    pre.asOf!==update.asOf||Date.parse(pre.until)!==studyInstant(session,session.market.checkpoints.studyClose)||
+    !Number.isFinite(pre.remainingMinutes)||pre.remainingMinutes<=0||
+    Math.abs(pre.remainingMinutes-(Date.parse(pre.until)-Date.parse(pre.asOf))/60000)>1e-6||
+    !Number.isInteger(pre.eligibleDays)||pre.eligibleDays<0||!Number.isInteger(pre.survivingDays)||
+    pre.survivingDays<0||pre.survivingDays>pre.eligibleDays||!Number.isFinite(pre.effectiveDays)||pre.effectiveDays<0||
+    pre.effectiveDays>pre.eligibleDays+1e-6||pre.probabilities!==null&&(pre.probabilities.length!==5||
+      pre.probabilities.some(p=>!Number.isFinite(p)||p<0||p>1)||Math.abs(pre.probabilities.reduce((n,p)=>n+p,0)-1)>1e-6||
+      Math.abs(pre.probabilities[0]-update.estimate.dayType.IBH)>1e-6||Math.abs(pre.probabilities[1]-update.estimate.dayType.IBL)>1e-6||
+      Math.abs(pre.probabilities[2]+pre.probabilities[3]-update.estimate.dayType.IBB)>1e-6||Math.abs(pre.probabilities[4]-update.estimate.dayType.IBN)>1e-6)))return session;
+  if(update.modelVersion==='ib-best-fit-survival-v1'&&!pre?.probabilities)return session;
   const returning=update.ibReturn;
   if(returning){
     const distance=returning.distance,from=update.price!==null&&update.price<update.low?'BELOW':'ABOVE';

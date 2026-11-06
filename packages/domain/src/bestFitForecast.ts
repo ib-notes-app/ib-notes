@@ -11,6 +11,7 @@ import { auctionForecastDistance, auctionReferenceCompatible, validAuctionForeca
 import { deriveRemainingEdgeForecast, recordedPostBreakProgress, type RemainingEdgeForecast, type RemainingEdgeCandidate } from './remainingEdgeForecast';
 import { deriveFormingWidthForecast, type FormingWidthForecast } from './formingWidthForecast';
 import { deriveIbReturnForecast, type IbReturnForecast } from './ibReturnForecast';
+import {derivePreBreakForecast,type PreBreakForecast,type JointIbProbabilities} from './preBreakForecast';
 
 export type BestFitPathDay = {
   date: string; contract: string; low: number; high: number;
@@ -27,7 +28,7 @@ export type BestFitPathLibrary = {
   days: BestFitPathDay[];
 };
 export type BestFitOutlook = {
-  modelVersion: 'ib-best-fit-v1' | 'ib-best-fit-memory-v1' | 'ib-best-fit-auction-v1' | 'ib-best-fit-packs-v1' | 'ib-best-fit-time-v1' | 'ib-best-fit-distance-v1' | 'ib-best-fit-observed-v1'; asOf: string; priceAt: string | null;
+  modelVersion: 'ib-best-fit-v1' | 'ib-best-fit-memory-v1' | 'ib-best-fit-auction-v1' | 'ib-best-fit-packs-v1' | 'ib-best-fit-time-v1' | 'ib-best-fit-distance-v1' | 'ib-best-fit-observed-v1' | 'ib-best-fit-survival-v1'; asOf: string; priceAt: string | null;
   estimate: ForecastEstimate; support: 'limited' | 'moderate'; historicalDays: number;
   matchingDays: number; effectiveDays: number; pathDays: number;
   sourceRowIds: string[]; referenceBatchIds: string[];
@@ -38,6 +39,7 @@ export type BestFitOutlook = {
   remainingEdge?: RemainingEdgeForecast;
   formingWidth?: FormingWidthForecast;
   ibReturn?: IbReturnForecast;
+  preBreak?:PreBreakForecast;
 };
 const timeCache = new Map<string, number>();
 const time = (at: string) => {
@@ -229,6 +231,11 @@ export function deriveBestFitOutlook(args: {
   for(const match of nearest)counts[outcome(match.row)!]+=match.weight;
   if(above){counts[1]=0;counts[4]=0;}if(below){counts[0]=0;counts[4]=0;}
   const sum=counts.reduce((s,n)=>s+n,0), p=counts.map(n=>n/sum);
+  const preBreak=current.phase==='LOCKED'&&!above&&!below?derivePreBreakForecast({asOf:current.asOf,
+    openAt:window.openAt,lockAt:window.ibLockAt,closeAt:window.closeAt,tickSize:session.market.tickSize,
+    width:current.width,prior:p as JointIbProbabilities,candidates:matches.flatMap(m=>m.widthPath?
+      [{id:m.row.id,batchId:m.row.batchId,date:m.row.rthDate,path:m.widthPath,outcome:outcome(m.row)!}]:[])}):undefined;
+  if(preBreak?.probabilities&&cutoff>lock)p.splice(0,p.length,...preBreak.probabilities);
   const remainingEdge=above!==below?deriveRemainingEdgeForecast({recorded:below?'LOW':'HIGH',asOf:current.asOf,
     openAt:window.openAt,lockAt:window.ibLockAt,closeAt:window.closeAt,tickSize:session.market.tickSize,
     candidates:remainingCandidates,progress:recordedPostBreakProgress(current.read.ib,current.read.observations,current.asOf),
@@ -250,18 +257,19 @@ export function deriveBestFitOutlook(args: {
     candidates:remainingCandidates,position:{price:current.read.latest.price,priceAt:current.read.latest.at,
       low:current.low,high:current.high,typicalRthWidth:auctionContext?.typicalRthWidth}}):null;
   const comparableAuctionDays=nearest.filter(r=>r.auction).length;
-  return {modelVersion:!saved?'ib-best-fit-observed-v1':remainingEdge?.distance?'ib-best-fit-distance-v1':remainingEdge?'ib-best-fit-time-v1':args.referencePriceBatchIds?.length?'ib-best-fit-packs-v1':comparableAuctionDays?'ib-best-fit-auction-v1':args.marketMemory?'ib-best-fit-memory-v1':'ib-best-fit-v1',asOf:current.asOf,priceAt:current.read.latest?.at??null,
+  return {modelVersion:preBreak?.probabilities&&cutoff>lock?'ib-best-fit-survival-v1':!saved?'ib-best-fit-observed-v1':remainingEdge?.distance?'ib-best-fit-distance-v1':remainingEdge?'ib-best-fit-time-v1':args.referencePriceBatchIds?.length?'ib-best-fit-packs-v1':comparableAuctionDays?'ib-best-fit-auction-v1':args.marketMemory?'ib-best-fit-memory-v1':'ib-best-fit-v1',asOf:current.asOf,priceAt:current.read.latest?.at??null,
     estimate:{dayType:{IBH:p[0],IBL:p[1],IBB:p[2]+p[3],IBN:p[4]},
       firstBreak:{IBH:p[0]+p[2],IBL:p[1]+p[3],none:p[4]},
       width:current.phase==='LOCKED'?{median:current.width,low:current.width,high:current.width}:
         formingWidth?.estimate??{median:percentile(widths,.5),low:percentile(widths,.1),high:percentile(widths,.9)}},
-    support:effectiveDays>=20&&nearest.filter(r=>r.distance<=2).length>=20?'moderate':'limited',
+    support:(!preBreak||preBreak.support==='moderate')&&effectiveDays>=20&&nearest.filter(r=>r.distance<=2).length>=20?'moderate':'limited',
     historicalDays:matches.length,matchingDays:nearest.length,effectiveDays,pathDays,
     sourceRowIds:nearest.map(r=>r.row.id),referenceBatchIds:[...new Set(nearest.map(r=>r.row.batchId))].sort(),
     ...(args.referencePriceBatchIds?.length?{referencePriceBatchIds:[...args.referencePriceBatchIds]}:{}),
     ...(remainingEdge?{remainingEdge}:{}),
     ...(formingWidth?{formingWidth}:{}),
     ...(ibReturn?{ibReturn}:{}),
+    ...(preBreak?{preBreak}:{}),
     settled:above&&below,recordedEdges:above&&below?'BOTH':above?'HIGH':below?'LOW':null,
     ...(args.marketMemory?{marketMemory:args.marketMemory}:{}),memoryDays:nearest.filter(r=>r.memory).length,
     ...(auctionContext?{auctionContext,auctionDays:comparableAuctionDays}:{})};

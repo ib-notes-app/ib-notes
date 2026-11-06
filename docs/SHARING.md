@@ -75,6 +75,16 @@ timestamp: another price or a later snapshot can legitimately change the estimat
 Before an edge breaks, the four outcomes include Neither. First-break odds stay
 in the optional details so they do not look like a second step in a prediction.
 
+After you review the final daily range, a day with neither edge broken shows
+**IBN** in its heading. You do not need a separate path-complete confirmation.
+Missing final ranges still leave the result unknown.
+
+After close, Forecast can show the latest saved RTH estimate alongside the
+recorded outcome, including IBN. An old estimate keeps its actual percentage;
+the app does not rewrite it to match what later happened. New live estimates
+can be saved even if no original 15R forecast was available. Missing older
+estimates cannot be reconstructed afterward.
+
 **Today in context** describes recorded ON/IB size and location. Historical
 comparisons appear only when suitable records exist, with their source and
 counts. A past frequency and today's weighted model estimate answer different

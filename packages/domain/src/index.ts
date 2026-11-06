@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 
 import type { ForecastSnapshot, ForecastCoverage } from "./forecast";
+import {Temporal} from '@js-temporal/polyfill';
 import {duplicateManualLevelEvent} from './levelRecordedEvents';
 import type { ForecastUpdate } from './forecastUpdates';
 import { holidayDayStart, validateHolidayContext, type HolidayContext } from './holidays';
@@ -33,6 +34,7 @@ export * from './forecastUpdates';
 export * from './overnightForecast';
 export * from './formingWidthForecast';
 export * from './remainingEdgeForecast';
+export * from './preBreakForecast';
 export * from './ibReturnForecast';
 export * from './postIbRecap';
 export * from './auctionForecast';
@@ -1045,6 +1047,23 @@ function formatBreakDistance(distance: number): string {
   return distance.toFixed(2);
 }
 
+/** Explicitly reviewed final daily extrema establish which IB edges broke.
+ * They do not establish first-break times, repeated returns or a complete path. */
+export function deriveReviewedClosingDayType(session:JournalSession,ib:RangeObservation|null,tick=session.market.tickSize):DayType|null {
+  const {rthHigh:high,rthLow:low,price,finishedAt}=session.close;
+  if(!finishedAt||!Number.isFinite(Date.parse(finishedAt))||!ib||ib.high===null||ib.low===null||high===null||low===null||
+    ![high,low,ib.high,ib.low,tick,...(price===null?[]:[price])].every(Number.isFinite)||tick<=0||ib.high<=ib.low||
+    high<ib.high||low>ib.low||price!==null&&(price>high||price<low)||
+    session.rthObservations.some(p=>p.price>high||p.price<low))return null;
+  const cp=session.market.checkpoints,day=Temporal.PlainDate.from(session.rthDate),timeZone=session.market.canonicalTimeZone;
+  const open=day.toZonedDateTime({timeZone,plainTime:cp.overnightLock}).epochMilliseconds;
+  const endDay=Temporal.PlainTime.compare(cp.studyClose,cp.overnightLock)<=0?day.add({days:1}):day;
+  const end=endDay.toZonedDateTime({timeZone,plainTime:cp.studyClose}).epochMilliseconds;
+  if(session.cpObservations.some(p=>Date.parse(p.observedAt)>=open&&Date.parse(p.observedAt)<=end&&(p.price>high||p.price<low)))return null;
+  const above=high>=ib.high+tick-1e-9,below=low<=ib.low-tick+1e-9;
+  return above?(below?'IBB':'IBH'):below?'IBL':'IBN';
+}
+
 export function deriveClosingOutcome(
   session: JournalSession,
   finalIb: RangeObservation | null,
@@ -1065,11 +1084,12 @@ export function deriveClosingOutcome(
   ];
   const ibh = finalIb.high;
   const ibl = finalIb.low;
+  const reviewed=deriveReviewedClosingDayType(session,finalIb,tickSize);
   const epsilon = 1e-9;
-  const highBreakRecorded = allPrices.some(
+  const highBreakRecorded = reviewed==='IBH'||reviewed==='IBB'||allPrices.some(
     (price) => price >= ibh + tickSize - epsilon,
   );
-  const lowBreakRecorded = allPrices.some(
+  const lowBreakRecorded = reviewed==='IBL'||reviewed==='IBB'||allPrices.some(
     (price) => price <= ibl - tickSize + epsilon,
   );
   const dayType: DayType | null =
@@ -1079,7 +1099,7 @@ export function deriveClosingOutcome(
         ? "IBH"
         : lowBreakRecorded
           ? "IBL"
-          : session.close.pathComplete
+          : session.close.pathComplete||reviewed==='IBN'
             ? "IBN"
             : null;
   const closeDisposition: CloseDisposition =
@@ -1116,7 +1136,7 @@ export function deriveClosingOutcome(
                 : "IBB-";
 
   return {
-    status: session.close.pathComplete ? "final" : "provisional",
+    status: session.close.pathComplete||reviewed!==null ? "final" : "provisional",
     highBreakRecorded,
     lowBreakRecorded,
     dayType,

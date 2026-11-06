@@ -26,6 +26,7 @@ export function useForecastUpdateHistory(args: {
   priceBatches?:PriceHistoryBatch[];
 }) {
   const { session, repository, current, outlook } = args;
+  const origin=session.forecast?.issuedAt??session.createdAt;
   const [history, setHistory] = useState({ sessionId: session.id, rows: session.forecastUpdates ?? [] });
   const [error, setError] = useState<string | null>(null);
   const attempted = useRef<string | null>(null);
@@ -58,10 +59,10 @@ export function useForecastUpdateHistory(args: {
 
   useEffect(() => {
     if (!repository || !revision || !args.ready || !outlook || !current || current.phase === 'PENDING' ||
-        current.high === null || current.low === null || !session.forecast ||
+        current.high === null || current.low === null ||
         !canRecordForecastUpdate(session, Temporal.Now.instant().toString())) return;
     const point=ibForecastCheckpoint(session),at=Date.parse(outlook.asOf);
-    const checkpointKey=point?`${session.id}:${session.forecast.issuedAt}:${point.at}`:null;
+    const checkpointKey=point?`${session.id}:${origin}:${point.at}`:null;
     const checkpointDue=!!point&&current.phase==='FORMING'&&at>=point.at&&at<point.until&&
       attemptedCheckpoint.current!==checkpointKey&&!selectIbCheckpointUpdate(session,rows,outlook.asOf)?.atCheckpoint;
     if(attempted.current===revision&&!checkpointDue)return;
@@ -74,7 +75,7 @@ export function useForecastUpdateHistory(args: {
       if (rows.some(row => row.id === id)) return;
       const update: ForecastUpdate = {
         version: 1, id, sessionId: session.id, journalId: session.journalId, contract: session.contract,
-        originalIssuedAt: session.forecast!.issuedAt, sessionUpdatedAt: session.updatedAt,
+        originalIssuedAt: origin, sessionUpdatedAt: session.updatedAt,
         issuedAt: outlook.asOf, asOf: outlook.asOf, modelVersion: outlook.modelVersion,
         estimate: structuredClone(outlook.estimate), phase: current.phase as 'FORMING' | 'LOCKED',
         high: current.high!, low: current.low!, price: current.read.latest?.price ?? null,
@@ -84,6 +85,7 @@ export function useForecastUpdateHistory(args: {
         ...(outlook.remainingEdge?{remainingEdge:structuredClone(outlook.remainingEdge)}:{}),
         ...(outlook.formingWidth?{formingWidth:structuredClone(outlook.formingWidth)}:{}),
         ...(outlook.ibReturn?{ibReturn:structuredClone(outlook.ibReturn)}:{}),
+        ...(outlook.preBreak?{preBreak:structuredClone(outlook.preBreak)}:{}),
         ...(outlook.auctionContext?{auctionContext:structuredClone(outlook.auctionContext),auctionDays:outlook.auctionDays??0}:{}),
         sourceRowIds: [...outlook.sourceRowIds], referenceBatchIds: [...outlook.referenceBatchIds],
         contextSources: { levels: args.levels.map(l => l.id),

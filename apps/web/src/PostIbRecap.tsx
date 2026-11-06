@@ -15,7 +15,7 @@ export function PostIbRecap({session,updates}:{session:JournalSession;updates:Fo
     recap.position==='AT_HIGH'?'At IBH':recap.position==='AT_LOW'?'At IBL':recap.position==='INSIDE'?'Inside IB':recap.close===null?'Closing position unknown':'IB range not confirmed';
   return <section className="post-ib-recap" aria-label="Post-IB recap">
     <div className="post-ib-recap-heading"><h3>Post-IB recap</h3>
-      {recap.code?<span>{!recap.complete&&<small>Provisional</small>}<IbCodeBadge code={recap.code} closed={recap.complete}/></span>:
+      {recap.code?<span>{!recap.classificationFinal&&<small>Provisional</small>}<IbCodeBadge code={recap.code} closed={recap.classificationFinal}/></span>:
         <small>IB code unconfirmed</small>}</div>
     <p className="forecast-caption">Close <strong>{recap.close===null?'Not recorded':formatPriceNumber(recap.close)}</strong> · {position}</p>
     {!!recap.timelines.length&&<DeferredDetails key={`${session.id}:forecasts`} className="post-ib-recap-details" summary="Forecast vs result">

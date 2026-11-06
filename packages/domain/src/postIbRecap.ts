@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 import {Temporal} from '@js-temporal/polyfill';
 import {deriveClosingOutcome,deriveSessionFinalIb,type JournalSession} from './index';
-import {compareForecastUpdates,type ForecastUpdate} from './forecastUpdates';
+import {compareForecastUpdates,forecastReceiptOrigin,type ForecastUpdate} from './forecastUpdates';
 import {forecastActual} from './forecast';
 import {roundManualPriceFields,roundPriceToTick} from './priceTicks';
 
@@ -64,7 +64,7 @@ export function derivePostIbRecap(session:JournalSession,updates=session.forecas
   const scoped=[...new Map(updates.filter(update=>{
     const at=Date.parse(update.issuedAt);
     return update.sessionId===session.id&&update.journalId===session.journalId&&update.contract===session.contract&&
-      !!session.forecast&&update.originalIssuedAt===session.forecast.issuedAt&&at>=Date.parse(session.forecast.issuedAt)&&
+      update.originalIssuedAt===forecastReceiptOrigin(session)&&at>=Date.parse(forecastReceiptOrigin(session))&&
       update.version===1&&update.phase==='LOCKED'&&at>lock&&at<end&&at<=cutoff&&update.asOf===update.issuedAt;
   }).map(update=>[update.id,update])).values()].sort((a,b)=>Date.parse(a.issuedAt)-Date.parse(b.issuedAt)||a.id.localeCompare(b.id));
   const probability=(p:unknown):p is number=>typeof p==='number'&&Number.isFinite(p)&&p>=0&&p<=1;
@@ -110,7 +110,7 @@ export function derivePostIbRecap(session:JournalSession,updates=session.forecas
     timelines.push(timeline(target,rows.map(row=>({update:row.update,probability:row.update.remainingEdge!.probability!})),
       hit?'BREAK_RECORDED':rows.every(row=>row.remainingEdgeOutcome===false)?'NO_BREAK':'UNCONFIRMED'));
   }
-  return {code:outcome?.breakCode??null,complete:forecastActual(bounded).complete,close,position,
+  return {code:outcome?.breakCode??null,classificationFinal:outcome?.status==='final',complete:forecastActual(bounded).complete,close,position,
     outsideDistance:outcome?.outsideCloseDistance??null,estimates,savedCount:eligible.length,timelines,
     excludedCount:allEstimates.length-returns.length};
 }

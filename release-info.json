@@ -1,11 +1,11 @@
 {
-  "buildId": "public-blank-20261106T154233639Z",
+  "buildId": "public-blank-20261106T214008845Z",
   "distribution": "public-blank",
-  "status": "Early public version; clearer overnight and review Image Cards. Physical-device checks pending.",
+  "status": "Early public version; reviewed IBN results and evolving unbroken-session estimates.",
   "appUrl": "https://ib-notes-app.github.io/ib-notes/",
   "archive": "downloads/IB-Notes-blank-slate.zip",
-  "archiveBytes": 7810092,
-  "archiveSha256": "2e00bbaf78f1c596e786342e6da4ff7bb63317514154df5c1327f6e0e4a8698c",
+  "archiveBytes": 7815112,
+  "archiveSha256": "6a919c1598a1d16a986accca007e5ae4d54cd995146ff0f3d0c1dae742b62673",
   "bundledMarketHistory": false,
   "bundledJournalRecords": false,
   "bundledExamples": false,
@@ -14,39 +14,21 @@
   "dataStorage": "Local SQLite in the browser; no journal synchronization.",
   "preparedAt": "2026-11-06",
   "changes": [
-    "Remove the unfinished duplicate overnight width comparison from Image Cards and their image captions.",
-    "Recap can show a recorded overnight move graphic: net points between the first and latest recorded prices, with both prices and times.",
-    "Range comparison bars name earlier ON or IB ranges and measure wrapped text.",
-    "Weekly, monthly and annual footer notes use complete sentences with correct singular/plural wording.",
-    "Existing map paths, historical figures, forecasts and text-share formats are preserved."
+    "Reviewed final daily highs and lows can establish IBN without a separate path-complete checkbox.",
+    "Before an IB edge break, compatible historical timing paths can update the outlook as an unbroken session approaches close.",
+    "Without compatible timing history, the estimate is labeled as a full-session baseline. No historical data is included.",
+    "Live outlooks can be saved without an original 15R forecast, and closing cards retain the latest saved RTH estimate.",
+    "Past forecasts are preserved. The model remains experimental; the full multi-day opening sequence is not modeled."
   ],
   "verification": {
-    "typecheck": "Passed, including cleaned public source.",
-    "focusedUnitTests": {
-      "passed": 52
-    },
-    "packagedPublicChromiumJourneys": 13,
-    "safeUpdateChecks": 2,
-    "sourceAndDownloadsAudit": "Passed: clean source, website, nested downloads and reachable history contain no restricted data, provider references or private dataset filenames.",
-    "livePublicOrigin": {
-      "status": "Passed",
-      "checkedAt": "2026-11-06T15:58:20.375519+00:00",
-      "appCommit": "231d0c8dd294058722eb14b92f1e3470ed890179",
-      "pagesRun": "42246879157",
-      "chromiumJourneys": 13,
-      "periodJourneys": 9,
-      "reviewJourneys": 4,
-      "servedFilesMatched": 39,
-      "excludedDataUrlsReturned404": 8
-    },
-    "physicalPublicOriginInstall": "Pending",
-    "firefoxAndWebkit": "Automation browser binaries unavailable.",
-    "packagedPeriodJourneys": 9,
-    "packagedReviewJourneys": 4,
-    "staticLiteralReview": {
-      "filesInspected": 207,
-      "candidates": 52,
-      "newPriceOrHistoryLiterals": 0
-    }
+    "cleanPublicSourceBuild": "Passed",
+    "approvedPhoneUnitTests": 841,
+    "approvedPhoneFocusedBrowserChecks": 3,
+    "approvedPhoneSafeUpdateChecks": 2,
+    "phoneReview": "Accepted by the owner before public release.",
+    "publicPackageBrowserChecks": 3,
+    "sourceAndDownloadsAudit": "Passed: public source, site and nested downloads contain no restricted data, provider mentions, private filenames or personal identifiers.",
+    "livePublicOrigin": "Verify after Pages deployment; local release record retains the result.",
+    "physicalPublicOriginInstall": "Pending"
   }
 }

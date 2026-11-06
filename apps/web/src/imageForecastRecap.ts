@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
-import {compareForecast,compareForecastUpdates,forecastActual} from '@ib-field-notes/domain';
+import {compareForecast,compareForecastUpdates,forecastActual,deriveReviewedClosingDayType,deriveSessionRecordedIb} from '@ib-field-notes/domain';
 import type {DashboardShareInput,ShareFact,ShareFactSection} from './dashboardShare';
 import {forecastOutcomeNames,forecastPercent,forecastStoryUpdates} from './forecastStory';
 import {formatTickRoundedPrice} from './mapFormatting';
@@ -37,7 +37,7 @@ export function imageForecastRecap(input:DashboardShareInput):{focus?:ShareFact;
  // Prefer the existing 45-minute formation checkpoint; retain an earlier
  // saved fallback at its real time instead of substituting a later forecast.
  const forming=updates.filter(u=>u.phase==='FORMING');
- const source=selectIbCheckpointUpdate(s,forming,input.read.now)?.update??forming.at(-1);
+ const source=post??selectIbCheckpointUpdate(s,forming,input.read.now)?.update??forming.at(-1);
  const original=s.forecast&&Date.parse(s.forecast.issuedAt)<=Date.parse(input.read.now)?s.forecast:null;
  const estimate=source?.estimate??original?.estimate,at=source?.asOf??original?.issuedAt;
  if(!estimate||!at)return {sections:[{title:'Forecast recap',rows:[{label:'Saved forecast',value:'No saved forecast for this period'}]}],unavailable:'No saved forecast for this period.'};
@@ -45,8 +45,9 @@ export function imageForecastRecap(input:DashboardShareInput):{focus?:ShareFact;
  const top=Math.max(...Object.values(estimate.dayType));
  const leading=Object.entries(estimate.dayType).filter(([,p])=>p===top).map(([code])=>forecastOutcomeNames[code as keyof typeof forecastOutcomeNames]).join(' / ');
  const names={IBH:'Only IB high broke',IBL:'Only IB low broke',IBB:'Both IB edges broke',IBN:'Neither IB edge broke'};
- const result=actual.dayType?names[actual.dayType]:'Day result not confirmed';
- if(actual.width!==null)sections.push({title:'IB width · forecast vs recorded',layout:'metrics',rows:[
+ const dayType=actual.dayType??deriveReviewedClosingDayType(s,deriveSessionRecordedIb(s));
+ const result=dayType?names[dayType]:'Day result not confirmed';
+ if(actual.width!==null&&source?.phase!=='LOCKED')sections.push({title:'IB width · forecast vs recorded',layout:'metrics',rows:[
   {label:'Estimated width',value:`${price(estimate.width.median)} pt`,detail:`Band ${price(estimate.width.low)}–${price(estimate.width.high)} pt`},
   {label:'Recorded IB width',value:`${price(actual.width)} pt`} ]});
  return {focus:{label:'IB forecast vs result',value:`${leading} · ${forecastPercent(top)}`,

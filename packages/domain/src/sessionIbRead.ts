@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 import { Temporal } from '@js-temporal/polyfill';
-import { carryRangeEdgesForward, deriveFinalIb, deriveClosingOutcome, deriveRange, type JournalSession, type RangeCheckpoint,
+import { carryRangeEdgesForward, deriveFinalIb, deriveClosingOutcome, deriveReviewedClosingDayType, deriveRange, type JournalSession, type RangeCheckpoint,
   type RangeCheckpointRevision, type HistoricalIbSession, type HistoricalIbImportBatch } from './index';
 import { deriveIbRead } from './ibRead';
 import { studyPackCompatibility } from './studyPack';
@@ -105,7 +105,7 @@ export function deriveCurrentIbCode(session: JournalSession, current: ReturnType
   };
   const outcome=deriveClosingOutcome(projection,{high:current.high,low:current.low,cp:null},session.market.tickSize);
   // During a live session IBN means no break recorded yet, not a completed no-break day.
-  return outcome?.breakCode??(!current.closed?'IBN':null);
+  return outcome?.breakCode??(current.closed?deriveReviewedClosingDayType(session,{high:current.high,low:current.low,cp:null}):'IBN');
 }
 export type LockPositionReference = {
   positionPct: number; quartile: number; matchingDays: number;

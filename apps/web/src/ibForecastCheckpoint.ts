@@ -14,10 +14,11 @@ export function ibForecastCheckpoint(session:JournalSession){
 /** An older fallback keeps its actual saved time; no later estimate fills a gap. */
 export function selectIbCheckpointUpdate(session:JournalSession,updates:ForecastUpdate[],now:string){
   const point=ibForecastCheckpoint(session);if(!point)return null;
+  const origin=session.forecast?.issuedAt??session.createdAt;
   const cutoff=Math.min(Date.parse(now),Date.parse(session.close.observedAt??now));
   const candidates=updates.filter(row=>row.sessionId===session.id&&row.journalId===session.journalId&&row.contract===session.contract&&
-    row.originalIssuedAt===session.forecast?.issuedAt&&row.phase==='FORMING'&&row.asOf===row.issuedAt&&
-    Date.parse(row.issuedAt)>=Math.max(point.open,Date.parse(session.forecast?.issuedAt??''))&&
+    row.originalIssuedAt===origin&&row.phase==='FORMING'&&row.asOf===row.issuedAt&&
+    Date.parse(row.issuedAt)>=Math.max(point.open,Date.parse(origin))&&
     Date.parse(row.issuedAt)<point.until&&Date.parse(row.issuedAt)<=cutoff)
     .sort((a,b)=>Date.parse(a.issuedAt)-Date.parse(b.issuedAt)||a.id.localeCompare(b.id));
   const checkpoint=candidates.find(row=>Date.parse(row.issuedAt)>=point.at);

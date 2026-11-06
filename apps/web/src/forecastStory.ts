@@ -21,8 +21,9 @@ export function recordedOnRange(session:JournalSession,now:string){
 }
 export function forecastStoryUpdates(s:JournalSession,updates:ForecastUpdate[],now:string){
   const until=Math.min(Date.parse(now),Date.parse(s.close.observedAt??s.close.finishedAt??now));
+  const origin=s.forecast?.issuedAt??s.createdAt;
   return updates.filter(u=>u.sessionId===s.id&&u.journalId===s.journalId&&u.contract===s.contract&&
-    u.originalIssuedAt===s.forecast?.issuedAt&&Date.parse(u.issuedAt)>=Date.parse(s.forecast.issuedAt)&&Date.parse(u.issuedAt)<=until&&Date.parse(u.asOf)<=until)
+    u.originalIssuedAt===origin&&Date.parse(u.issuedAt)>=Date.parse(origin)&&Date.parse(u.issuedAt)<=until&&Date.parse(u.asOf)<=until)
     .sort((a,b)=>Date.parse(a.issuedAt)-Date.parse(b.issuedAt)||a.id.localeCompare(b.id));
 }
 
@@ -74,6 +75,12 @@ export function ibForecastStory(args:{session:JournalSession;now:string;current:
     detail:'This includes both-edge days. It is not a sequence following the leading outcome.'});
   if(source)story.details.push({label:'Historical matches',value:`${source.matchingDays} of ${source.historicalDays} earlier sessions`,detail:`${source.effectiveDays.toFixed(1)} equivalent sessions after weighting · ${source.support} support`});
   if(post&&!ended&&estimate&&current?.phase==='LOCKED')story.notice=forecastRangeSupport(current.width,args.comparisons);
+  if(live?.preBreak){
+    const pre=live.preBreak;
+    story.details.push({label:'No-break timing history',value:`${pre.survivingDays} of ${pre.eligibleDays} earlier paths still unbroken at this time`,
+      detail:`${pre.effectiveDays.toFixed(1)} sessions after width weighting · conditioned on no break so far in your record`});
+    if(!pre.probabilities)story.notice=[story.notice,'Full-session baseline only: compatible remaining-time history is unavailable.'].filter(Boolean).join(' ');
+  }
   return story;
 }
 

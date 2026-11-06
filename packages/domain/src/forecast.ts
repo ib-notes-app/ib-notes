@@ -96,8 +96,9 @@ export function forecastActual(session: JournalSession, tickSize = session.forec
   const outcome = deriveClosingOutcome(session, ib, tickSize);
   let complete = closed && session.close.pathComplete && outcome?.status === "final";
   if (ib && outcome && finite(session.close.rthHigh) && finite(session.close.rthLow)) {
-    complete = complete && (session.close.rthHigh >= ib.high! + tickSize - 1e-9) === outcome.highBreakRecorded &&
-      (session.close.rthLow <= ib.low! - tickSize + 1e-9) === outcome.lowBreakRecorded;
+    const recordedPrices=[...session.rthObservations.map(p=>p.price),...(session.close.price===null?[]:[session.close.price])];
+    complete = complete && (session.close.rthHigh >= ib.high! + tickSize - 1e-9) === recordedPrices.some(p=>p>=ib.high!+tickSize-1e-9) &&
+      (session.close.rthLow <= ib.low! - tickSize + 1e-9) === recordedPrices.some(p=>p<=ib.low!-tickSize+1e-9);
   }
   const prices = [...session.rthObservations];
   if (session.close.price !== null && session.close.observedAt) {

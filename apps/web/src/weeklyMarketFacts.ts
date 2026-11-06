@@ -29,7 +29,7 @@ export function weeklyIbLockForecast(session:JournalSession){
   const candidates=session.forecastUpdates.filter(u=>{
     const at=ms(u.issuedAt),probabilities=Object.values(u.estimate.dayType);
     if(!Number.isFinite(at)||u.sessionId!==session.id||u.journalId!==session.journalId||u.contract!==session.contract||
-      !session.forecast||u.originalIssuedAt!==session.forecast.issuedAt||at<ms(session.forecast.issuedAt)||
+      u.originalIssuedAt!==(session.forecast?.issuedAt??session.createdAt)||at<ms(session.forecast?.issuedAt??session.createdAt)||
       u.asOf!==u.issuedAt||at>=lock+60_000||u.recordedEdges||u.settled||
       probabilities.length!==4||probabilities.some(p=>!finite(p)||p<0||p>1)||Math.abs(probabilities.reduce((a,b)=>a+b,0)-1)>1e-6)return false;
     if(at>=lock&&u.phase!=='LOCKED'||at<lock&&u.phase!=='FORMING')return false;

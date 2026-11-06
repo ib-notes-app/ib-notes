@@ -217,6 +217,20 @@ One outcome can lead when the remaining probability is spread across others.
 A low-probability event can still happen. Check the target and timestamp;
 forecast percentages are study estimates, not trade instructions or guarantees.
 
+### Do Neither odds change as an unbroken session approaches close?
+
+With suitable minute-price learning history, yes. The estimate considers
+historical sessions still unbroken at the same elapsed time, with comparable
+IB widths. Without that timing history, it is labeled as a full-session
+baseline. Estimates are experimental; neither outcome nor accuracy is guaranteed.
+
+### Does the model understand the whole story across several days?
+
+Only partly. It uses available ON, prior-session and current-price context,
+but does not explicitly model the full sequence of daily opens or a proven
+volatile-week exhaustion pattern. It should not be treated as a complete model
+of market behavior.
+
 ### Why can a historical frequency differ from today's estimate?
 
 A historical frequency counts past records in the named group. The model
@@ -234,7 +248,9 @@ recorded return counts instead of an “Already inside” placeholder.
 
 On the map, **IBH/IBL** name the IB high/low prices. As outcome categories,
 they mean high-only/low-only breaks; **IBB** means both and **IBN** neither.
-These are post-lock outcomes, and missing observations do not prove neither broke.
+These are post-lock outcomes. Reviewed final daily highs and lows can establish
+IBN; missing observations alone cannot. No separate path-complete checkbox is
+needed for that reviewed range result.
 
 ## Levels
 

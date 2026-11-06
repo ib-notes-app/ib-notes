@@ -1,5 +1,22 @@
 # What's new
 
+## IBN results and an evolving no-break outlook
+
+A reviewed day that stayed inside the IB now shows **IBN** on its closing card.
+The final daily high and low establish that result; there is no extra
+path-complete checkbox to find.
+
+Before either edge breaks, suitable learning history can now account for how
+late the session has remained unbroken, with comparable IB widths. Without
+compatible minute-price history, the app labels the full-session baseline.
+No market history is bundled, and these estimates remain experimental.
+
+Live estimates can be saved even when an original 15R forecast was unavailable.
+The closing card uses the latest saved RTH estimate beside the recorded result.
+Past forecasts keep their original values and times. A locked IB width is a
+recorded fact, rather than a new width estimate.
+
+
 ## Clearer sharing cards
 
 The overnight image no longer repeats its width statistic in an unfinished
