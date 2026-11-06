@@ -6,7 +6,7 @@ import {buildImageCaption} from './imageCaption';
 import {renderModularImageCard,type ImageModule} from './modularImageCard';
 import {featureLayout} from './imageCardDrawing';
 import {formatTickRoundedPrice} from './mapFormatting';
-import {imagePositionLayout} from './imageCardGraphics';
+import {imagePositionLayout,imageRecordedMoveLayout} from './imageCardGraphics';
 
 /** Same measurement as the writing module; typing never rebuilds the map. */
 export function shareCommentaryHeight(text:string){
@@ -26,8 +26,11 @@ export function buildDashboardImageCard(session:JournalSession,card:DashboardSha
   // Empty boilerplate never gets a tile of its own.
   (!facts||!['Not recorded','Not confirmed','Day still open','Across bands / not enough entries'].includes(row.value)))}));
  const visibleSections=sections.map(section=>{
+  // Width already has its selected Recap tile/comparison. Never leak the old
+  // unfinished duplicate into Image Cards when the forecast is unavailable.
+  if(section.title==='ON at this point')return {...section,rows:[]};
   if(!facts)return section;
-  if(['ON at this point','Fixed forecast reference'].includes(section.title)&&facts.forecastGraphic)return {...section,rows:[]};
+  if(section.title==='Fixed forecast reference'&&facts.forecastGraphic)return {...section,rows:[]};
   if(section.title==='Session ranges')return {...section,layout:'metrics' as const};
   if(section.title==='Initial Balance summary'||section.title==='Overnight record'||section.title.endsWith('recorded range'))
    return {...section,title:'Recorded observations',layout:undefined,rows:section.rows.filter(row=>!['IB low / high','ON low / high','IB width','Recorded range width','Low / high','Width',...(facts.hero&&session.close.price!==null?['Close']:[])].includes(row.label)).map(row=>row.label==='Observed mostly'?{...row,label:'Most recorded quotes',detail:'Distribution of entries; not time spent in the range'}:row)};
@@ -59,6 +62,7 @@ export function buildDashboardImageCard(session:JournalSession,card:DashboardSha
   for(const h of facts.highlights.filter(h=>h.treatment==='secondary'))modules.push({kind:'comparison',id:`${h.comparison.metric}-comparison`,highlight:h});
  }
  if(facts?.empty)modules.push({kind:'empty',id:'empty',title:facts.emptyTitle,message:'Add a recorded range or price to reveal the session structure.'});
+ if(facts?.recordedMove){const drawing=imageRecordedMoveLayout(facts.recordedMove);modules.push({kind:'drawing',id:'recorded-on-move',title:'',height:drawing.height,svg:drawing.svg(0)});}
  if(card.focus){
   const noTarget=card.focus.label==='Returns inside IB';
   modules.push({kind:'forecast',id:'forecast',focus:noTarget?{label:'RTH forecast',value:'No active target',detail:'Both edges already recorded. Return counts are in Recap.'}:{...card.focus,detail:facts?.forecastTiming??card.focus.detail},snapshot:noTarget?undefined:facts?.snapshot,result:facts?.forecastResult,graphic:noTarget?undefined:facts?.forecastGraphic});
@@ -102,7 +106,7 @@ export function buildDashboardImageCard(session:JournalSession,card:DashboardSha
       ?'Experimental return estimate.':undefined;
   // Keep the default Post-IB caption useful as one regular X post. The image
   // retains every fact; its caption need not repeat every section label.
-  const captionSections=card.sections.map(imageSection);
+ const captionSections=card.sections.filter(section=>section.title!=='ON at this point').map(imageSection);
   const captionDetails=card.title==='Post-IB'?captionSections.flatMap(section=>{
     if(section.title==='Recorded position')return section.rows.flatMap(row=>row.label==='Location'?[]:
       [`${row.label==='Locked IB range'?'IB':row.label}: ${row.value}`]);
@@ -113,7 +117,7 @@ export function buildDashboardImageCard(session:JournalSession,card:DashboardSha
     return section.rows.map(row=>`${section.title} · ${row.label}: ${row.value}${row.detail?` · ${row.detail}`:''}`);
   }):captionSections.flatMap(section=>section.rows.map(row=>`${row.label}: ${row.value}${row.detail?` · ${row.detail}`:''}`));
   return {...result,
-    altText:`${session.instrument} ${session.rthDate}, ${card.title}: ${card.headline}. ${card.caption}`,
+    altText:`${session.instrument} ${session.rthDate}, ${card.title}: ${card.headline}. ${card.caption}${facts?.recordedMove?` Recorded ON move ${facts.recordedMove.change}, from ${facts.recordedMove.first} to ${facts.recordedMove.last}.`:''}`,
     caption:buildImageCaption(session,{title:card.title,headline:card.headline,
       context:card.title==='Post-IB'&&!/closed/.test(card.caption)?'':card.caption,showTimes:card.showTimes,
       details:[...captionDetails,...extras.flatMap(section=>section.rows.map(row=>`${section.title} · ${row.label}: ${row.value}${row.detail?` · ${row.detail}`:''}`))],

@@ -67,8 +67,9 @@ export function buildPeriodImageCard(original:PeriodSummary,instrument:string,co
   }
  }else modules.push({kind:'empty',id:'empty',title:'No recorded sessions yet',message:'This review will summarize your recorded IB ranges and outcomes.'});
  if(commentary.length)modules.push({kind:'facts',id:'commentary',section:{title:'Selected commentary',layout:'commentary',rows:commentary.map(value=>({label:'',value}))}});
- const notices=['Recorded observations may miss movement between entries.',`${count} outcome${count===1?'':'s'} recorded${view.upcomingDays.length?` · ${view.upcomingDays.length} upcoming days excluded`:''}`,
-  ...(view.incompleteDays?[`${view.incompleteDays} open or incomplete ${view.incompleteDays===1?'session':'sessions'}; recorded results can change.`]:[]),
+ const notices=['Recorded observations may miss movement between entries.',`${count} ${count===1?'outcome was':'outcomes were'} recorded.`,
+  ...(view.upcomingDays.length?[`${view.upcomingDays.length} upcoming ${view.upcomingDays.length===1?'day was':'days were'} excluded.`]:[]),
+  ...(view.incompleteDays?[`${view.incompleteDays} ${view.incompleteDays===1?'session remains':'sessions remain'} open or incomplete; recorded results can change.`]:[]),
   ...(weekly&&facts.weekRange!==null?['Week span uses recorded RTH extremes from the same contract.']:[])];
  return renderModularImageCard({title:`${period} review`,instrument,subtitle:title,compactHeader:true,
   hero:view.journaledDays?top?{value:lead.join('/'),code:lead.join('/'),label:`${lead.length>1?'Joint most common':'Most common'} · ${top} of ${count} classified sessions${lead.length>1?' each':''} · ${Math.round(top/count*100)}%`}:

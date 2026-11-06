@@ -57,6 +57,17 @@ earlier records from the named source. Your journal and learning history stay
 separate; the card prefers your journal when available. A range-comparison count
 is different from the similar cases used in a forecast.
 
+## Read the overnight move
+
+With **Recap** selected, **Recorded ON move** shows the change between your
+first and latest recorded overnight CP. The graphic includes both prices and
+their times. It needs two clear observations; a single quote cannot establish
+a change. Equal first/latest prices correctly show zero change.
+
+This is the move between your entries, not a return from the market open or
+proof of what happened between them. Your actual recorded price path remains
+on the Structure map. Turning Recap off removes this graphic.
+
 ## Read the forecast on the card
 
 The card uses the same stage summary and estimate wording as Forecast. Check its

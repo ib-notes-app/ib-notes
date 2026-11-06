@@ -1,43 +1,40 @@
 {
-  "buildId": "public-blank-20261105T233231314Z",
+  "buildId": "public-blank-20261106T154233639Z",
   "distribution": "public-blank",
-  "status": "Early public version; persistent last-saved-price receipt. Physical-device checks pending.",
+  "status": "Early public version; clearer overnight and review Image Cards. Physical-device checks pending.",
   "appUrl": "https://ib-notes-app.github.io/ib-notes/",
   "archive": "downloads/IB-Notes-blank-slate.zip",
-  "archiveBytes": 7808119,
-  "archiveSha256": "564f3580df18e4d648a0e1d7cbdce00705155b5a752774f349f2591bd947275e",
+  "archiveBytes": 7810092,
+  "archiveSha256": "2e00bbaf78f1c596e786342e6da4ff7bb63317514154df5c1327f6e0e4a8698c",
   "bundledMarketHistory": false,
   "bundledJournalRecords": false,
   "bundledExamples": false,
   "automaticNewsLookup": false,
   "historicalForecasts": "Unavailable without suitable user-supplied learning history.",
   "dataStorage": "Local SQLite in the browser; no journal synchronization.",
-  "preparedAt": "2026-11-05",
+  "preparedAt": "2026-11-06",
   "changes": [
-    "Record price keeps Last price entered and saved with the last successfully saved CP.",
-    "The receipt remains after closing, reopening or reloading; drafts, canceled entries and note-only saves do not replace it.",
-    "A backdated CP can be the last saved entry while the dashboard still shows the latest price by observation time.",
-    "Each selected day retains its own saved-price receipt. No schema or forecast calculation changes."
+    "Remove the unfinished duplicate overnight width comparison from Image Cards and their image captions.",
+    "Recap can show a recorded overnight move graphic: net points between the first and latest recorded prices, with both prices and times.",
+    "Range comparison bars name earlier ON or IB ranges and measure wrapped text.",
+    "Weekly, monthly and annual footer notes use complete sentences with correct singular/plural wording.",
+    "Existing map paths, historical figures, forecasts and text-share formats are preserved."
   ],
   "verification": {
     "typecheck": "Passed, including cleaned public source.",
     "focusedUnitTests": {
-      "passed": 29
+      "passed": 52
     },
-    "packagedPublicChromiumJourneys": 17,
+    "packagedPublicChromiumJourneys": 13,
     "safeUpdateChecks": 2,
-    "sourceAndDownloadsAudit": "Passed: source, website, nested downloads and reachable history contain no restricted data, provider references or private dataset filenames.",
+    "sourceAndDownloadsAudit": "Passed: clean source, website, nested downloads and reachable history contain no restricted data, provider references or private dataset filenames.",
     "livePublicOrigin": {
-      "status": "Passed",
-      "checkedAt": "2026-11-05T23:39:02.312664+00:00",
-      "appCommit": "d77facddbd707f78560c9e6866eb76fdf12b2ab0",
-      "pagesRun": "42130723188",
-      "chromiumJourneys": 17,
-      "servedFilesMatched": 39,
-      "excludedDataUrlsReturned404": 8
+      "status": "Pending"
     },
     "physicalPublicOriginInstall": "Pending",
     "firefoxAndWebkit": "Automation browser binaries unavailable.",
+    "packagedPeriodJourneys": 9,
+    "packagedReviewJourneys": 4,
     "staticLiteralReview": {
       "filesInspected": 207,
       "candidates": 52,

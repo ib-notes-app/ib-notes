@@ -4,35 +4,30 @@
 
 ## This update
 
-Record price keeps **Last price entered and saved** with the saved CP beneath
-the four smaller buttons. Closing/reopening or reloading retains it. Drafts,
-canceled or invalid entries, and note-only saves do not replace it. Backdated
-entries use save order for this receipt; the dashboard's latest position still
-uses observation time. Different days keep their own saved values.
+The ON image drops its unfinished duplicate width line and can show a compact
+first-to-latest recorded-price graphic under Recap. Comparison bars name the
+earlier ON/IB ranges they count. Review footer notes use complete sentences.
 
-The existing journal records supply this line. No schema or forecast calculation
-changed. This repository includes no market history, CSVs, packs, journals,
-backups, seeded examples, test records or price-filled screenshots.
+Recorded paths, historical figures, forecast odds, journal formats and text
+shares are preserved. This repository contains no market history, CSVs, packs,
+journals, backups, seeded examples, test records or price-filled screenshots.
 
 ## Checks
 
 - The cleaned-source TypeScript and public production build passed.
-- Twenty-nine focused unit tests passed for journal entry and saved-price behavior.
-- Seventeen Chromium journeys passed on the packaged public app, covering
-  reopen/reload persistence, drafts, invalid saves, notes, backdated entries,
-  day changes, clocks, period targets, empty startup and manual recording.
-- Two exact-public-build safe-update/offline checks passed with disposable records.
-- Source, website, nested downloads and reachable history passed the content audit.
-  No restricted data, provider references or private dataset names were found.
+- Fifty-two focused sharing, comparison and reviewed-statistics unit tests passed.
+- Thirteen packaged-public Chromium journeys passed: nine session/empty-startup
+  checks and four weekly/monthly/annual checks. They cover exports, section
+  choices, estimate labels, earlier-period boundaries, draft retention,
+  selected notes, text formats, overflow and unknown outcomes.
+- Two exact-public-build safe-update/offline checks passed with disposable data.
+- Source, website, nested downloads and reachable history passed the content
+  audit with no restricted data, provider references or private dataset names.
 - The numeric scan introduced no new price/history literals.
 
-Browser observations are isolated test records, excluded from public files.
-Build `public-blank-20261105T233231314Z` is live. All seventeen journeys also passed at the public
-address. All 39 served files match the reviewed package; eight excluded-data
-URLs return 404. Publication: app commit `d77facd`, successful
-[Pages run 42130723188](https://github.com/ib-notes-app/ib-notes/actions/runs/42130723188).
-The live content audit has no findings. Details are in
-[release-info.json](../release-info.json).
+Test observations and exports stay in isolated browser/artifact storage and
+are excluded from public files. Live publication verification is pending.
+Final results are recorded in [release-info.json](../release-info.json).
 Physical public-phone installation and keyboard acceptance remain pending.
 Browser viewport checks do not establish a physical Safari pass. Firefox and
 WebKit automation binaries are unavailable in this environment.

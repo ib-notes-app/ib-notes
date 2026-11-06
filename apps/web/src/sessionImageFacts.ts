@@ -9,10 +9,10 @@ import type {ImageShareSections} from './imageShareContent';
 import type {SessionShareScope} from './sessionShare';
 import type {ImageTile,ModularImageInput} from './modularImageCard';
 import {rankImageHighlights,type ImageWidthComparison,type ImageHighlight} from './imageCardPolicy';
-import type {ImagePosition,ImageForecastGraphic} from './imageCardGraphics';
+import type {ImagePosition,ImageForecastGraphic,ImageRecordedMove} from './imageCardGraphics';
 
 export type SessionImageFacts={tiles:ImageTile[];highlights:ImageHighlight[];hero:ModularImageInput['hero'];
- empty:boolean;emptyTitle:string;hasMap:boolean;rangeTitle?:string;forecastTiming?:string;forecastResult?:string;position?:ImagePosition;forecastGraphic?:ImageForecastGraphic;snapshot?:{title:string;rows:{label:string;value:string}[]}};
+ empty:boolean;emptyTitle:string;hasMap:boolean;rangeTitle?:string;forecastTiming?:string;forecastResult?:string;position?:ImagePosition;recordedMove?:ImageRecordedMove;forecastGraphic?:ImageForecastGraphic;snapshot?:{title:string;rows:{label:string;value:string}[]}};
 const finite=(n:unknown):n is number=>typeof n==='number'&&Number.isFinite(n);
 
 /** Facts remain in the existing selected sections; no estimates are ranked as rarity. */
@@ -22,6 +22,23 @@ export function sessionImageFacts(scope:SessionShareScope,input:DashboardShareIn
  const r=phase==='ON'?on:phase==='RTH'?{high:current?.high??null,low:current?.low??null}:workspaceRecordedRange(s,phase);
  const name=phase==='RTH'?'IB':phase,fmt=(n:number)=>formatTickRoundedPrice(n,s.market.tickSize);
  const stamp=(at:string)=>input.showTimes===false?'':new Intl.DateTimeFormat('en-US',{timeZone:s.displayTimeZone,hour:'numeric',minute:'2-digit'}).format(new Date(at));
+ let recordedMove:ImageRecordedMove|undefined;
+ if(phase==='ON'&&selected.recap){
+  const start=Date.parse(windows.ON.start),end=Date.parse(windows.ON.end),cutoff=Math.min(Date.parse(now),end);
+  const points=new Map<number,{price:number;at:string}|null>();
+  for(const cp of s.cpObservations){
+   const at=Date.parse(cp.observedAt);
+   if(!finite(cp.price)||!Number.isFinite(at)||at<start||at>=end||at>cutoff||cutoff<end&&cp.recordedAt&&Date.parse(cp.recordedAt)>cutoff)continue;
+   if(points.has(at)){if(points.get(at)?.price!==cp.price)points.set(at,null);}
+   else points.set(at,{price:cp.price,at:cp.observedAt});
+  }
+  const known=[...points.entries()].filter((p):p is [number,{price:number;at:string}]=>p[1]!==null).sort(([a],[b])=>a-b);
+  if(known.length>=2){
+   const first=known[0]![1],last=known.at(-1)![1],change=last.price-first.price;
+   recordedMove={change:`${change>0?'+':change<0?'−':''}${fmt(Math.abs(change))} pt`,first:fmt(first.price),last:fmt(last.price),
+    firstAt:stamp(first.at),lastAt:stamp(last.at),direction:change>0?'up':change<0?'down':'flat'};
+  }
+ }
  const tiles:ImageTile[]=[],showRanges=selected.recap;
  const rth=deriveRecordedRthRange(s),iw=finite(r.high)&&finite(r.low)&&r.high>=r.low?r.high-r.low:null;
  const ow=finite(on.high)&&finite(on.low)&&on.high>=on.low?on.high-on.low:null;
@@ -126,5 +143,5 @@ export function sessionImageFacts(scope:SessionShareScope,input:DashboardShareIn
   rangeDetail:phase==='RTH'&&current?.low!=null&&current.high!=null?`IB ${fmt(current.low)}–${fmt(current.high)}${latest?latest.price<current.low?' · Below IB':latest.price>current.high?' · Above IB':' · Inside IB':''}`:undefined}:undefined;
  const forecastTiming=estimateAt?`${Date.parse(estimateAt)<Date.parse(now)?'Saved model estimate':'Model estimate'}${input.showTimes===false?'':` · ${stamp(estimateAt)}`} · Target: ${phase==='ON'?'RTH open':'RTH close'}${input.showTimes===false?'':` ${stamp(phase==='ON'?windows.ON.end:windows.RTH.end)}`}`:undefined;
  return {tiles,highlights,hero,empty,emptyTitle:Date.parse(now)>=Date.parse(windows[phase].end)?`No ${phase==='ON'?'overnight':phase} range recorded`:phase==='ON'?'Overnight still forming':`${phase} still developing`,forecastTiming,
-  hasMap:!empty&&(!!latest||finite(r.high)&&finite(r.low)),rangeTitle:phase==='ON'?'Overnight':phase==='RTH'?'Initial Balance & Overnight':`${phase} & Overnight`,snapshot,position,forecastGraphic};
+  hasMap:!empty&&(!!latest||finite(r.high)&&finite(r.low)),rangeTitle:phase==='ON'?'Overnight':phase==='RTH'?'Initial Balance & Overnight':`${phase} & Overnight`,snapshot,position,recordedMove,forecastGraphic};
 }

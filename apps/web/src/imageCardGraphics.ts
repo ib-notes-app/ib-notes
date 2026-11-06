@@ -8,6 +8,24 @@ export type ImagePosition={title:string;at:string;price:string|null;low:number|n
  lowLabel:string;highLabel:string;lowValue:string;highValue:string;relationship:string;midpoint:string|null;rangeDetail?:string};
 export type ImageForecastGraphic={question?:string;bands?:{label:string;probability:number;selected:boolean}[];
  outcomes?:{label:string;value:string;probability:number}[];reference?:string;support?:{label:string;value:string;detail?:string}[]};
+export type ImageRecordedMove={change:string;first:string;last:string;firstAt:string;lastAt:string;direction:'up'|'down'|'flat'};
+
+/** Two recorded endpoints, not an interpolated path or a market-open return. */
+export function imageRecordedMoveLayout(move:ImageRecordedMove){
+ const change=wrapShareText(move.change,416,50,true),height=174+Math.max(0,change.length-1)*56;
+ return {height,svg:(y:number)=>`<g data-recorded-net-move="true" data-direction="${move.direction}">
+  <rect x="48" y="${y}" width="984" height="${height}" rx="3" fill="${c.surface}"/>
+  ${text('RECORDED ON MOVE',72,y+30,'section')}
+  ${change.map((line,i)=>`<text x="72" y="${y+94+i*56}" class="metric-value" style="font-size:50px;fill:${c.violet}">${xml(line)}</text>`).join('')}
+  ${text('First → latest recorded price',72,y+height-24,'metric-label')}
+  ${text('First entry',560,y+59,'metric-label')}<text x="1008" y="${y+59}" text-anchor="end" class="metric-label">Latest entry</text>
+  <text x="560" y="${y+99}" class="metric-value" style="font-size:33px">${xml(move.first)}</text>
+  <text x="1008" y="${y+99}" text-anchor="end" class="metric-value" style="font-size:33px">${xml(move.last)}</text>
+  <path d="M568 ${y+118}H998" stroke="${c.line}" stroke-width="3" stroke-dasharray="7 7"/>
+  <circle cx="560" cy="${y+118}" r="5" fill="${c.muted}"/><circle cx="1008" cy="${y+118}" r="6" fill="${c.gold}"/>
+  ${text(move.firstAt,560,y+150,'metric-label')}<text x="1008" y="${y+150}" text-anchor="end" class="metric-label">${xml(move.lastAt)}</text>
+ </g>`};
+}
 
 /** Timestamped quote position, distinct from Recap's range/width statistics. */
 export function imagePositionLayout(p:ImagePosition){

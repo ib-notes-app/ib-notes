@@ -1,5 +1,18 @@
 # What's new
 
+## Clearer sharing cards
+
+The overnight image no longer repeats its width statistic in an unfinished
+sentence. With **Recap** selected, it can instead show a **Recorded ON move**
+graphic: the point change from your first recorded overnight price to your
+latest, with both prices and times. It waits for two clear observations and
+does not claim to measure the move from the market open.
+
+Comparison bars now name the earlier ON or IB ranges they count. Their text
+wraps cleanly above the bars. Weekly, monthly and annual footer notes use
+complete sentences. The recorded path, forecasts and text formats are unchanged.
+
+
 ## Your last saved price stays visible
 
 Record price now shows **Last price entered and saved** with the saved CP

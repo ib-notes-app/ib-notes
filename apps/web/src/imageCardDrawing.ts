@@ -65,19 +65,20 @@ export function featureLayout(section:ShareFactSection){
   }
   if(section.layout==='context'){
     const facts=section.rows.filter(row=>!row.comparison).map(row=>({row,values:wrapShareText(row.value,856,30,true)}));
-    const comparisons=section.rows.filter(row=>row.comparison);
+    const comparisons=section.rows.filter(row=>row.comparison).map(row=>{const c=row.comparison!;return {row,lines:wrapShareText(`${c.percent}% of ${c.days} earlier ${c.range} ${c.days===1?'range was':'ranges were'} narrower`,400,27,true)};});
+    const comparisonHeights=Array.from({length:Math.ceil(comparisons.length/2)},(_,i)=>Math.max(...comparisons.slice(i*2,i*2+2).map(c=>80+c.lines.length*32)));
     const factHeight=facts.reduce((height,fact)=>height+fact.values.length*36+46,0);
-    const height=top+factHeight+Math.ceil(comparisons.length/2)*112+12;
+    const height=top+factHeight+comparisonHeights.reduce((sum,h)=>sum+h,0)+12;
     return {height,svg:(y:number)=>{
       let cy=y+top;
       const factsSvg=facts.map(({row,values})=>{const result=imageText(row.label,104,cy+22,'metric-label')+values.map((line,i)=>imageText(line,104,cy+57+i*36,'context-value')).join('');cy+=values.length*36+46;return result;}).join('');
-      const bars=comparisons.map((row,i)=>{
-        const c=row.comparison!,x=104+(i%2)*456,by=cy+Math.floor(i/2)*112;
+      const bars=comparisons.map(({row,lines},i)=>{
+        const rowIndex=Math.floor(i/2),c=row.comparison!,x=104+(i%2)*456,by=cy+comparisonHeights.slice(0,rowIndex).reduce((sum,h)=>sum+h,0),barY=by+comparisonHeights[rowIndex]-28;
         return `<g data-range-comparison="true" aria-label="${imageXml(`${row.label}: ${row.value}`)}">
           ${imageText(row.label,x,by+24,'metric-label')}
-          <text x="${x}" y="${by+61}" class="metric-value" style="font-size:27px;fill:${colors.violet}">${c.percent}% of ${c.days} were narrower</text>
-          <rect x="${x}" y="${by+84}" width="400" height="8" rx="4" fill="${colors.inset}"/>
-          <rect x="${x}" y="${by+84}" width="${4*Math.min(100,Math.max(0,c.percent))}" height="8" rx="4" fill="${colors.violet}"/></g>`;
+          ${lines.map((line,j)=>`<text x="${x}" y="${by+61+j*32}" class="metric-value" style="font-size:27px;fill:${colors.violet}">${imageXml(line)}</text>`).join('')}
+          <rect x="${x}" y="${barY}" width="400" height="8" rx="4" fill="${colors.inset}"/>
+          <rect x="${x}" y="${barY}" width="${4*Math.min(100,Math.max(0,c.percent))}" height="8" rx="4" fill="${colors.violet}"/></g>`;
       }).join('');
       return `<g data-card-context="true"><rect x="72" y="${y}" width="936" height="${height}" rx="3" fill="${colors.surface}"/>${title.map((line,i)=>imageText(line,96,y+32+i*28,'section')).join('')}${factsSvg}${bars}</g>`;
     }};
