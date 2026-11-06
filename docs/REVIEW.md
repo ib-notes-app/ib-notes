@@ -26,8 +26,12 @@ journals, backups, seeded examples, test records or price-filled screenshots.
 - The numeric scan introduced no new price/history literals.
 
 Test observations and exports stay in isolated browser/artifact storage and
-are excluded from public files. Live publication verification is pending.
-Final results are recorded in [release-info.json](../release-info.json).
+are excluded from public files. Build `public-blank-20261106T154233639Z` is live.
+All thirteen sharing journeys also passed at the public address. All 39 served
+files match the reviewed package; eight excluded-data URLs return 404. The
+live content audit has no findings. Publication: app commit `231d0c8`,
+successful [Pages run 42246879157](https://github.com/ib-notes-app/ib-notes/actions/runs/42246879157).
+Details are in [release-info.json](../release-info.json).
 Physical public-phone installation and keyboard acceptance remain pending.
 Browser viewport checks do not establish a physical Safari pass. Firefox and
 WebKit automation binaries are unavailable in this environment.

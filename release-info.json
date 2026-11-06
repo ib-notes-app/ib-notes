@@ -29,7 +29,15 @@
     "safeUpdateChecks": 2,
     "sourceAndDownloadsAudit": "Passed: clean source, website, nested downloads and reachable history contain no restricted data, provider references or private dataset filenames.",
     "livePublicOrigin": {
-      "status": "Pending"
+      "status": "Passed",
+      "checkedAt": "2026-11-06T15:58:20.375519+00:00",
+      "appCommit": "231d0c8dd294058722eb14b92f1e3470ed890179",
+      "pagesRun": "42246879157",
+      "chromiumJourneys": 13,
+      "periodJourneys": 9,
+      "reviewJourneys": 4,
+      "servedFilesMatched": 39,
+      "excludedDataUrlsReturned404": 8
     },
     "physicalPublicOriginInstall": "Pending",
     "firefoxAndWebkit": "Automation browser binaries unavailable.",
