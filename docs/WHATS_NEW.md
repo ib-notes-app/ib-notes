@@ -1,5 +1,12 @@
 # What's new
 
+## Shared break counts follow your current entries
+
+RTH and Full session image cards now count High and Low breaks from the same
+recorded prices as returns inside. CP entries and completed IB ranges awaiting
+confirmation no longer leave the header showing zero while the map shows a break.
+
+
 ## Finished periods put the results first
 
 Open ON, 15R, A, B or RTH after it ends to see its high, low, range distance,

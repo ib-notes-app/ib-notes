@@ -1,11 +1,11 @@
 {
-  "buildId": "public-blank-20261109T150223169Z",
+  "buildId": "public-blank-20261109T180901112Z",
   "distribution": "public-blank",
-  "status": "Early public version; finished periods put results first.",
+  "status": "Early public version; shared break counts follow current recorded prices.",
   "appUrl": "https://ib-notes-app.github.io/ib-notes/",
   "archive": "downloads/IB-Notes-blank-slate.zip",
-  "archiveBytes": 7825634,
-  "archiveSha256": "f1b4f5a6f741cc4ed898f18c45657b1a9a749847d2478f438c6c0ab25647c7b3",
+  "archiveBytes": 7825636,
+  "archiveSha256": "333875922459a164f84c3bcf2fde130032a226ba24076331151dfbfae4bf85e3",
   "bundledMarketHistory": false,
   "bundledJournalRecords": false,
   "bundledExamples": false,
@@ -14,17 +14,16 @@
   "dataStorage": "Local SQLite in the browser; no journal synchronization.",
   "preparedAt": "2026-11-09",
   "changes": [
-    "Finished periods show range statistics, journal comparisons, saved level matches and the retained map first.",
-    "Range and note editing and individual entries are grouped below the results; active periods keep entry first.",
-    "Reading a finished period preserves its saved data. No market data is included."
+    "RTH and Full session images count High and Low breaks from the same current recorded path as returns inside.",
+    "CP-only observations and clock-locked recorded ranges no longer leave the header totals at zero.",
+    "Preview and PNG share the same totals. No market data is included."
   ],
   "verification": {
     "cleanPublicSourceBuild": "Passed",
-    "approvedPhoneFocusedTests": 16,
-    "approvedPhonePeriodBrowserChecks": 8,
-    "approvedPhoneFinalBrowserChecks": 2,
+    "approvedPhoneFocusedTests": 51,
+    "approvedPhoneShareBrowserChecks": 1,
     "approvedPhoneSafeUpdateChecks": 2,
-    "publicPackageBrowserChecks": 2,
+    "publicPackageBrowserChecks": 1,
     "sourceAndDownloadsAudit": "Passed",
     "livePublicOrigin": "Verification retained in local release record after deployment.",
     "physicalPublicOriginInstall": "Pending"

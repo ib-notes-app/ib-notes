@@ -140,16 +140,18 @@ export function buildDashboardShareCard(container:ShareContainer,input:Dashboard
     const finalWidth=(ib?.phase==='LOCKED'?ib.width:null)??
       (facts.finalIb?.high!=null&&facts.finalIb.low!=null?facts.finalIb.high-facts.finalIb.low:null);
     card.headline=facts.classification;card.caption=`${status} · ${outcomes[actual?.dayType??'']??'Recorded IB structure'}`;
+    const highBreaks=returns.breaks.filter(event=>event.side==='IBH').length;
+    const lowBreaks=returns.breaks.filter(event=>event.side==='IBL').length;
     add('Initial Balance summary',[
       {label:'IB low / high',value:range??(facts.finalIb?`${price(facts.finalIb.low)}–${price(facts.finalIb.high)}`:'Not confirmed')},
       {label:'IB width',value:finalWidth!=null?`${price(finalWidth)} pt`:'Not confirmed'},
-      {label:'Recorded breaks and returns',value:facts.path?[
-        `High: ${facts.path.split(' → ').filter(v=>v==='IBH break').length}`,
-        `Low: ${facts.path.split(' → ').filter(v=>v==='IBL break').length}`,
+      {label:'Recorded breaks and returns',value:returns.breaks.length?[
+        `High: ${highBreaks}`,
+        `Low: ${lowBreaks}`,
         `Returns inside: ${returns.count}`,
       ].join(' · '):'No post-lock interaction recorded',counters:[
-        {label:'High breaks',value:facts.path?.split(' → ').filter(v=>v==='IBH break').length??0},
-        {label:'Low breaks',value:facts.path?.split(' → ').filter(v=>v==='IBL break').length??0},
+        {label:'High breaks',value:highBreaks},
+        {label:'Low breaks',value:lowBreaks},
         {label:'Returns inside',value:returns.count},
       ]},
       {label:'Close',value:facts.currentOrClose?.startsWith('Close ')?facts.currentOrClose.slice(6):'Day still open'},
