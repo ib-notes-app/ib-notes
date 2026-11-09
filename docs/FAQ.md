@@ -100,6 +100,21 @@ See [Troubleshooting](TROUBLESHOOTING.md#the-app-is-empty-or-records-seem-missin
 
 ## Recording prices
 
+### Where do I find a finished period's stats or correct its range?
+
+Tap its period button. Results and the map appear first. Below them, use
+**Edit range & notes** for range corrections or **Entries** to find an individual
+price. Opening a finished period leaves its saved data unchanged.
+
+### What do the period comparisons and level matches mean?
+
+The width comparison uses earlier completed ranges from the same journal with
+matching study hours. It shows the sample count; equal widths count as ties.
+Level rows show their familiar Daily or tier labels. **Recorded touch** comes
+from a saved price; **Inside recorded range** means the range overlaps the level
+and does not prove a touch was recorded.
+
+
 ### Can I add a High or Low after recording a later price?
 
 Yes. In **Record price**, set the earlier date and time, choose **High** or

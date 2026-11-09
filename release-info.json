@@ -1,11 +1,11 @@
 {
-  "buildId": "public-blank-20261109T143041627Z",
+  "buildId": "public-blank-20261109T150223169Z",
   "distribution": "public-blank",
-  "status": "Early public version; earlier-time High and Low entry across all periods.",
+  "status": "Early public version; finished periods put results first.",
   "appUrl": "https://ib-notes-app.github.io/ib-notes/",
   "archive": "downloads/IB-Notes-blank-slate.zip",
-  "archiveBytes": 7819235,
-  "archiveSha256": "bc4c20de67f03993ff8a795c4f3e5bcb69c4f64f9b9cf10a0506087386080315",
+  "archiveBytes": 7825634,
+  "archiveSha256": "f1b4f5a6f741cc4ed898f18c45657b1a9a749847d2478f438c6c0ab25647c7b3",
   "bundledMarketHistory": false,
   "bundledJournalRecords": false,
   "bundledExamples": false,
@@ -14,14 +14,15 @@
   "dataStorage": "Local SQLite in the browser; no journal synchronization.",
   "preparedAt": "2026-11-09",
   "changes": [
-    "Record an earlier High or Low after later prices in ON, 15R, A, B and RTH.",
-    "Preserve later observations, the latest CP and the chosen date/time through reload.",
-    "The entry screen and save workflow are unchanged. No market data is included."
+    "Finished periods show range statistics, journal comparisons, saved level matches and the retained map first.",
+    "Range and note editing and individual entries are grouped below the results; active periods keep entry first.",
+    "Reading a finished period preserves its saved data. No market data is included."
   ],
   "verification": {
     "cleanPublicSourceBuild": "Passed",
-    "approvedPhoneUnitTests": 849,
-    "approvedPhonePeriodBrowserChecks": 5,
+    "approvedPhoneFocusedTests": 16,
+    "approvedPhonePeriodBrowserChecks": 8,
+    "approvedPhoneFinalBrowserChecks": 2,
     "approvedPhoneSafeUpdateChecks": 2,
     "publicPackageBrowserChecks": 2,
     "sourceAndDownloadsAudit": "Passed",

@@ -13,6 +13,15 @@ type Day={date:string;ib:number|null;on:number|null;outcome:DayType|null};
 const valid=(n:number|null|undefined):n is number=>typeof n==='number'&&Number.isFinite(n);
 const width=(h:number|null|undefined,l:number|null|undefined)=>valid(h)&&valid(l)&&h>l?h-l:null;
 
+/** The same local measurement scope for all completed-period comparisons. */
+export function compatiblePriorRangeSessions(s:JournalSession,sessions:JournalSession[],now:string){
+  const cutoff=Date.parse(now);
+  return sessions.filter(day=>day.journalId===s.journalId&&day.instrument===s.instrument&&day.rthDate<s.rthDate&&day.calendarStatus!=='CLOSED'&&!day.studyReplay&&
+    Number.isFinite(Date.parse(day.updatedAt))&&Date.parse(day.updatedAt)<=cutoff&&day.market.tickSize===s.market.tickSize&&day.market.canonicalTimeZone===s.market.canonicalTimeZone&&
+    day.market.overnightStart===s.market.overnightStart&&[...day.market.weekdays].sort().join()===[...s.market.weekdays].sort().join()&&
+    JSON.stringify(day.market.checkpoints)===JSON.stringify(s.market.checkpoints));
+}
+
 /** Descriptive comparisons only. No training, weights, persistence or source mixing.
  * Call only with a completed ON width / locked IB width; forming ranges are not final ranges. */
 export function deriveRangeComparisons(args:{session:JournalSession;now:string;onWidth:number|null;ibWidth:number|null;
@@ -24,11 +33,7 @@ export function deriveRangeComparisons(args:{session:JournalSession;now:string;o
     // Conflicting copies of a date are unknown, not two independent samples.
     return [...dates.values()].flatMap(rows=>rows.every(r=>JSON.stringify(r)===JSON.stringify(rows[0]))?[rows[0]!]:[]);
   };
-  const local:Day[]=args.sessions.flatMap(day=>{
-    if(day.journalId!==s.journalId||day.instrument!==s.instrument||day.rthDate>=s.rthDate||day.calendarStatus==='CLOSED'||day.studyReplay||
-      !Number.isFinite(Date.parse(day.updatedAt))||Date.parse(day.updatedAt)>cutoff||day.market.tickSize!==s.market.tickSize||day.market.canonicalTimeZone!==s.market.canonicalTimeZone||
-      day.market.overnightStart!==s.market.overnightStart||[...day.market.weekdays].sort().join()!==[...s.market.weekdays].sort().join()||
-      JSON.stringify(day.market.checkpoints)!==JSON.stringify(s.market.checkpoints))return [];
+  const local:Day[]=compatiblePriorRangeSessions(s,args.sessions,now).flatMap(day=>{
     const ib=deriveSessionRecordedIb(day,now),ibWidth=ib?width(ib.high,ib.low):null;
     const on=day.overnight.status==='confirmed'?width(day.overnight.high,day.overnight.low):null;
     let outcome:DayType|null=null;

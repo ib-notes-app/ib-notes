@@ -4467,5 +4467,5 @@ export type { AuctionRead, AuctionState, RecentAuctionRead, CompletedAuctionRang
 export {dayReviewRanges,withFinalDayReview,withCompletedPeriodReview} from './finalDayReview';
 export type {ReviewPeriod,DayReviewInput,DayReviewWindows} from './finalDayReview';
 export {futuresContractReference,isPriorFuturesContract,levelSourceContract,levelContractReference,levelReferenceApplies} from './contractReferences';
-export {deriveRangeComparisons} from './rangeComparisons';
+export {deriveRangeComparisons,compatiblePriorRangeSessions} from './rangeComparisons';
 export type {RangeComparison} from './rangeComparisons';

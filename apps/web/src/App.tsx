@@ -8,6 +8,7 @@ import {WorkspaceRangeEditor,WorkspacePhaseRecords,WorkspaceEntryNoteEditor,type
 import {PHONE_TEST,phoneState,phoneStates} from './phoneTestMode';
 import {useWorkspaceNavigation} from './WorkspaceNavigation';
 import {periodMapRead} from './periodMapRead';
+import {PeriodSummary} from './PeriodSummary';
 import {WorkspaceDashboard,WorkspaceLevelCache,WorkspacePriceSheet,useWorkspaceActivePhase,type WorkspaceDestination} from './WorkspaceDashboard';
 import {useWorkspaceLevels} from './useWorkspaceLevels';
 import {WorkspaceDialog} from './WorkspaceDialog';
@@ -820,7 +821,7 @@ function PeriodStructureMap({session,phase}:{session:JournalSession;phase:Worksp
   <div className="section-heading map-heading"><h3>{phase} structure</h3><span className="status-dot">{ended?'Recorded':Date.parse(now)<Date.parse(window.start)?'Upcoming':'Forming'}</span></div>
   {references.length||points.length?<RecordedRangeMap session={session} structurePhase={phase} currentRange={range} preFormationObservations={points}
     earlyReferences={references} window={window} mapLabel={`${phase} recorded price map`}/>:<p className="empty-state">No recorded prices or range in this period yet.</p>}
-  <p className="workspace-period-map-caption">{phase==='A'?'A includes 15R. ':phase==='B'?'B prices · recorded B/IB bounds. ':phase==='RTH'?'Full RTH, including IB. ':''}{points.length} recorded {points.length===1?'price':'prices'} · Lines connect entries; gaps remain unknown.</p>
+  <p className="workspace-period-map-caption">{points.length} price {points.length===1?'entry':'entries'}{phase==='A'?' · Includes 15R':phase==='RTH'?' · Includes the IB':phase==='B'?' · B prices with the full IB range':''}</p>
  </section>;
 }
 
@@ -5995,7 +5996,7 @@ export function App() {
             if(destination==='trash')void openTrashPanel();
             else openWorkspace(destination==='import'?'historical-library-manage':`settings-${destination}`);
           }}
-          renderEvents={workspaceEventsContent} renderShare={workspacePeriodShare} renderReview={workspacePeriodReview} renderPeriod={workspacePeriodContent} renderPeriodMap={(target,phase)=><PeriodStructureMap session={target} phase={phase}/>}
+          renderEvents={workspaceEventsContent} renderShare={workspacePeriodShare} renderReview={workspacePeriodReview} renderPeriod={workspacePeriodContent} renderPeriodMap={(target,phase)=><PeriodSummary session={target} phase={phase} now={Temporal.Now.instant().toString()} sessions={trackingSessions??[]} levels={visibleReferenceLevels} sources={qualitySources}><PeriodStructureMap session={target} phase={phase}/></PeriodSummary>}
           onOpen={destination=>{setWorkspaceReferences([]);if(destination==='levels'){setFocusedLevelId(undefined);setFbdHistoryPackId(undefined);setMonthlyLevelFilter(undefined);}
             openWorkspace(({forecast:'workspace-forecast',structure:'workspace-structure',levels:'level-library',review:'review-menu'} as const)[destination],destination);}}
           onLevel={members=>{setWorkspaceReferences(members);setWorkspaceOrigin('levels');setEntryOrigin('dashboard');setFocusedLevelId(undefined);setFbdHistoryPackId(undefined);setMonthlyLevelFilter(undefined);workspaceNavigation.openLevel('level-library',`journal:${members[0]!.id}`);}}
@@ -6023,7 +6024,7 @@ export function App() {
         {activePanel==='workspace-events'&&workspaceEventsContent(session)}
       </>}
       {session&&reviewRepairPeriod&&session.id===reviewRepairPeriod.sessionId&&activePanel==='review-menu'&&<WorkspacePriceSheet key={`${reviewRepairPeriod.sessionId}:${reviewRepairPeriod.openedAt}`} session={session}
-        initial={workspaceEntryTarget(session,reviewRepairPeriod.target as WorkspacePhase,reviewRepairPeriod.openedAt)} mode="period" renderPeriodMap={(target,phase)=><PeriodStructureMap session={target} phase={phase}/>} returnToIssues onClose={()=>setReviewRepairPeriod(null)}
+        initial={workspaceEntryTarget(session,reviewRepairPeriod.target as WorkspacePhase,reviewRepairPeriod.openedAt)} mode="period" renderPeriodMap={(target,phase)=><PeriodSummary session={target} phase={phase} now={Temporal.Now.instant().toString()} sessions={trackingSessions??[]} levels={visibleReferenceLevels} sources={qualitySources}><PeriodStructureMap session={target} phase={phase}/></PeriodSummary>} returnToIssues onClose={()=>setReviewRepairPeriod(null)}
         onSave={saveWorkspacePrice} renderReview={workspacePeriodReview} renderShare={workspacePeriodShare}
         renderPeriod={(phase,done,editFinalized,onBusy,formId,openedAt)=>workspacePeriodContent(phase,done,editFinalized,onBusy,formId,openedAt,false,reviewRepairPeriod.focus)}/>}
       {session && !workspacePreview && activePanel === "dashboard" && (
@@ -6599,7 +6600,7 @@ export function App() {
         )}
 
         {session && activePanel === "close" && <FinalDayReview key={session.id} session={session} onConfirm={confirmFinalDay} onViewEntries={()=>workspacePreview?openWorkspace('session-notes'):setActivePanel('session-notes')}
-          renderPeriod={(phase,openedAt,done)=><WorkspacePriceSheet session={session} initial={workspaceEntryTarget(session,phase,openedAt)} mode="period" renderPeriodMap={(target,phase)=><PeriodStructureMap session={target} phase={phase}/>} returnToReviewDay onClose={done} onSave={saveWorkspacePrice} renderReview={workspacePeriodReview} renderPeriod={(...args)=>workspacePeriodContent(...args,true)}/>}/>}
+          renderPeriod={(phase,openedAt,done)=><WorkspacePriceSheet session={session} initial={workspaceEntryTarget(session,phase,openedAt)} mode="period" renderPeriodMap={(target,phase)=><PeriodSummary session={target} phase={phase} now={Temporal.Now.instant().toString()} sessions={trackingSessions??[]} levels={visibleReferenceLevels} sources={qualitySources}><PeriodStructureMap session={target} phase={phase}/></PeriodSummary>} returnToReviewDay onClose={done} onSave={saveWorkspacePrice} renderReview={workspacePeriodReview} renderPeriod={(...args)=>workspacePeriodContent(...args,true)}/>}/>}
 
       </div>
 

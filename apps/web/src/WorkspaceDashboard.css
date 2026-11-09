@@ -545,6 +545,35 @@ main.workspace-preview[data-workspace-home="true"] { display:flex; flex-directio
 
 .workspace-period-status { margin:12px 0; padding:10px 12px; border:1px solid #66758a; border-radius:10px; background:#26313e; color:#d5e1ed; font-size:.875rem; }
 .workspace-period-status[data-confirmed="true"] { border-color:#587a71; background:#233530; color:#c3e3d7; }
+.workspace-period-content .workspace-period-status { margin:0 0 10px; padding:5px 9px; font-size:.75rem; }
+.period-summary { margin:0 0 12px; }
+.period-summary h3 { margin:0 0 8px; color:#f1a0c8; font-size:1rem; }
+.period-summary-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:7px; margin:0; }
+.period-summary-grid > div { min-width:0; padding:9px 10px; border-top:2px solid #a99bdd; border-radius:8px; background:#262331; }
+.period-summary-grid > [data-tone="low"] { border-color:#8fdbd5; background:#1c3034; }
+.period-summary-grid > [data-tone="high"] { border-color:#ee9ec6; background:#322633; }
+.period-summary-grid dt { font-size:.75rem; color:#c7d0dd; }
+.period-summary-grid dd { margin:3px 0 0; font-size:clamp(1.05rem,4.8vw,1.5rem); font-weight:750; font-variant-numeric:tabular-nums; overflow-wrap:anywhere; }
+.period-summary-grid dd small { font-size:.75rem; font-weight:500; }
+.period-journal-comparison { display:grid; gap:3px; padding:10px; margin-top:7px; border-radius:8px; background:#24232f; }
+.period-journal-comparison strong { color:#d5b8fa; font-size:.9375rem; }
+.period-journal-comparison span,.period-journal-comparison small,.period-summary-empty { color:#bfc8d5; font-size:.75rem; line-height:1.4; }
+.period-comparison-bar { height:4px; background:#3e3b4b; border-radius:4px; overflow:hidden; margin:3px 0; }
+.period-comparison-bar i { display:block; height:100%; background:#c3a1ee; }
+.period-summary-empty { margin:8px 0; }
+.period-level-heading { display:flex; justify-content:space-between; align-items:center; margin:12px 0 6px; }
+.period-level-heading h4 { margin:0; font-size:.8125rem; color:#c7d9ec; }
+.period-level-heading > span { color:#b9cadc; font-size:.75rem; }
+.period-level-matches { display:grid; gap:5px; padding:0; margin:0; list-style:none; }
+.period-level-matches li { display:flex; justify-content:space-between; gap:8px; padding:7px 9px; border-left:2px solid #a8cdf5; border-radius:6px; background:#1c2631; }
+.period-level-matches li[data-quality="legendary"] { border-color:#f3ce68; }
+.period-level-matches li > div { display:grid; gap:3px; min-width:0; }
+.period-level-matches li > div:last-child { text-align:right; }
+.period-level-matches strong,.period-level-matches b { font-size:.8125rem; overflow-wrap:anywhere; }
+.period-level-matches span { font-size:.6875rem; color:#c0cbd8; }
+.workspace-period-editing { border-top:1px solid #3b495a; margin-top:8px; padding-top:8px; }
+.workspace-period-edit-actions { display:flex; gap:8px; margin-bottom:8px; }
+.workspace-period-edit-actions button { flex:1; min-height:44px; padding:7px 9px; font-size:.8125rem; border-color:#536c83; background:#202c39; }
 .workspace-confirmed-range dl { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin:12px 0; }
 .workspace-confirmed-range dl > div { padding:12px; border:1px solid #465565; border-radius:12px; background:#1b2530; }
 .workspace-confirmed-range dt { color:#b7c8d8; }

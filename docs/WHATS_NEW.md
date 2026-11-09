@@ -1,5 +1,14 @@
 # What's new
 
+## Finished periods put the results first
+
+Open ON, 15R, A, B or RTH after it ends to see its high, low, range distance,
+midpoint, comparison with earlier completed ranges in your journal, and saved
+levels inside the range. The structure map follows, with sharing and editing
+below. **Edit range & notes** brings the inputs forward; **Back to results**
+returns to the summary. Upcoming and active periods keep data entry first.
+
+
 ## Enter earlier highs and lows
 
 In **Record price**, choose an earlier date/time, select **High** or **Low**,
