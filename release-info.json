@@ -1,34 +1,31 @@
 {
-  "buildId": "public-blank-20261106T214008845Z",
+  "buildId": "public-blank-20261109T143041627Z",
   "distribution": "public-blank",
-  "status": "Early public version; reviewed IBN results and evolving unbroken-session estimates.",
+  "status": "Early public version; earlier-time High and Low entry across all periods.",
   "appUrl": "https://ib-notes-app.github.io/ib-notes/",
   "archive": "downloads/IB-Notes-blank-slate.zip",
-  "archiveBytes": 7815112,
-  "archiveSha256": "6a919c1598a1d16a986accca007e5ae4d54cd995146ff0f3d0c1dae742b62673",
+  "archiveBytes": 7819235,
+  "archiveSha256": "bc4c20de67f03993ff8a795c4f3e5bcb69c4f64f9b9cf10a0506087386080315",
   "bundledMarketHistory": false,
   "bundledJournalRecords": false,
   "bundledExamples": false,
   "automaticNewsLookup": false,
   "historicalForecasts": "Unavailable without suitable user-supplied learning history.",
   "dataStorage": "Local SQLite in the browser; no journal synchronization.",
-  "preparedAt": "2026-11-06",
+  "preparedAt": "2026-11-09",
   "changes": [
-    "Reviewed final daily highs and lows can establish IBN without a separate path-complete checkbox.",
-    "Before an IB edge break, compatible historical timing paths can update the outlook as an unbroken session approaches close.",
-    "Without compatible timing history, the estimate is labeled as a full-session baseline. No historical data is included.",
-    "Live outlooks can be saved without an original 15R forecast, and closing cards retain the latest saved RTH estimate.",
-    "Past forecasts are preserved. The model remains experimental; the full multi-day opening sequence is not modeled."
+    "Record an earlier High or Low after later prices in ON, 15R, A, B and RTH.",
+    "Preserve later observations, the latest CP and the chosen date/time through reload.",
+    "The entry screen and save workflow are unchanged. No market data is included."
   ],
   "verification": {
     "cleanPublicSourceBuild": "Passed",
-    "approvedPhoneUnitTests": 841,
-    "approvedPhoneFocusedBrowserChecks": 3,
+    "approvedPhoneUnitTests": 849,
+    "approvedPhonePeriodBrowserChecks": 5,
     "approvedPhoneSafeUpdateChecks": 2,
-    "phoneReview": "Accepted by the owner before public release.",
-    "publicPackageBrowserChecks": 3,
-    "sourceAndDownloadsAudit": "Passed: public source, site and nested downloads contain no restricted data, provider mentions, private filenames or personal identifiers.",
-    "livePublicOrigin": "Verify after Pages deployment; local release record retains the result.",
+    "publicPackageBrowserChecks": 2,
+    "sourceAndDownloadsAudit": "Passed",
+    "livePublicOrigin": "Verification retained in local release record after deployment.",
     "physicalPublicOriginInstall": "Pending"
   }
 }

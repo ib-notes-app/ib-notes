@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MPL-2.0
 import { Temporal } from '@js-temporal/polyfill';
 import type { JournalSession, RangeCheckpointRevision, RangeObservation } from './index';
+import {projectRangeEdgeHistory} from './rangeEdgeHistory';
+import {reconcileOvernightRangeHistory} from './overnightRangeHistory';
 
 type Edges = Pick<RangeObservation, 'high' | 'low'>;
 export type FormingPeriod = '15R' | 'A' | 'B';
@@ -42,8 +44,9 @@ export function manualRangeInputs(session: JournalSession, period: FormingPeriod
 
 /** Rebuild only price-linked range contributions; old journals without provenance retain their saved truth. */
 export function reconcileFormingPriceRanges(session: JournalSession): JournalSession {
+  session=reconcileOvernightRangeHistory(session);
   if (!session.cpObservations.some(p => p.formingPeriods?.length) &&
-      !(['15R', 'A', 'B'] as const).some(p => session[keys[p]].rangeInputs)) return session;
+      !(['15R', 'A', 'B'] as const).some(p => session[keys[p]].rangeInputs||session[histories[p]].some(r=>r.edgeInput))) return session;
   let next = { ...session };
   let earlier: Edges = empty;
   for (const period of ['15R', 'A', 'B'] as const) {
@@ -52,6 +55,18 @@ export function reconcileFormingPriceRanges(session: JournalSession): JournalSes
     const prices = session.cpObservations.filter(p => p.formingPeriods?.includes(period));
     const manual = session[historyKey].filter(r => !r.cpObservationId);
     const snapshots = period === 'B' ? session.bSnapshots.map(edges) : [];
+    if(manual.some(r=>r.edgeInput)){
+      const original=session[historyKey],bSnapshots=period==='B'?session.bSnapshots:[];
+      const projection=projectRangeEdgeHistory([
+        ...original.map(r=>({...edges(r),at:r.observedAt??r.recordedAt,savedAt:r.recordedAt,edgeInput:r.edgeInput,derived:!!r.cpObservationId})),
+        ...bSnapshots.map(r=>({...edges(r),at:r.observedAt,savedAt:r.recordedAt,additive:true})),
+      ],prices.map(p=>({at:p.observedAt,price:p.price})),earlier);
+      next[key]={...current,...projection.current,rangeInputs:direct};
+      next[historyKey]=original.map((r,i)=>({...r,...projection.steps[i]!,rangeInputs:r.rangeInputs??edges(r)}))
+        .sort((a,b)=>ms(a.recordedAt)-ms(b.recordedAt)||ms(a.observedAt??a.recordedAt)-ms(b.observedAt??b.recordedAt));
+      earlier=union(earlier,projection.current);
+      continue;
+    }
     const hasOwn = current.high !== null || current.low !== null || manual.length > 0 || prices.length > 0 || snapshots.length > 0;
     const effective = hasOwn ? union(direct, earlier, ...snapshots, ...prices.map(p => ({ high: p.price, low: p.price }))) : direct;
     next[key] = { ...current, ...effective, rangeInputs: direct };

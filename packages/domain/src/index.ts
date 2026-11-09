@@ -9,6 +9,10 @@ import { reconcileFormingPriceRanges, formingPricePeriods, manualRangeInputs } f
 import { roundPriceToTick, roundManualPriceFields } from './priceTicks';
 import {deriveSessionRecordedIb} from './recordedIb';
 import {dayReviewRanges} from './finalDayReview';
+import {reconcileOvernightRangeHistory} from './overnightRangeHistory';
+import type {RangeEdgeInput} from './rangeEdgeHistory';
+export {reconcileOvernightRangeHistory} from './overnightRangeHistory';
+export {projectRangeEdgeHistory,type RangeEdgeInput} from './rangeEdgeHistory';
 export {deriveSessionRecordedIb} from './recordedIb';
 export {deriveRecordedIbReturns,type RecordedIbReturn} from './recordedIbReturns';
 export { roundPriceToTick } from './priceTicks';
@@ -77,6 +81,7 @@ export type RangeCheckpointRevision = RangeCheckpoint & {
   cpObservationId?: string;
   priorHigh?: Price | null;
   priorLow?: Price | null;
+  edgeInput?:RangeEdgeInput;
 };
 
 export type CpObservation = {
@@ -377,6 +382,9 @@ export type PreOpenSnapshot = {
   note: string | null;
   recordedAt: string;
   cpObservationId: string | null;
+  enteredAt?:string;
+  rangeInputs?:Pick<RangeObservation,'high'|'low'>;
+  edgeInput?:RangeEdgeInput;
 };
 
 export type ContractHistoryEntry = {
@@ -2497,6 +2505,7 @@ export function withStandaloneCpObservation(
         formingOvernightLow: extendedLow,
         note: null,
         recordedAt: observedAt,
+        enteredAt:recordedAt,
         cpObservationId: observation.id
       }
     : null;
@@ -3543,10 +3552,11 @@ export function withPreOpenUpdate(
     formingOvernightLow,
     note: update.note?.trim() || null,
     recordedAt: observedAt,
+    enteredAt:now,
     cpObservationId: cpObservation?.id ?? null
   };
 
-  return {
+  return reconcileOvernightRangeHistory({
     ...session,
     contractStatus: update.contractStatus,
     contract: normalizedContract,
@@ -3568,7 +3578,7 @@ export function withPreOpenUpdate(
         ]
       : session.contractHistory,
     updatedAt: now
-  };
+  });
 }
 
 export function withOvernightUpdate(

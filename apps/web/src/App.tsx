@@ -7359,7 +7359,7 @@ function sessionTimelineItems(
   (session.rthRangeHistory ?? []).forEach((range,index) => add({
     id: `timeline:rth-range:${index}:${range.recordedAt}`, sortAt: range.observedAt ?? range.recordedAt,
     label: range.observedAt ? `RTH ${range.observedEdge??'range'} observation` : "RTH range correction",
-    detail: range.observedEdge ? `${range.observedEdge==='high'?'H':'L'} ${formatPrice(range[range.observedEdge])}` : `H ${formatPrice(range.high)} · L ${formatPrice(range.low)}`,
+    detail: range.observedEdge ? `${range.observedEdge==='high'?'H':'L'} ${formatPrice(range.observedPrice??range[range.observedEdge])}` : `H ${formatPrice(range.high)} · L ${formatPrice(range.low)}`,
     phase: 'POST_IB',
     commentary: range.observedAt ? "Observed by this time; exact extreme occurrence time unknown. Full RTH range retained separately." : "Range saved without closing the day. Entry time; extreme times unlisted.", attachment: null,
   }));

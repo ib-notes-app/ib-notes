@@ -8,6 +8,8 @@ export type RthRangeRevision = { high: number; low: number; recordedAt: string;
   /** When the range or named edge was observed, not its exact occurrence time. */
   observedAt?: string;
   observedEdge?: 'high' | 'low';
+  /** The supplied edge when a backfill coexists with wider later observations. */
+  observedPrice?:number;
 };
 
 function priceFacts(session: JournalSession): number[] {
@@ -38,14 +40,15 @@ export function deriveRecordedRthRange(session: JournalSession): { high: number 
   return { high: prices.length ? Math.max(...prices) : null, low: prices.length ? Math.min(...prices) : null };
 }
 
-export function withRthRangeCorrection(session: JournalSession, high: number, low: number, recordedAt: string, observedAt?: string, observedEdge?: 'high'|'low'): JournalSession {
+export function withRthRangeCorrection(session: JournalSession, high: number, low: number, recordedAt: string, observedAt?: string, observedEdge?: 'high'|'low',observedPrice?:number): JournalSession {
   if (session.close.finishedAt) throw new Error('Use Review close to correct a finished day.');
   ({ high, low } = roundManualPriceFields({ high, low }, session.market.tickSize));
   if (!Number.isFinite(high) || !Number.isFinite(low) || high < low) throw new Error('Enter a valid RTH high and low. High must be at or above low.');
+  if(observedPrice!==undefined&&(!observedAt||!observedEdge||!Number.isFinite(observedPrice)||observedPrice<low||observedPrice>high))throw new Error('Enter a valid timed range edge.');
   Temporal.Instant.from(recordedAt);
   if(observedAt&&Temporal.Instant.compare(Temporal.Instant.from(observedAt),Temporal.Instant.from(recordedAt))>0)
     throw new Error('The range observation cannot be in the future.');
   const facts = priceFacts(session);
   if (facts.some(p => p > high || p < low)) throw new Error('The RTH range must include the IB and recorded prices. Correct a mistaken price in Day timeline first.');
-  return { ...session, rthRangeHistory: [...session.rthRangeHistory ?? [], { high, low, recordedAt, ...(observedAt?{observedAt,...(observedEdge?{observedEdge}:{})}:{}) }], updatedAt: recordedAt };
+  return { ...session, rthRangeHistory: [...session.rthRangeHistory ?? [], { high, low, recordedAt, ...(observedAt?{observedAt,...(observedEdge?{observedEdge}:{})}:{}),...(observedPrice!==undefined?{observedPrice}:{}) }], updatedAt: recordedAt };
 }

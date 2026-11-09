@@ -100,6 +100,14 @@ See [Troubleshooting](TROUBLESHOOTING.md#the-app-is-empty-or-records-seem-missin
 
 ## Recording prices
 
+### Can I add a High or Low after recording a later price?
+
+Yes. In **Record price**, set the earlier date and time, choose **High** or
+**Low**, enter the price and save. It works in every period and keeps later
+prices and the latest CP. For overnight entries, check the date as well as the
+time when the observation was before midnight.
+
+
 ### What do High, CP and Low mean?
 
 **CP** is an observed current price. **High** and **Low** record period extremes

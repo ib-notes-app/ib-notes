@@ -4,6 +4,7 @@ import {createSessionClock} from '@ib-field-notes/session-templates';
 import {formatPriceNumber,roundPriceToTick,deriveRecordedRthRange,carryRangeEdgesForward,latestPreOpenSnapshot,withStandaloneCpObservation,withRthObservation,
   withFifteenMinuteRange,withAPeriodUpdate,withBPeriodUpdate,withPreOpenUpdate,withOvernightUpdate,withRthRangeCorrection,
   withRemovedStandaloneCpObservation,withRemovedRthObservation,withSessionNote,withCorrectedSessionNote,withRemovedSessionNote,type JournalSession,type SignificantLevel} from '@ib-field-notes/domain';
+import {reconcileFormingPriceRanges,reconcileOvernightRangeHistory} from '@ib-field-notes/domain';
 import {groupNearbyAreas} from './levelAreas';
 import {nearbyLevelScope} from './nearbyZoneRead';
 
@@ -156,26 +157,53 @@ export function applyWorkspaceEntry(session:JournalSession,entry:WorkspaceEntry,
   const addRangeNote=(next:JournalSession)=>note?withSessionNote(next,entry.phase==='ON'?'ON':entry.phase==='RTH'?'RTH':'IB',note,entry.observedAt,now,w.start,
     // Range-known-by times can equal their closing boundary; no exact extreme is inferred.
     Temporal.Instant.from(w.end).add({seconds:1}).toString(),{kind:'checkpoint',targetId:entry.phase==='ON'?'overnight':entry.phase==='15R'?'15r':entry.phase==='A'?'a-period':entry.phase==='B'?'b-period':'rth',...(event?{eventId:event.id}:{}),label:`${entry.phase} ${entry.kind} ${workspaceFormatPrice(price,session.market.tickSize)}`}):next;
-  const known=session.cpObservations.filter(cp=>ms(cp.observedAt)>=ms(entry.phase==='A'?state.windows['15R'].start:w.start)&&ms(cp.observedAt)<ms(w.end));
+  const laterPrice=session.cpObservations.some(cp=>ms(cp.observedAt)>t&&ms(cp.observedAt)<ms(w.end)&&ms(cp.observedAt)>=ms(w.start));
+  const laterRange=entry.phase==='ON'?session.preOpenSnapshots.some(r=>ms(r.recordedAt)>t)||session.overnight.status==='confirmed'&&t<ms(w.end):
+    entry.phase==='RTH'?(session.rthRangeHistory??[]).some(r=>ms(r.observedAt??r.recordedAt)>t):
+    session[entry.phase==='15R'?'fifteenMinuteHistory':entry.phase==='A'?'aPeriodHistory':'bPeriodHistory'].some(r=>ms(r.observedAt??r.recordedAt)>t);
+  const backfill=laterPrice||laterRange;
+  const known=session.cpObservations.filter(cp=>ms(cp.observedAt)>=ms(entry.phase==='A'?state.windows['15R'].start:w.start)&&ms(cp.observedAt)<ms(w.end)&&(!backfill||ms(cp.observedAt)<=t));
   if(high&&known.some(cp=>cp.price>price)||!high&&known.some(cp=>cp.price<price))throw Error('The range must include recorded CPs. Use Day timeline to correct a mistaken observation.');
   if(entry.phase==='ON'){
+    if(backfill){
+      let next=withPreOpenUpdate(session,{contractStatus:session.contractStatus,contract:session.contract,
+        formingOvernightHigh:high?price:null,formingOvernightLow:high?null:price,cp:null,note:null},entry.observedAt,now,true);
+      const oldIds=new Set(session.preOpenSnapshots.map(r=>r.id)),id=next.preOpenSnapshots.find(r=>!oldIds.has(r.id)&&!r.cpObservationId)!.id;
+      next=reconcileOvernightRangeHistory({...next,preOpenSnapshots:next.preOpenSnapshots.map(r=>r.id===id?{...r,enteredAt:now,edgeInput:{edge:high?'high':'low',price},rangeInputs:{high:high?price:null,low:high?null:price}}:r)});
+      if(session.overnight.status==='confirmed'){
+        const range=latestPreOpenSnapshot(next);
+        next=withOvernightUpdate(next,{high:Math.max(session.overnight.high!,range?.formingOvernightHigh??-Infinity),
+          low:Math.min(session.overnight.low!,range?.formingOvernightLow??Infinity),rthOpen:session.overnight.rthOpen,confirm:true},now);
+      }
+      return addRangeNote(next);
+    }
     if(session.overnight.status==='confirmed')return addRangeNote(withOvernightUpdate(session,{high:high?price:session.overnight.high,
       low:high?session.overnight.low:price,rthOpen:session.overnight.rthOpen,confirm:true},now));
     const existing=session.preOpenSnapshots.at(-1);
-    if(existing&&ms(existing.recordedAt)>t)throw Error('A later ON range is already recorded. Use that range-as-of time or edit the period.');
     return addRangeNote(withPreOpenUpdate(session,{contractStatus:session.contractStatus,contract:session.contract,
       formingOvernightHigh:high?price:existing?.formingOvernightHigh??null,formingOvernightLow:high?existing?.formingOvernightLow??null:price,
       cp:null,note:null},entry.observedAt,now,true));
   }
   if(entry.phase==='RTH'){
-    const range=deriveRecordedRthRange(session),h=high?price:range.high,l=high?range.low:price;
+    const range=deriveRecordedRthRange(session),h=backfill?Math.max(range.high??price,price):high?price:range.high,l=backfill?Math.min(range.low??price,price):high?range.low:price;
     if(h===null||l===null)throw Error('The other RTH edge is not yet known. Record a CP or use Edit period to enter the range.');
-    return addRangeNote(withRthRangeCorrection(session,h,l,now,entry.observedAt,high?'high':'low'));
+    return addRangeNote(withRthRangeCorrection(session,h,l,now,entry.observedAt,high?'high':'low',backfill?price:undefined));
   }
   const keys={ '15R':'fifteenMinuteHistory',A:'aPeriodHistory',B:'bPeriodHistory'} as const;
-  const history=session[keys[entry.phase]],latest=history.map(r=>r.observedAt??r.recordedAt).sort((a,b)=>ms(a)-ms(b)).at(-1);
-  if(latest&&ms(latest)>t)throw Error('This range contains later observations. Use a later range-as-of time or edit the period.');
+  const history=session[keys[entry.phase]];
   const prior=rangeFor(session,entry.phase),update={high:high?price:prior.high,low:high?prior.low:price,cp:null,note:prior.note};
+  if(backfill){
+    update.high=high?Math.max(prior.high??price,price):prior.high;update.low=high?prior.low:Math.min(prior.low??price,price);
+    const save=entry.phase==='15R'?withFifteenMinuteRange:entry.phase==='A'?withAPeriodUpdate:withBPeriodUpdate;
+    const key=entry.phase==='15R'?'fifteenMinute':entry.phase==='A'?'aPeriod':'bPeriod',historyKey=keys[entry.phase];
+    let source=session;
+    if(!history.length&&(prior.high!==null||prior.low!==null))source={...source,[historyKey]:[{...prior,recordedAt:prior.confirmedAt??session.updatedAt,observedAt:prior.confirmedAt??session.updatedAt}]};
+    let next=save(source,update,entry.observedAt,now,prior.status==='confirmed',true);
+    const rows=next[historyKey],index=rows.findLastIndex(r=>r.recordedAt===now&&!r.cpObservationId);
+    next={...next,[key]:{...next[key],rangeInputs:prior.rangeInputs??{high:prior.high,low:prior.low}},
+      [historyKey]:rows.map((r,i)=>i===index?{...r,edgeInput:{edge:high?'high':'low',price},rangeInputs:{high:high?price:null,low:high?null:price}}:r)};
+    return addRangeNote(reconcileFormingPriceRanges(next));
+  }
   if(update.high!==null&&update.low!==null&&update.high<update.low)throw Error('High must be at or above Low. Use Edit period for a range correction.');
   const save=entry.phase==='15R'?withFifteenMinuteRange:entry.phase==='A'?withAPeriodUpdate:withBPeriodUpdate;
   return addRangeNote(save(session,update,entry.observedAt,now,prior.status==='confirmed',true));

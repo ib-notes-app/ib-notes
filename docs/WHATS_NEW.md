@@ -1,5 +1,14 @@
 # What's new
 
+## Enter earlier highs and lows
+
+In **Record price**, choose an earlier date/time, select **High** or **Low**,
+enter the price and save. Later prices no longer block these earlier entries.
+This works in ON, 15R, A, B and RTH, so you can build a session's structure
+after the action, including overnight observations entered the next morning.
+Later observations and the latest CP stay in place. The entry screen is unchanged.
+
+
 ## IBN results and an evolving no-break outlook
 
 A reviewed day that stayed inside the IB now shows **IBN** on its closing card.
