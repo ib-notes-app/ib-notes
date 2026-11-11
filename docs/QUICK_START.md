@@ -7,12 +7,15 @@ study. There is no live quote feed or included market history.
 
 ## Get oriented
 
-The instrument appears on the big pink **Record price** button. To change it,
+The instrument appears on the **Record price** button. To change it,
 open **⋯ → Instrument**. Use **⋯ → Time zone** for your preferred clock display.
 Each instrument keeps its own journal, prices and history.
 
 Use the arrows beside the date to browse sessions, or tap the date to open the
 calendar. **Current session** takes you back using your configured study hours.
+Current sessions use pink. Past and upcoming days use gray with a blue date
+button; the date label tells you the session state.
+
 ON, 15R, A, B and RTH are the period controls. Tapping one opens its range editor.
 On the current session, closing an earlier period returns you to the active
 period. Historical browsing keeps the period you selected.
@@ -26,6 +29,13 @@ period. Historical browsing keeps the period you selected.
 That's it. The sheet stays open so you can record another price without extra
 taps. **Cancel/Close** leaves the sheet; earlier successful saves stay saved.
 Choose **High** or **Low** to record the period extremes instead of CP.
+
+Use the **ON / 15R / A / B / RTH** chooser beside the heading to enter another
+period without leaving Record price. A completed period shows **Past prices**
+and its saved range, ready to correct. High/Low corrections use its closing
+boundary as the known-by time; a historical CP needs its actual observation time.
+After saving in a period you chose, or closing, the app returns to that day's
+current/default period. It keeps the date you were editing.
 
 After a CP save, **Last price entered and saved** stays visible below the
 four smaller buttons, even after closing/reopening or reloading. It changes
@@ -69,10 +79,11 @@ Tap a period button to add its high and low. 15R sits within A; A and B form the
 IB. Missing values stay missing. You can keep recording without pretending
 you observed the entire price path.
 
-When a period ends while the app is open, check its offered range and press
-**Confirm range**. The prompt waits until an open entry or other screen closes.
-Confirmed periods show **Saved · Closed · Confirmed**. Use **Edit confirmed
-range** to correct one; opening it alone changes nothing.
+After ON, 15R, A or B ends, a valid saved high and low close automatically.
+If you missed the boundary while the app was closed, it checks when you reopen.
+Missing or conflicting ranges stay yellow. Open the marked period and use its
+review button at the top to check and save the range. Completed periods show
+**Saved · Closed · Confirmed**; use the edit action to correct one later.
 
 The level cards around Record price use the selected day's latest recorded CP.
 A low can appear above CP if price has moved below it. A zone containing CP says

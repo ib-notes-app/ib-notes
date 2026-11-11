@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
-import {deriveCurrentIbCode,deriveRecordedRthRange,deriveSessionIbRead,deriveRecordedIbReturns,deriveIbRead,type RangeCheckpoint,type RangeCheckpointRevision} from '@ib-field-notes/domain';
+import {deriveCurrentIbCode,firstRecordedIbBreak,deriveRecordedRthRange,deriveSessionIbRead,deriveRecordedIbReturns,deriveIbRead,type RangeCheckpoint,type RangeCheckpointRevision} from '@ib-field-notes/domain';
 import {workspaceClock,workspaceRecordedRange,workspaceWindows} from './workspaceModel';
 import {recordedOnRange,ibForecastStory,onForecastStory,forecastStoryUpdates} from './forecastStory';
 import {deriveCompactShareFacts} from './sharePreview';
@@ -83,8 +83,9 @@ export function sessionImageFacts(scope:SessionShareScope,input:DashboardShareIn
   .filter(cp=>Date.parse(cp.observedAt)<=Date.parse(now)).sort((a,b)=>Date.parse(a.observedAt)-Date.parse(b.observedAt)).at(-1);
  const code=phase==='RTH'&&(selected.recap||selected.conditions||selected.structure)?deriveCurrentIbCode(s,current)??(facts.classification!=='In progress'?facts.classification:undefined):undefined;
  const empty=!finite(r.low)&&!finite(r.high)&&!latest;
+ const noBreak=phase==='RTH'&&!s.close.finishedAt&&(code==='IBN'||!code&&current?.phase==='LOCKED'&&firstRecordedIbBreak(current.read.ib)===null);
  const hero:SessionImageFacts['hero']=!empty&&(selected.recap||selected.conditions||selected.structure)
-  ?{value:code==='IBN'&&!s.close.finishedAt?'No IB break yet':code??phase,label:'',...(code?{code}:{})}:undefined;
+  ?noBreak?{value:'IB? -',code:'IB? -',inlineLabel:'NO IB BREAK YET',label:''}:{value:code??phase,label:'',...(code?{code}:{})}:undefined;
  const story=selected.forecast&&phase!=='ON'?ibForecastStory({session:s,now,current,outlook:input.read.outlook,updates:input.updates,ready:input.read.ready,phase,showTimes:input.showTimes,comparisons:input.read.comparisons}):null;
  let snapshot:SessionImageFacts['snapshot'];
  if(story?.asOf&&story.asOf!==now&&Date.parse(story.asOf)<Date.parse(now)){

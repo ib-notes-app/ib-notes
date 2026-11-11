@@ -130,9 +130,18 @@ known by the supplied time. High/Low entries do not replace your latest CP.
 
 ### Which period will my entry go into?
 
-Check the instrument, date and phase shown on the entry sheet. That is its
-target. The open sheet keeps its target when the clock moves into another
-period; it does not silently switch to RTH.
+Check the instrument, date and period on the entry sheet. Use the chooser
+beside the heading to switch between ON, 15R, A, B and RTH. Completed periods
+show their saved range for quicker High/Low corrections. After saving in a
+period you chose, or closing the sheet, it returns to that day's current/default
+period. An older date stays selected. The open sheet keeps its target if the
+clock alone moves into another period.
+
+### Why is the calendar button blue on some days?
+
+You are viewing a past or upcoming session. Both use gray surfaces and a blue
+date button; the label beside the date tells you its state. Current sessions
+keep pink. These colors do not change your entries.
 
 ### Why does the entry sheet stay open after Save?
 
@@ -148,7 +157,8 @@ exact moment the extreme occurred.
 
 ### How do I enter or correct a period's range?
 
-Tap its **ON / 15R / A / B / RTH** button to open the range editor. 15R belongs
+Use the period chooser in **Record price** for quick High/Low corrections,
+or tap its **ON / 15R / A / B / RTH** dashboard button for the full range editor. 15R belongs
 within A; A and B form the IB. Later prices do not silently rewrite locked
 earlier ranges. A confirmed period shows **Saved · Closed · Confirmed**; choose
 **Edit confirmed range** to correct it. See the [first-session guide](QUICK_START.md).
@@ -182,10 +192,11 @@ does not unfinalize it.
 
 ### Do I have to confirm every period for its levels to be saved?
 
-No. Price saves are immediate. Recorded ON/IB levels carry forward after their
-configured period ends without a separate completion step. Review day is one
-place to check and confirm the final measurements; sparse coverage stays unknown. The period-end prompt helps
-you review the range; dismissing it does not erase earlier successful saves.
+No. Price saves are immediate. Valid saved ON, 15R, A and B ranges close
+automatically after their configured end, including when you reopen after a
+missed prompt. Missing or conflicting ranges stay yellow; open the marked
+period and use the review button at the top. **Review day** remains the place
+to confirm the final daily measurements. Unrecorded movement stays unknown.
 
 ### Is a closing price required to track the Daily Low?
 

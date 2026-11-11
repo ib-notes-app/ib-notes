@@ -3,7 +3,7 @@ import {useEffect,useId,useRef,type ReactNode} from 'react';
 import {createPortal} from 'react-dom';
 
 /** Native modal semantics, outside any animated/transformed application ancestor. */
-export function WorkspaceDialog({title,children,onClose,busy=false,className='',dismissLabel='Close',headerAction,dismissAriaLabel,manageHistory=false,initialFocus}:{title:string;children:ReactNode;
+export function WorkspaceDialog({title,children,onClose,busy=false,className='',dismissLabel='Close',headerAction,dismissAriaLabel,manageHistory=false,initialFocus,dayTone}:{title:string;children:ReactNode;dayTone?:'current'|'past'|'upcoming';
  onClose:()=>void;busy?:boolean;className?:string;dismissLabel?:'Back'|'Close'|'Cancel'|'Cancel/Close'|'Back to Review day'|'Back to price entry'|'Back to period'|'Back to entries'|'Back to issues'|'Done';headerAction?:ReactNode;dismissAriaLabel?:string;manageHistory?:boolean;initialFocus?:string}){
  const dialog=useRef<HTMLDialogElement>(null);
  const historyId=useId(),closeRef=useRef(onClose);closeRef.current=onClose;
@@ -29,7 +29,7 @@ export function WorkspaceDialog({title,children,onClose,busy=false,className='',
     if(manageHistory)queueMicrotask(()=>{if(!node.open&&window.history.state?.ibWorkspaceDialog===historyId)window.history.back();});
   };
  },[]);
- return createPortal(<dialog ref={dialog} className={`workspace-sheet ${className}`} aria-label={title}
+ return createPortal(<dialog ref={dialog} className={`workspace-sheet ${className}`} aria-label={title} data-session-tone={dayTone}
   onCancel={e=>{e.preventDefault();dismiss();}}>
   <header><h2>{title}</h2>{headerAction}<button type="button" aria-label={dismissAriaLabel??(className.includes('calendar')?'Close calendar':`${dismissLabel} price entry`)} disabled={busy} onClick={dismiss}>{dismissLabel}</button></header>
   {children}

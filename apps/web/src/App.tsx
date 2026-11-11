@@ -8,6 +8,8 @@ import {WorkspaceRangeEditor,WorkspacePhaseRecords,WorkspaceEntryNoteEditor,type
 import {PHONE_TEST,phoneState,phoneStates} from './phoneTestMode';
 import {useWorkspaceNavigation} from './WorkspaceNavigation';
 import {periodMapRead} from './periodMapRead';
+import {workspaceDayTone} from './workspaceModel';
+import {workspaceAutoClosePeriods} from './workspacePeriodStatus';
 import {PeriodSummary} from './PeriodSummary';
 import {WorkspaceDashboard,WorkspaceLevelCache,WorkspacePriceSheet,useWorkspaceActivePhase,type WorkspaceDestination} from './WorkspaceDashboard';
 import {useWorkspaceLevels} from './useWorkspaceLevels';
@@ -3608,6 +3610,22 @@ export function App() {
   const [actionNotice,setActionNotice]=useState<{text:string;panel:SessionPanel;sessionId:string|null}|null>(null);
   const [fatalError, setFatalError] = useState<string | null>(null);
   const [readOnly, setReadOnly] = useState(false);
+  useEffect(()=>{
+    if(!workspacePreview||PHONE_TEST||!session||readOnly||workspaceDateLoading||workspaceSaving.current||!repositoryRef.current)return;
+    const now=Temporal.Now.instant().toString();
+    if(workspaceAutoClosePeriods(session,now)===session)return;
+    const repository=repositoryRef.current,target=session;workspaceSaving.current=true;
+    void (async()=>{
+      try{
+        await awaitForecastUpdateWrites();const current=await repository.getSession(target.id);
+        if(!current||current.createdAt!==target.createdAt||current.journalId!==target.journalId)return;
+        const next=workspaceAutoClosePeriods(current,Temporal.Now.instant().toString());if(next===current)return;
+        await repository.saveSession(next);
+        setSession(selected=>selected?.id===target.id&&selected.createdAt===target.createdAt?next:selected);
+      }catch{setWorkspaceNotice('A period range still needs review. Open its yellow indicator.');}
+      finally{workspaceSaving.current=false;}
+    })();
+  },[workspacePreview,session?.id,session?.updatedAt,catalogPhase,readOnly,workspaceDateLoading]);
   const [migrationProof, setMigrationProof] = useState<boolean | null>(null);
   const [updateReady, setUpdateReady] = useState(false);
   const [offlineReady, setOfflineReady] = useState(false);
@@ -4230,8 +4248,13 @@ export function App() {
     try{
       await awaitForecastUpdateWrites();
       const current=await repositoryRef.current.getSession(session.id)??session;
-      const next=applyWorkspaceEntry(current,entry,Temporal.Now.instant().toString());
-      await repositoryRef.current.saveSession(next);setSession(selected=>selected?.id===next.id?next:selected);
+      const now=Temporal.Now.instant().toString();
+      let next=applyWorkspaceEntry(current,entry,now);
+      if(entry.completedRangeEdit)next=withCompletedPeriodReview(next,now,workspaceClock(next,now).windows);
+      const dailyLow=entry.completedRangeEdit&&next.close.finishedAt?upsertFinishedSessionDailyLow(next,significantLevels.find(l=>l.id===dailyLowSignificantLevelId(next.id))??null,now,next.market.tickSize):null;
+      if(dailyLow){await repositoryRef.current.saveSignificantLevel(dailyLow,next);setSignificantLevels(levels=>levels.some(l=>l.id===dailyLow.id)?levels.map(l=>l.id===dailyLow.id?dailyLow:l):[...levels,dailyLow]);}
+      else await repositoryRef.current.saveSession(next);
+      setSession(selected=>selected?.id===next.id?next:selected);
       workspaceUndo.current={before:current,after:next};setWorkspaceUndoAvailable(true);setMessage('');
       setWorkspaceNotice(!entry.price.trim()?'Note saved.':`${entry.kind==='CP'?'Recorded CP':'Period '+entry.kind.toLowerCase()} saved · ${workspaceFormatPrice(Number(entry.price),current.market.tickSize)}`);
       return null;
@@ -5898,7 +5921,7 @@ export function App() {
       news={contextBatches} active={!PHONE_TEST&&(activePanel==='dashboard'||activePanel==='share'||workspacePreview&&activePanel==='workspace-forecast')} readOnly={PHONE_TEST||activePanel==='share'||workspacePreview&&!!session&&!sessionHasJournalData(session,significantLevels)}>
     <LevelQualityContext.Provider value={qualitySources}><LevelSupersessionContext.Provider value={levelSupersessions}>
     <EventMoveContext.Provider value={{entries:eventMoveHistory,onOpen:(sessionId,eventId)=>setEventMoveEditor({sessionId,eventId})}}>
-    <main className={`app-shell${activePanel === "rth" ? " quick-price-mode" : ""}${workspacePreview?" workspace-preview":""}`} data-workspace-home={workspacePreview&&activePanel==='dashboard'} data-workspace-origin={workspaceOrigin} data-workspace-panel={activePanel} aria-busy={switchingJournal}>
+    <main className={`app-shell${activePanel === "rth" ? " quick-price-mode" : ""}${workspacePreview?" workspace-preview":""}`} data-workspace-home={workspacePreview&&activePanel==='dashboard'} data-workspace-origin={workspaceOrigin} data-workspace-panel={activePanel} data-session-tone={session?workspaceDayTone(session,Temporal.Now.instant().toString()):undefined} aria-busy={switchingJournal}>
       {(!workspacePreview||activePanel!=='dashboard')&&<header className="topbar">
         {activePanel === "dashboard" ? <>
           <h1><span className="brand-ib">IB</span> Notes</h1>

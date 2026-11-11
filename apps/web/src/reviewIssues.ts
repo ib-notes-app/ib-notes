@@ -3,6 +3,7 @@ import {Temporal} from '@js-temporal/polyfill';
 import {dayReviewRanges,deriveSessionMissingFields,type JournalSession,type SessionMissingField} from '@ib-field-notes/domain';
 import {workspaceClock,type WorkspacePhase} from './workspaceModel';
 import {reviewTimelinePrices,type SessionTimelineItem} from './dayTimelineModel';
+import {workspacePeriodStatus} from './workspacePeriodStatus';
 
 export type ReviewOrigin='week'|'month'|'year';
 export type ReviewRepair={sessionId:string;target:'day'|WorkspacePhase;focus?:'high'|'low'|'open';origin:ReviewOrigin};
@@ -29,7 +30,10 @@ export function reviewIssues(session:JournalSession,now:string){
    focus:(recorded.high===null||invalid?'high':'low') as 'high'|'low',
    help:invalid?'High must be at or above low. Correct the saved period range.':'Add the actual period prices if known. Leave unknown values blank.'};
  });
- const complete=!clock.unavailable&&!!session.close.finishedAt&&missingFields.length===0;
+ const unconfirmed=hasPrices&&!clock.unavailable?(['ON','15R','A','B'] as const).filter(phase=>{
+  const status=workspacePeriodStatus(session,phase,now);return status.ended&&!status.confirmed&&!missing.some(row=>row.phase===phase);
+ }).map(phase=>({phase,label:`${phase==='B'?'B / IB':phase} range needs review`})) : [];
+ const complete=!clock.unavailable&&!!session.close.finishedAt&&missingFields.length===0&&unconfirmed.length===0;
  const needsReview=!clock.unavailable&&hasPrices&&clock.closed&&(!session.close.finishedAt||missingFields.length>0);
  const pendingFinalRange=needsReview&&missing.length===0;
  const availability:Array<{label:string;detail:string;target?:'day'|WorkspacePhase;focus?:'open'}>=[];
@@ -42,7 +46,7 @@ export function reviewIssues(session:JournalSession,now:string){
   }
   if(!session.cpObservations.length&&!session.rthObservations.length)availability.push({label:'No CP trail recorded',detail:'Highs and lows are sufficient for day completion. A timed price path and event sequence cannot be reconstructed from them.'});
  }
- return {sessionId:session.id,rthDate:session.rthDate,complete,needsReview,missing,availability,edgeAlerts,unusualPhases,pendingFinalRange,attention:needsReview||missing.length>0||unusualPhases.length>0,
+ return {sessionId:session.id,rthDate:session.rthDate,complete,needsReview,missing,unconfirmed,availability,edgeAlerts,unusualPhases,pendingFinalRange,attention:needsReview||missing.length>0||unconfirmed.length>0||unusualPhases.length>0,
   status:clock.unavailable?'No trading session':!hasPrices?'Notes / context only':complete?'Complete':clock.closed?'Needs review':'Session in progress'};
 }
 export type ReviewIssuesReport=ReturnType<typeof reviewIssues>;

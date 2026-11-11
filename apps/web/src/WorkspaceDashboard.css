@@ -69,6 +69,22 @@ main.workspace-preview[data-workspace-home="true"] { display:flex; flex-directio
 .workspace-record[data-finalized="true"] { background:#dca3c5; border-color:#e7b8d2; }
 .workspace-record:active { box-shadow:inset 0 2px 8px #38213626; }
 .workspace-record:disabled { color:#b7aaba; background:#362e3b; border-color:#6b5a70; opacity:1; }
+/* Date context stays separate from price direction, level tiers and action pink. */
+:is(.workspace-preview,.workspace-board,.workspace-sheet):is([data-session-tone="past"],[data-session-tone="upcoming"]) { --day-surface:#2b2f37; --day-edge:#7a818d; --day-label:#dde1e7; --day-action:#bdc3cc; --day-action-ink:#222730; }
+main.workspace-preview:is([data-session-tone="past"],[data-session-tone="upcoming"]) { background:linear-gradient(180deg,#22252c,transparent 420px); border-radius:18px; }
+.workspace-date-navigation .workspace-date { flex-wrap:wrap; column-gap:8px; row-gap:2px; }
+.workspace-day-state { padding:2px 6px; border-radius:5px; background:#392a38; color:#f1bdd7; font-size:.625rem; font-weight:650; line-height:1.4; }
+.workspace-board:is([data-session-tone="past"],[data-session-tone="upcoming"]) .workspace-date { background:#253e55; color:#deedfc; border-color:#7a9dbc; }
+.workspace-board:is([data-session-tone="past"],[data-session-tone="upcoming"]) .workspace-day-state { background:#ffffff0d; color:#deedfc; }
+.workspace-board:is([data-session-tone="past"],[data-session-tone="upcoming"]) .workspace-launch { background:#292d35; border-color:#7a818d; color:#e0e3e9; }
+.workspace-board:is([data-session-tone="past"],[data-session-tone="upcoming"]) .workspace-launch svg { color:#c5cbd4; }
+.workspace-board:is([data-session-tone="past"],[data-session-tone="upcoming"]) .workspace-phases button[aria-pressed="true"] { background:var(--day-surface); border-color:var(--day-edge); color:var(--day-label); }
+.workspace-board:is([data-session-tone="past"],[data-session-tone="upcoming"]) .workspace-record:not(:disabled) { background:var(--day-action); color:var(--day-action-ink); border-color:var(--day-edge); }
+.workspace-board:is([data-session-tone="past"],[data-session-tone="upcoming"]) :is(.workspace-record-code,.workspace-record-instrument) { border-color:var(--day-edge); }
+.workspace-sheet:is([data-session-tone="past"],[data-session-tone="upcoming"]) { border-color:var(--day-edge); }
+.workspace-sheet:is([data-session-tone="past"],[data-session-tone="upcoming"]) > header { background:var(--day-surface); border-bottom-color:var(--day-edge); }
+.workspace-sheet:is([data-session-tone="past"],[data-session-tone="upcoming"]) .workspace-sheet-target { color:var(--day-label); }
+.workspace-preview:is([data-session-tone="past"],[data-session-tone="upcoming"]) > .topbar { border-bottom-color:var(--day-edge); }
 .workspace-at { display:flex; flex-wrap:wrap; align-items:center; justify-content:center; min-width:0; }
 .workspace-at:empty { display:none; }
 .workspace-at button { min-height:44px; padding:4px 10px; border:0; background:transparent; color:#c3dcd5; font-size:.75rem; }
@@ -108,6 +124,9 @@ main.workspace-preview[data-workspace-home="true"] { display:flex; flex-directio
 .workspace-price-sheet[open] { display:flex; flex-direction:column; overflow:auto; }
 .workspace-price-sheet > header,.workspace-price-sheet > .workspace-sheet-target { flex-shrink:0; }
 .workspace-price-sheet > header h2 { margin-right:auto; min-width:0; }
+.workspace-sheet header .workspace-period-picker { position:relative; display:grid; place-items:center; flex:0 0 64px; min-height:44px; margin:0; border:1px solid #7a9cba; border-radius:10px; background:#283c50; color:#e1edf8; font-size:.9375rem; font-weight:700; }
+.workspace-sheet header .workspace-period-picker select { position:absolute; inset:0; width:100%; height:100%; padding:0; opacity:0; cursor:pointer; }
+.workspace-period-picker:focus-within { outline:2px solid #a4c5e4; outline-offset:2px; }
 .workspace-price-sheet > header { margin-bottom:4px; }
 .workspace-price-sheet > .workspace-sheet-target { margin-bottom:2px; }
 .workspace-record-target { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:2px 8px; }
@@ -150,6 +169,8 @@ main.workspace-preview[data-workspace-home="true"] { display:flex; flex-directio
  .workspace-sheet .workspace-time-control { grid-column:1/-1; grid-template-columns:auto auto; justify-content:center; gap:12px; min-height:44px; border-top:1px solid #3c4f62; }
 }
 .workspace-historical-entry { padding:8px 10px; color:#d5bfce; background:#302d3c; border-radius:10px; }
+.workspace-historical-entry:has(strong) { display:grid; gap:3px; background:#233242; border-left:3px solid #87b5dd; color:#d7e6f3; }
+.workspace-historical-entry small { color:#bdcddd; font-size:.75rem; line-height:1.4; }
 .workspace-entry-secondary { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px; }
 .workspace-entry-secondary[data-has-events="true"] { grid-template-columns:repeat(4,minmax(0,1fr)); gap:4px; }
 .workspace-entry-secondary > button { display:flex; align-items:center; justify-content:center; gap:6px; min-height:44px; padding:6px 10px; border:1px solid #53697f; border-radius:10px; background:#253342; color:#cbd9e6; font-size:.8125rem; font-weight:550; }
@@ -546,6 +567,7 @@ main.workspace-preview[data-workspace-home="true"] { display:flex; flex-directio
 .workspace-period-status { margin:12px 0; padding:10px 12px; border:1px solid #66758a; border-radius:10px; background:#26313e; color:#d5e1ed; font-size:.875rem; }
 .workspace-period-status[data-confirmed="true"] { border-color:#587a71; background:#233530; color:#c3e3d7; }
 .workspace-period-content .workspace-period-status { margin:0 0 10px; padding:5px 9px; font-size:.75rem; }
+.workspace-period-review-now { width:100%; min-height:44px; margin:0 0 10px; padding:8px 12px; border:1px solid #aa905d; border-radius:10px; background:#373126; color:#f1d49b; text-align:left; font-weight:650; }
 .period-summary { margin:0 0 12px; }
 .period-summary h3 { margin:0 0 8px; color:#f1a0c8; font-size:1rem; }
 .period-summary-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:7px; margin:0; }

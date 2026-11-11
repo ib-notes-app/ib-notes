@@ -49,6 +49,11 @@ export function workspaceClock(session:JournalSession,now:string){
 export function workspaceDefaultPhase(session:JournalSession,now:string):WorkspacePhase{
   const clock=workspaceClock(session,now);return clock.closed||clock.historical?'RTH':clock.phase??'ON';
 }
+/** Session-template time, rather than the device's civil date, owns day styling. */
+export function workspaceDayTone(session:JournalSession,now:string):'current'|'past'|'upcoming'{
+ const clock=workspaceClock(session,now);
+ return clock.upcoming?'upcoming':clock.closed||clock.historical?'past':'current';
+}
 export function workspaceCp(session:JournalSession,_phase:WorkspacePhase,now:string){
   const w=workspaceWindows(session),end=ms(w.RTH.end),start=ms(w.ON.start);
   return session.cpObservations.filter(cp=>ms(cp.observedAt)>=start&&ms(cp.observedAt)<=ms(now)&&ms(cp.observedAt)<=end&&
@@ -64,11 +69,18 @@ export function workspaceLastSavedCp(session:JournalSession){
     return Number.isFinite(at)&&at>=lastAt?cp:last;
   },null);
 }
-export type WorkspaceEntry={sessionId:string;journalId:string;rthDate:string;instrument:string;phase:WorkspacePhase;observedAt:string;kind:'CP'|'High'|'Low';price:string;note?:string;eventId?:string;editFinalized?:boolean};
+export type WorkspaceEntry={sessionId:string;journalId:string;rthDate:string;instrument:string;phase:WorkspacePhase;observedAt:string;kind:'CP'|'High'|'Low';price:string;note?:string;eventId?:string;editFinalized?:boolean;completedRangeEdit?:boolean};
 export function workspaceEntryTarget(session:JournalSession,phase:WorkspacePhase,now:string):WorkspaceEntry{
   const w=workspaceWindows(session)[phase],t=Math.max(ms(w.start),Math.min(ms(now),ms(w.end)-1000));
   return {sessionId:session.id,journalId:session.journalId,rthDate:session.rthDate,instrument:session.instrument,phase,
     observedAt:Temporal.Instant.fromEpochMilliseconds(t).toString(),kind:'CP',price:''};
+}
+/** A completed-period High/Low is a correction of the closing range, not a CP. */
+export function workspacePriceEntryTarget(session:JournalSession,phase:WorkspacePhase,now:string):WorkspaceEntry{
+  const entry=workspaceEntryTarget(session,phase,now),window=workspaceWindows(session)[phase];
+  if(ms(now)<ms(window.end))return entry;
+  const range=workspaceRecordedRange(session,phase);
+  return {...entry,kind:'High',observedAt:window.end,price:range.high===null?'':workspaceFormatPrice(range.high,session.market.tickSize)};
 }
 /** Automatic entry time follows the clock only within the frozen active target. */
 export function workspaceEntryNow(session:JournalSession,phase:WorkspacePhase,now:string):string|null{
@@ -157,6 +169,23 @@ export function applyWorkspaceEntry(session:JournalSession,entry:WorkspaceEntry,
   const addRangeNote=(next:JournalSession)=>note?withSessionNote(next,entry.phase==='ON'?'ON':entry.phase==='RTH'?'RTH':'IB',note,entry.observedAt,now,w.start,
     // Range-known-by times can equal their closing boundary; no exact extreme is inferred.
     Temporal.Instant.from(w.end).add({seconds:1}).toString(),{kind:'checkpoint',targetId:entry.phase==='ON'?'overnight':entry.phase==='15R'?'15r':entry.phase==='A'?'a-period':entry.phase==='B'?'b-period':'rth',...(event?{eventId:event.id}:{}),label:`${entry.phase} ${entry.kind} ${workspaceFormatPrice(price,session.market.tickSize)}`}):next;
+  if(entry.completedRangeEdit){
+    if(t!==ms(w.end)||ms(now)<ms(w.end))throw Error('A completed range edit must use this period’s closing time.');
+    const range=workspaceRecordedRange(session,entry.phase),update={high:high?price:range.high,low:high?range.low:price,cp:null,
+      note:entry.phase==='ON'?null:entry.phase==='RTH'?null:rangeFor(session,entry.phase).note};
+    if(update.high!==null&&update.low!==null&&update.high<update.low)throw Error('High must be at or above Low.');
+    const start=entry.phase==='A'?state.windows['15R'].start:w.start;
+    const known=session.cpObservations.filter(cp=>ms(cp.observedAt)>=ms(start)&&ms(cp.observedAt)<ms(w.end));
+    if(known.some(cp=>update.high!==null&&cp.price>update.high||update.low!==null&&cp.price<update.low))throw Error('The range must include recorded CPs. Use Entries to correct a mistaken price.');
+    const complete=update.high!==null&&update.low!==null;
+    if(entry.phase==='ON')return addRangeNote(withOvernightUpdate(session,{...update,rthOpen:session.overnight.rthOpen,confirm:complete},now));
+    if(entry.phase==='RTH'){
+      if(!complete)throw Error('Record both IB edges first, or enter the full RTH range in Review day.');
+      return addRangeNote(withRthRangeCorrection(session,update.high!,update.low!,now,w.end));
+    }
+    const save=entry.phase==='15R'?withFifteenMinuteRange:entry.phase==='A'?withAPeriodUpdate:withBPeriodUpdate;
+    return addRangeNote(save(session,update,w.end,now,complete,true));
+  }
   const laterPrice=session.cpObservations.some(cp=>ms(cp.observedAt)>t&&ms(cp.observedAt)<ms(w.end)&&ms(cp.observedAt)>=ms(w.start));
   const laterRange=entry.phase==='ON'?session.preOpenSnapshots.some(r=>ms(r.recordedAt)>t)||session.overnight.status==='confirmed'&&t<ms(w.end):
     entry.phase==='RTH'?(session.rthRangeHistory??[]).some(r=>ms(r.observedAt??r.recordedAt)>t):

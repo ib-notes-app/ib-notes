@@ -1,5 +1,25 @@
 # What's new
 
+## November 11: quicker range corrections and clearer session status
+
+**Record price** now has an **ON / 15R / A / B / RTH** chooser beside its heading.
+Choose an earlier period to see its saved range and correct High or Low from
+one place. After saving or closing, recording returns to the selected day's
+current/default period. Editing an older day keeps you on that day.
+
+Current sessions keep the familiar pink theme. Past and upcoming days share
+gray surfaces and a blue calendar button, with a label beside the date to tell
+you which day you are viewing.
+
+Valid saved ON, 15R, A and B ranges now close automatically after their end,
+including when you reopen the app after missing a prompt. Missing or conflicting
+ranges stay yellow. Open the marked period and use the review button at the top
+to fix it. **Review day** remains the place to check the final daily range.
+
+A live IB with no recorded break now uses a large **IB? -** with smaller
+**NO IB BREAK YET** beside it on image cards, matching the other outcome headers.
+This is a live status; a reviewed final day with neither edge broken shows IBN.
+
 ## Shared break counts follow your current entries
 
 RTH and Full session image cards now count High and Low breaks from the same
@@ -148,10 +168,11 @@ figures remain available when relevant; event notes remain private unless select
 
 ## Check a period when it ends
 
-At a configured period end, the app offers its recorded high and low for
-confirmation. It waits while an entry or another screen is open. Once confirmed,
-the period shows **Saved · Closed · Confirmed** and has an explicit correction
-action. Missing prices stay missing; the clock does not invent a range.
+After a configured ON, 15R, A or B end, valid saved ranges close automatically.
+The app checks when open and when you return after a missed boundary. Missing
+or conflicting ranges stay yellow, with a review button at the top of the period
+screen. Completed periods show **Saved · Closed · Confirmed** and keep an explicit
+correction action. The clock does not invent missing prices.
 
 Closing an earlier period on the current session returns to the active period.
 Historical browsing keeps your selected period. Your journal records, original

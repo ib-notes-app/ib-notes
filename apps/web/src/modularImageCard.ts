@@ -18,7 +18,7 @@ export type ImageModule=
  |{kind:'comparison';id:string;highlight:ImageHighlight}
  |{kind:'empty';id:string;title:string;message:string}
  |{kind:'drawing';id:string;title:string;svg:string;height:number;styles?:string};
-export type ModularImageInput={title:string;subtitle:string;instrument?:string;meta?:string;compactHeader?:boolean;hero?:{value:string;label:string;code?:string;status?:string};
+export type ModularImageInput={title:string;subtitle:string;instrument?:string;meta?:string;compactHeader?:boolean;hero?:{value:string;label:string;code?:string;status?:string;inlineLabel?:string};
  modules:ImageModule[];highlights?:ImageHighlight[];notices?:string[];experimental?:boolean;altText:string;caption?:string};
 export type ResolvedImageLayout={width:number;height:number;overflow:boolean;remainingHeight:number;
  blocks:{id:string;kind:string;y:number;height:number;svg:string}[]};
@@ -124,6 +124,7 @@ export function renderModularImageCard(input:ModularImageInput):ImageCardResult{
  const footerTop=layout.height-(112+footerLines.length*28),subtitle=lines(input.subtitle,innerWidth-instrumentWidth(input),28);
  const secondaryCode=h?.code&&h.code!==h.value&&h.value!=='No IB break yet'?h.code:undefined;
  const heroSize=h?Math.min(secondaryCode?94:144,(secondaryCode?450:936)/Math.max(1,shareTextWidth(h.value,1,true))):0;
+ const inlineX=h?.inlineLabel?p.margin+shareTextWidth(h.value,heroSize,true)+28:0;
  const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="${layout.height}" viewBox="0 0 1080 ${layout.height}" data-image-system="modular-v1">
   <defs><linearGradient id="banner-shade"><stop stop-color="#101014" stop-opacity=".15"/><stop offset="1" stop-color="#101014" stop-opacity=".3"/></linearGradient><clipPath id="banner-clip"><rect width="1080" height="${bannerHeight}"/></clipPath></defs>
   <style>
@@ -144,6 +145,7 @@ export function renderModularImageCard(input:ModularImageInput):ImageCardResult{
   ${input.instrument?`<text x="48" y="121" class="header-instrument" style="font-size:${Math.min(44,400/Math.max(1,shareTextWidth(input.instrument,1,true)))}px">${xml(input.instrument)}</text>`:''}
   ${subtitle.map((s,i)=>text(s,p.margin+instrumentWidth(input),118+i*33,'meta')).join('')}
   ${h?`<g data-image-hero="true" transform="translate(0 ${extra})"><text x="${p.margin}" y="${secondaryCode?220:h.label?242:264}" class="${h.code===h.value?'hero-number outcome-code':'hero-number'}" style="font-size:${heroSize}px">${xml(h.value)}</text>${h.label?text(h.label,p.margin,276,'hero-label'):''}
+   ${h.inlineLabel?`<text x="${inlineX}" y="225" class="hero-label" data-outcome-status="true" style="font-size:${Math.min(32,(p.width-p.margin-inlineX)/Math.max(1,shareTextWidth(h.inlineLabel,1,true)))}px">${xml(h.inlineLabel)}</text>`:''}
    ${secondaryCode?`${text(h.status??'',654,164,'outcome-label')}<text x="654" y="244" class="outcome-code" style="font-size:${Math.min(62,362/Math.max(1,shareTextWidth(secondaryCode,1,true)))}px">${xml(secondaryCode)}</text>`:''}</g>`:''}
   ${input.meta?text(input.meta,p.margin,(h?318:148)+extra,'hero-label'):''}
   </g>

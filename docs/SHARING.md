@@ -75,6 +75,10 @@ timestamp: another price or a later snapshot can legitimately change the estimat
 Before an edge breaks, the four outcomes include Neither. First-break odds stay
 in the optional details so they do not look like a second step in a prediction.
 
+Before a recorded break, a live locked IB shows **IB? -** with smaller
+**NO IB BREAK YET** beside it. This is a live status, not a confirmed final IBN.
+A saved valid IB no longer needs an extra confirmation just to get its heading.
+
 After you review the final daily range, a day with neither edge broken shows
 **IBN** in its heading. You do not need a separate path-complete confirmation.
 Missing final ranges still leave the result unknown.
