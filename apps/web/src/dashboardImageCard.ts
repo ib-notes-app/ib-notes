@@ -70,7 +70,7 @@ export function buildDashboardImageCard(session:JournalSession,card:DashboardSha
   const unavailable=visibleSections.find(section=>/forecast recap|outlook/i.test(section.title));
   if(unavailable){
    const target=unavailable.rows.find(row=>row.label!=='Recorded so far'&&row.label!=='Returns inside IB');
-   modules.push({kind:'forecast',id:'forecast',focus:{label:target?.label??`${card.stage??'Session'} forecast`,value:target?.value??'Unavailable',detail:[target?.detail,card.comparisonUnavailable].filter(Boolean).join(' · ')},
+   modules.push({kind:'forecast',id:'forecast',focus:{label:target?.label??`${card.stage??'Session'} forecast`,value:target?.value??'Unavailable',detail:[target?.detail,unavailable.title==='Forecast recap'?card.comparisonUnavailable:undefined].filter(Boolean).join(' · ')},
     graphic:{support:unavailable.rows.filter(row=>row!==target&&row.label!=='Recorded so far'&&row.label!=='Returns inside IB')}});
   }
  }

@@ -1,5 +1,16 @@
 # What's new
 
+## November 12: live forecasts are ready before image export
+
+When Forecast is selected, sharing now waits for the current estimate to finish
+preparing, including days without an earlier saved forecast. This prevents an
+image from showing Unavailable just because the calculation was still loading.
+You can turn Forecast off to share the other selected details immediately.
+
+Live forecast panels no longer show the unrelated **Available after Finish day**
+message. You do not need to finish the day to share a live estimate. Forecasts
+still need compatible learning history; missing history is never treated as 0%.
+
 ## November 11: quicker range corrections and clearer session status
 
 **Record price** now has an **ON / 15R / A / B / RTH** chooser beside its heading.

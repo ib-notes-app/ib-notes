@@ -7554,8 +7554,8 @@ function SharePreview({
   const comparisonUnavailable=snapshot.loading?'Reading saved forecasts…':selectedCard.comparisonUnavailable;
   const preparing=imageSections.forecast&&(snapshot.loading||
     (container==='on'&&imageSections.forecast&&snapshot.overnight.loading)||
-    (container==='ib'&&imageSections.forecast&&!session.close.finishedAt&&!!session.forecast&&
-      forecastSources.historical.length>0&&!!snapshot.read.current&&!snapshot.read.ready&&!snapshot.read.historyError));
+    (container==='ib'&&!projection.ended&&!session.close.finishedAt&&
+      forecastSources.historical.length>0&&!!snapshot.read.current?.width&&!snapshot.read.ready&&!snapshot.read.historyError));
   const mapFacts=useMemo(()=>deriveCompactShareFacts(shareSession,shareSession.market.tickSize,showTimes),[shareSession,showTimes]);
   // Candidate choices use exactly the same renderer as the downloaded card:
   // capacity follows readable rows and wrapping, rather than an arbitrary count.

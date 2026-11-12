@@ -232,6 +232,13 @@ entries, recaps and statistics. See [Read the dashboard](READING_THE_DASHBOARD.m
 missing; it is not 0%. **Partial** identifies incomplete inputs. The public
 app starts without a historical probability library.
 
+### Why is Download PNG waiting when I include Forecast?
+
+The app is preparing the selected period's estimate. Download becomes available
+when it is ready, even if no earlier forecast was saved. Turn Forecast off to
+share the other selected details immediately. A live estimate does not require
+Finish day or another confirmation of an already completed period.
+
 ### Will recording prices or importing any CSV unlock every forecast?
 
 No. Recording builds your journal; historical odds need suitable learning
