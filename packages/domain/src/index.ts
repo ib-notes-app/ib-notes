@@ -2465,6 +2465,7 @@ export function withStandaloneCpObservation(
   observedAt: string,
   recordedAt: string,
   formingOvernightEndsAt: string,
+  options:{includeConfirmedFormation?:boolean}={},
 ): JournalSession {
   if (!Number.isFinite(price)) throw new Error("Enter a valid current price.");
   price = roundPriceToTick(price, session.market.tickSize);
@@ -2475,7 +2476,7 @@ export function withStandaloneCpObservation(
     timePrecision: "exact",
     source: "standalone",
     recordedAt,
-    formingPeriods: formingPricePeriods(session, observedAt),
+    formingPeriods: formingPricePeriods(session, observedAt,options.includeConfirmedFormation),
   };
   const latestForming = latestPreOpenSnapshot(session);
   const canExtendFormingOvernight =
@@ -4464,8 +4465,8 @@ export type { MarketMemory, MarketMemoryLibrary, PackedMarketMemoryLibrary, Reco
 export { describeAuctionFlow, deriveSessionAuctionRead, deriveRecentAuctionRead, completedAuctionRangeFromPriceDay } from './auctionRead';
 export type { AuctionRead, AuctionState, RecentAuctionRead, CompletedAuctionRange } from './auctionRead';
 
-export {dayReviewRanges,withFinalDayReview,withCompletedPeriodReview} from './finalDayReview';
-export type {ReviewPeriod,DayReviewInput,DayReviewWindows} from './finalDayReview';
+export {dayReviewRanges,dayReviewIssues,withFinalDayReview,withCompletedPeriodReview} from './finalDayReview';
+export type {ReviewPeriod,DayReviewInput,DayReviewWindows,DayReviewIssue} from './finalDayReview';
 export {futuresContractReference,isPriorFuturesContract,levelSourceContract,levelContractReference,levelReferenceApplies} from './contractReferences';
 export {deriveRangeComparisons,compatiblePriorRangeSessions} from './rangeComparisons';
 export type {RangeComparison} from './rangeComparisons';

@@ -1,30 +1,32 @@
 {
-  "buildId": "public-blank-20261112T164616507Z",
+  "buildId": "public-blank-20261116T214946290Z",
   "distribution": "public-blank",
-  "status": "Early public version; image sharing waits for live forecast preparation.",
+  "status": "Early public version; end-of-day repairs are listed together in Review day.",
   "appUrl": "https://ib-notes-app.github.io/ib-notes/",
   "archive": "downloads/IB-Notes-blank-slate.zip",
-  "archiveBytes": 7830539,
-  "archiveSha256": "dd1e23643dde0b9506ce733eb9167720b31e774122d3480750c1917b3ef395d6",
+  "archiveBytes": 7834735,
+  "archiveSha256": "5498ae4718dfe21391b750ab843ac68555da10b1da83adbc844f0fd27c9b1ac4",
   "bundledMarketHistory": false,
   "bundledJournalRecords": false,
   "bundledExamples": false,
   "automaticNewsLookup": false,
   "historicalForecasts": "Unavailable without suitable user-supplied learning history.",
   "dataStorage": "Local SQLite in the browser; no journal synchronization.",
-  "preparedAt": "2026-11-12",
+  "preparedAt": "2026-11-16",
   "changes": [
-    "Image sharing waits for live forecast preparation even without an original checkpoint forecast.",
-    "Turn Forecast off to share the other selected content while it prepares.",
-    "Live forecast panels no longer borrow the Finish day message from result comparisons. No market data is included."
+    "Review day proposes ranges including recorded late entries and identifies their prices and times.",
+    "Missing or conflicting values are listed together; tap a problem to focus its highlighted field.",
+    "One confirmation saves reviewed periods and updates derived levels and the Daily Low.",
+    "Backdated CP entry updates its observed period after closure. No market data is included."
   ],
   "verification": {
     "cleanPublicSourceBuild": "Passed",
-    "approvedPhoneFocusedTests": 42,
-    "approvedPhoneShareBrowserChecks": 1,
+    "approvedPhoneFocusedTests": 67,
+    "approvedPhoneClosingBrowserChecks": 1,
     "approvedPhoneSafeUpdateChecks": 2,
     "publicPackageBrowserChecks": 1,
     "sourceAndDownloadsAudit": "Passed",
+    "legacyNavigationChecks": "Two older automated journeys remain blocked by their handling of the existing period-end popup.",
     "livePublicOrigin": "Verification retained in local release record after deployment.",
     "physicalPublicOriginInstall": "Pending"
   }

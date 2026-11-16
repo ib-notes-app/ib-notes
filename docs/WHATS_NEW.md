@@ -1,5 +1,20 @@
 # What's new
 
+## November 16: fix the day in one review
+
+**Review day** brings recorded prices into the proposed period ranges, including
+prices entered just after a period ended. A short notice identifies the price,
+time and range affected. Opening the review does not itself save these changes.
+
+Missing measurements, invalid price increments and conflicting ranges are listed
+together. Tap an item to focus its highlighted field. Check the numbers and press
+**Confirm day** once to save the reviewed periods and update their derived levels
+and Daily Low. The closing price stays optional; the last CP never becomes a close.
+
+Backdated CP entries in Record price now update the period they belong to by their
+observation time, even if that period had already closed. Existing observation
+times and original forecasts are preserved.
+
 ## November 12: live forecasts are ready before image export
 
 When Forecast is selected, sharing now waits for the current estimate to finish

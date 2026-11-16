@@ -160,7 +160,8 @@ exact moment the extreme occurred.
 Use the period chooser in **Record price** for quick High/Low corrections,
 or tap its **ON / 15R / A / B / RTH** dashboard button for the full range editor. 15R belongs
 within A; A and B form the IB. Later prices do not silently rewrite locked
-earlier ranges. A confirmed period shows **Saved · Closed · Confirmed**; choose
+earlier ranges. A backdated CP updates the period of its observation time,
+even when saved after that period ended. A confirmed period shows **Saved · Closed · Confirmed**; choose
 **Edit confirmed range** to correct it. See the [first-session guide](QUICK_START.md).
 
 ### Do I have to record every price or complete every field?
@@ -189,6 +190,18 @@ Open **Review day**, check period and daily highs/lows, add Day Notes and press
 **Confirm day** once. The closing price is optional and is never guessed from
 the last CP. Finalized entries use explicit editing safeguards; opening a day
 does not unfinalize it.
+
+### The day will not close. Where do I find what needs fixing?
+
+Open **Review day**. It lists missing measurements and conflicting values,
+including the exact recorded price and time when a range excludes an entry.
+Tap a listed item to focus its highlighted input. Recorded prices entered after
+a period ended are included in the proposed range, with a notice to check them.
+
+Correct the values on this screen and press **Confirm day** once. This saves the
+reviewed periods and updates derived levels and the Daily Low. If a recorded
+price itself is wrong, use **View entries** to find it by the price and time shown.
+Unknown measurements stay listed; missing data is never treated as zero.
 
 ### Do I have to confirm every period for its levels to be saved?
 

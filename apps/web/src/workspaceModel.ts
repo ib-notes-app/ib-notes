@@ -154,7 +154,9 @@ export function applyWorkspaceEntry(session:JournalSession,entry:WorkspaceEntry,
     const lock=state.windows.RTH.start;
     const postIb=t>=ms(lock)+1000;
     let next=postIb?withRthObservation(session,{price,note:note||null},entry.observedAt,now,lock,state.windows.RTH.end):
-      withStandaloneCpObservation(session,price,entry.observedAt,now,state.windows.ON.end);
+      withStandaloneCpObservation(session,price,entry.observedAt,now,state.windows.ON.end,{includeConfirmedFormation:true});
+    if(entry.phase==='ON'&&session.overnight.status==='confirmed')next=withOvernightUpdate(next,{
+      high:Math.max(session.overnight.high??price,price),low:Math.min(session.overnight.low??price,price),rthOpen:session.overnight.rthOpen,confirm:true},now);
     if(entry.phase==='ON'&&!session.preOpenSnapshots.length&&session.overnight.status!=='confirmed'){
       next=withPreOpenUpdate(next,{contractStatus:session.contractStatus,contract:session.contract,
         formingOvernightHigh:price,formingOvernightLow:price,cp:null,note:null},entry.observedAt,now,true);

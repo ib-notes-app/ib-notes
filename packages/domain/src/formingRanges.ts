@@ -18,7 +18,7 @@ function union(...ranges: Edges[]): Edges {
 }
 
 /** Instrument clock, including studies whose checkpoints cross midnight. */
-export function formingPricePeriods(session: JournalSession, observedAt: string): FormingPeriod[] {
+export function formingPricePeriods(session: JournalSession, observedAt: string,includeConfirmed=false): FormingPeriod[] {
   const { canonicalTimeZone: timeZone, checkpoints: c } = session.market;
   const openTime = Temporal.PlainTime.from(c.overnightLock);
   const at = (clock: string) => {
@@ -29,7 +29,7 @@ export function formingPricePeriods(session: JournalSession, observedAt: string)
   const t = ms(observedAt);
   if (t < at(c.overnightLock) || t >= at(c.ibLock)) return [];
   const period: FormingPeriod = t < at(c.fifteenMinuteLock) ? '15R' : t < at(c.aLock) ? 'A' : 'B';
-  return session[keys[period]].status === 'confirmed' ? [] : [period];
+  return !includeConfirmed&&session[keys[period]].status === 'confirmed' ? [] : [period];
 }
 
 /** Unchanged prefilled edges retain their provenance rather than becoming independent manual facts. */
