@@ -2,17 +2,18 @@
 
 [Open IB Notes](https://ib-notes-app.github.io/ib-notes/) · [What changed](WHATS_NEW.md)
 
-This update brings end-of-day repairs into **Review day**. It identifies the
-field, recorded price and time behind a conflict, highlights the input and saves
-the reviewed periods together. Backdated prices update their intended periods.
-Original forecast snapshots and observation times are preserved.
+This update makes overnight entries choose their matching date automatically.
+In **Record price → ON**, changing the clock selects the date within that
+session's overnight window. It covers CP, High, Low and note clocks, including
+older sessions. Invalid ON times name the window to use. Existing entries,
+study hours and the return-to-now behavior after CP save are preserved.
 
-The owner accepted the phone version before this public release. The clean
-public source build passed. The focused closing/save/reload journey and safe
-update checks passed; two older automated navigation journeys remain blocked
-by their handling of the existing period-end popup. Public packaging checks are recorded in
-[release-info.json](../release-info.json). Estimates remain experimental;
-automated checks do not establish calibrated prediction accuracy.
+The owner approved the private update and this public release. The isolated
+public source build and the phone-sized ON entry/save/reload check passed.
+Fifty-four focused checks and two update/offline journeys passed during private
+verification. Physical public-device validation remains pending. Earlier
+popup-dependent navigation limitations remain disclosed in
+[release-info.json](../release-info.json); they were not rerun for this date fix.
 
 This app includes no market history, CSVs, packs, journals, backups, examples
 or data-bearing screenshots. Your own permitted data stays on your device.

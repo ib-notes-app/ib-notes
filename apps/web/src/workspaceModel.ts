@@ -139,7 +139,13 @@ export function applyWorkspaceEntry(session:JournalSession,entry:WorkspaceEntry,
   if(state.unavailable)throw Error('This date is marked closed. Use Context or Review to correct the session calendar.');
   // A range can be known by its closing boundary, as in the existing period
   // editor. A CP at that instant belongs to the following phase instead.
-  if(t<ms(w.start)||t>ms(w.end)||(entry.kind==='CP'&&t===ms(w.end)))throw Error('This time is outside the selected phase. Change the phase or observation time.');
+  if(t<ms(w.start)||t>ms(w.end)||(entry.kind==='CP'&&t===ms(w.end))){
+    if(entry.phase==='ON'){
+      const stamp=(at:string)=>new Intl.DateTimeFormat('en-US',{timeZone:session.displayTimeZone,month:'short',day:'numeric',hour:'numeric',minute:'2-digit',timeZoneName:'short'}).format(new Date(at));
+      throw Error(`ON for ${session.rthDate} runs from ${stamp(w.start)} to ${stamp(w.end)}. Choose a time within that overnight window.`);
+    }
+    throw Error('This time is outside the selected phase. Change the phase or observation time.');
+  }
   if(t>ms(now))throw Error('An observation cannot be in the future.');
   const note=entry.note?.trim()??'';
   const event=entry.eventId?session.marketContextItems.find(i=>i.id===entry.eventId&&!i.holiday):null;

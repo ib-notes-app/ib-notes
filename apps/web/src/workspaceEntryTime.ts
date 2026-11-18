@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 import {Temporal} from '@js-temporal/polyfill';
+import {createSessionClock} from '@ib-field-notes/session-templates';
+import type {JournalSession} from '@ib-field-notes/domain';
 
 export function workspaceEntryTimeFields(at:string,zone:string){
  const local=Temporal.Instant.from(at).toZonedDateTimeISO(zone);
@@ -25,4 +27,16 @@ export function workspaceEntryTimeInstant(date:string,time:string,zone:string){
  let day:Temporal.PlainDate;
  try{day=Temporal.PlainDate.from(date);}catch{throw Error('Enter a valid observation date.');}
  return day.toPlainDateTime(entryClock(time)).toZonedDateTime(zone,{disambiguation:'reject'}).toInstant().toString();
+}
+
+/** A clock entered for ON belongs to its configured session window, not today. */
+export function workspaceOvernightEntryDate(session:Pick<JournalSession,'market'|'rthDate'|'displayTimeZone'>,time:string):string|null{
+ if(!time.trim())return null;
+ const clock=createSessionClock(session.market),zone=session.displayTimeZone;
+ const candidate=clock.sessionObservationInstant(session.rthDate,entryClock(time).toString(),zone);
+ const date=workspaceEntryTimeFields(candidate.toString(),zone).date;
+ // Retain strict DST validation; never normalize a missing/repeated clock time.
+ const exact=Temporal.Instant.from(workspaceEntryTimeInstant(date,time,zone));
+ const start=clock.overnightStart(session.rthDate),end=clock.checkpointInstant(session.rthDate,session.market.checkpoints.overnightLock);
+ return Temporal.Instant.compare(exact,start)>=0&&Temporal.Instant.compare(exact,end)<=0?date:null;
 }

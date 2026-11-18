@@ -1,5 +1,15 @@
 # What's new
 
+## November 18: overnight entries choose their date
+
+In **Record price → ON**, set the clock and enter the price. Evening times
+automatically use the previous date; times after midnight use the session
+date. This works for CP, High, Low and note clocks, including older sessions,
+and follows your journal's study hours and display time zone.
+
+If a time falls outside ON, the message gives you the overnight window to use.
+A saved CP still returns the clock to now. Your existing entries stay intact.
+
 ## November 16: fix the day in one review
 
 **Review day** brings recorded prices into the proposed period ranges, including

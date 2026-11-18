@@ -14,7 +14,7 @@ import {WorkspaceCalendar} from './WorkspaceCalendar';
 import {currentSessionIbCode} from './IbCodeBadge';
 import {workspaceAdjacentDate} from './workspaceModel';
 import {DayReviewButton} from './FinalDayReview';
-import {workspaceEntryTimeFields,workspaceEntryTimeInstant,workspaceEntryClockText,workspaceEntryClockValue,workspaceEntryClockDisplay} from './workspaceEntryTime';
+import {workspaceEntryTimeFields,workspaceEntryTimeInstant,workspaceEntryClockText,workspaceEntryClockValue,workspaceEntryClockDisplay,workspaceOvernightEntryDate} from './workspaceEntryTime';
 import type {WorkspaceRecordControls,WorkspaceRecordSelection} from './WorkspacePeriod';
 import './WorkspaceDashboard.css';
 import {workspacePeriodStatus,workspaceEndedPeriods} from './workspacePeriodStatus';
@@ -268,6 +268,12 @@ export function WorkspacePriceSheet({session,initial,onSave,onClose,onContinueCu
   const openEvents=()=>{window.history.pushState({...window.history.state,ibPriceEvents:reviewHistoryId},'',window.location.href);setView('events');};
   const backFromEvents=()=>{if(window.history.state?.ibPriceEvents===reviewHistoryId)window.history.back();else setView('price');};
   let observationAt:string|null=null;try{observationAt=workspaceEntryTimeInstant(dateText,timeText,session.displayTimeZone);}catch{}
+  const changeObservationTime=(time:string)=>{
+    timeWasEdited.current=true;setTimeText(time);setError(null);setSaved(null);
+    if(entry.phase==='ON'&&time)try{
+      const date=workspaceOvernightEntryDate(session,time);if(date)setDateText(date);
+    }catch(cause){setError(cause instanceof Error?cause.message:'Choose a valid overnight time.');}
+  };
   const title=guarded?'Edit price':view==='events'?'Events':view==='share'?'Share session':view==='note'?'Add note':view==='price'?historical?'Past prices':'Record price':view==='period'?'Edit period':recordSelection?(recordSelection.canEdit?(recordSelection.kind==='note'?'Edit note':'Edit price'):'Entry details'):'View entries';
   const openNote=()=>{
     noteClockWasManual.current=timeWasEdited.current;
@@ -344,7 +350,7 @@ export function WorkspacePriceSheet({session,initial,onSave,onClose,onContinueCu
     view==='events'?<div className="workspace-events-content">{renderEvents?.(session,setBusy,undo=>{eventUndo.current=undo;setSaved('Event saved.');backFromEvents();})}</div>:
     view==='share'?<div className="workspace-phase-share-content">{renderShare?.(initial.phase)}</div>:
     view==='review'?<div className="workspace-phase-records">{renderReview?.(entry.phase,true,editingFinalized,{selection:recordSelection,onSelect:selectRecord,onSaved:correctionSaved,formId:correctionFormId,onBusy:setBusy})}</div>:
-    view==='note'?<WorkspaceNoteComposer events={session.marketContextItems.filter(i=>!i.holiday)} eventId={entry.eventId} onEventChange={eventId=>setEntry(old=>({...old,eventId:eventId||undefined}))} formId={noteFormId} value={entry.note??''} onChange={note=>{setEntry(old=>({...old,note}));setError(null);setSaved(null);}} onSubmit={saveEntry} busy={busy} error={error} priceLabel={entry.price.trim()?`${entry.kind} · ${entry.price}`:undefined} time={timeText} onTimeChange={time=>{noteClockWasManual.current=true;timeWasEdited.current=true;setTimeText(time);setError(null);}}/>:
+    view==='note'?<WorkspaceNoteComposer events={session.marketContextItems.filter(i=>!i.holiday)} eventId={entry.eventId} onEventChange={eventId=>setEntry(old=>({...old,eventId:eventId||undefined}))} formId={noteFormId} value={entry.note??''} onChange={note=>{setEntry(old=>({...old,note}));setError(null);setSaved(null);}} onSubmit={saveEntry} busy={busy} error={error} priceLabel={entry.price.trim()?`${entry.kind} · ${entry.price}`:undefined} time={timeText} onTimeChange={time=>{noteClockWasManual.current=true;changeObservationTime(time);}}/>:
     view==='period'?null:
     <form id={formId} className="workspace-price-form" onSubmit={e=>{e.preventDefault();void saveEntry();}}>
       <div className="workspace-price-core">
@@ -360,7 +366,7 @@ export function WorkspacePriceSheet({session,initial,onSave,onClose,onContinueCu
           onFocus={()=>setEditingStamp(true)} onBlur={()=>setEditingStamp(false)}
           onClick={e=>{try{e.currentTarget.showPicker?.();}catch{e.currentTarget.focus();}}}
           onKeyDown={e=>{if(e.key==='Enter'){e.preventDefault();input.current?.focus({preventScroll:true});}}}
-          onChange={e=>{timeWasEdited.current=true;setTimeText(workspaceEntryClockText(e.target.value));setError(null);setSaved(null);}}/>
+          onChange={e=>changeObservationTime(workspaceEntryClockText(e.target.value))}/>
       </label>
       </div>
       <div className="workspace-kind" role="group" aria-label="Observation kind">{(['High','CP','Low'] as const).map(kind=><button type="button" key={kind} disabled={busy} aria-pressed={entry.kind===kind} onClick={()=>selectKind(kind)}>{kind}</button>)}</div>

@@ -119,8 +119,16 @@ and does not prove a touch was recorded.
 
 Yes. In **Record price**, set the earlier date and time, choose **High** or
 **Low**, enter the price and save. It works in every period and keeps later
-prices and the latest CP. For overnight entries, check the date as well as the
-time when the observation was before midnight.
+prices and the latest CP. For ON, choosing the clock automatically selects
+its date within that overnight session, including the previous evening.
+
+### Do I need to change the date for an overnight entry?
+
+In **Record price → ON**, just choose the time. For a November 18 Pacific
+session, 3:10 PM uses November 17 and 12:05 AM uses November 18. This works
+for CP, High, Low and a note's clock, including when filling in an older
+session. It follows your journal's study hours and display time zone.
+The date stays visible. Saving CP returns the clock to now for a current session.
 
 
 ### What do High, CP and Low mean?
@@ -151,9 +159,10 @@ earlier saves.
 
 ### Can I adjust the time or enter a historical price?
 
-Yes. Tap the time on the right of the price field and check the date and phase. Historical entries need
-a valid historical time. For High/Low, the **known by** time does not claim the
-exact moment the extreme occurred.
+Yes. Tap the time on the right of the price field and check the period. ON
+chooses the matching overnight date automatically; for other periods, check
+the date too. Historical entries need a valid historical time. For High/Low,
+the **known by** time does not claim the exact moment the extreme occurred.
 
 ### How do I enter or correct a period's range?
 
