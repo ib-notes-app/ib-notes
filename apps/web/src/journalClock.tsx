@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+import {useVisibleRefresh} from './useVisibleRefresh';
 import { createContext, useContext, useEffect, useState } from "react";
 import { Temporal } from "@js-temporal/polyfill";
 import { DEFAULT_JOURNAL, type JournalProfile, type StudyTemplate } from "@ib-field-notes/domain";
@@ -17,13 +18,7 @@ export function useJournalClock() { return journalClock(useContext(JournalContex
 export function useCurrentRthDate() {
   const {template,resolveLaunchRthDate}=useJournalClock();
   const [date,setDate]=useState(()=>resolveLaunchRthDate(Temporal.Now.instant()));
-  useEffect(()=>{
-    const refresh=()=>setDate(resolveLaunchRthDate(Temporal.Now.instant()));
-    refresh();
-    const timer=window.setInterval(refresh,60_000);
-    window.addEventListener('focus',refresh);
-    document.addEventListener('visibilitychange',refresh);
-    return()=>{window.clearInterval(timer);window.removeEventListener('focus',refresh);document.removeEventListener('visibilitychange',refresh);};
-  },[template]);
+  useEffect(()=>{setDate(resolveLaunchRthDate(Temporal.Now.instant()));},[template]);
+  useVisibleRefresh(()=>setDate(resolveLaunchRthDate(Temporal.Now.instant())),60_000);
   return date;
 }

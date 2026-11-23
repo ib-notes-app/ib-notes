@@ -22,7 +22,7 @@ period. Historical browsing keeps the period you selected.
 
 ## Record a price
 
-1. Press **Record price**. Check the instrument and selected period.
+1. Press **Record price**. Check the instrument and leave the period on **Automatic by time**.
 2. Type a price on the left. **CP** is selected for an ordinary price update.
 3. Press the pink **SAVE** button between the price and time.
 
@@ -30,24 +30,19 @@ That's it. The sheet stays open so you can record another price without extra
 taps. **Cancel/Close** leaves the sheet; earlier successful saves stay saved.
 Choose **High** or **Low** to record the period extremes instead of CP.
 
-Use the **ON / 15R / A / B / RTH** chooser beside the heading to enter another
-period without leaving Record price. A completed period shows **Past prices**
-and its saved range, ready to correct. High/Low corrections use its closing
-boundary as the known-by time; a historical CP needs its actual observation time.
-After saving in a period you chose, or closing, the app returns to that day's
-current/default period. It keeps the date you were editing.
+To add an earlier price, tap the time and enter when you saw it. The picker
+shows the period it belongs to. You can also choose ON, 15R, A, B or RTH
+manually. A completed period shows **Past prices** and its saved range.
+Keep **CP** for the price path or choose **High** or **Low** for a range edit.
+After saving a backfill, the app returns to the selected day's default period.
 
 After a CP save, **Last price entered and saved** stays visible below the
 four smaller buttons, even after closing/reopening or reloading. It changes
 only after another CP is saved. A draft or a note-only save does not replace it.
 
-The time on the right updates while you record the current period. Tap it to
-adjust when an observation happened. After saving a backdated CP in the current
-period, the clock returns to the current time for your next entry. Historical
-entries need a valid time for their selected date and period. An open sheet
-keeps its target if the clock moves into a new period; check the period before
-starting the next one. High/Low times mean **known by**, not necessarily the
-exact moment the extreme occurred. They do not replace the latest CP.
+The clock returns to the current time after a backdated CP save on an active
+day. High/Low times mean **known by** and may differ from the exact moment the
+extreme occurred. The latest CP stays available as your last recorded price.
 
 ## Add a note or event
 
@@ -109,7 +104,9 @@ with **Study weekends too** keep their weekend dates available.
 - **Review:** entries, days, weeks and statistics. **Event days** helps find
   sessions with CPI, PPI, FOMC or another event you entered.
 
-After close, **Review day** brings the period and daily highs/lows together with
+After close, use **Review day** on Home or from Review. The RTH panel also has
+a centered **Review day** button below its range inputs. The review brings the
+period and daily highs/lows together with
 **Day Notes**. Check them and use **Confirm day**. The closing price is optional;
 the last CP is never assumed to be the close. Finalized edits keep their safeguards.
 

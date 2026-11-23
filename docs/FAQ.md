@@ -117,14 +117,13 @@ and does not prove a touch was recorded.
 
 ### Can I add a High or Low after recording a later price?
 
-Yes. In **Record price**, set the earlier date and time, choose **High** or
+Yes. In **Record price**, set the earlier observation time, choose **High** or
 **Low**, enter the price and save. It works in every period and keeps later
-prices and the latest CP. For ON, choosing the clock automatically selects
-its date within that overnight session, including the previous evening.
+prices and the latest CP. Choose **CP** instead to add a point to the price path.
 
 ### Do I need to change the date for an overnight entry?
 
-In **Record price → ON**, just choose the time. For a November 18 Pacific
+In **Record price**, just choose the time. For a November 18 Pacific
 session, 3:10 PM uses November 17 and 12:05 AM uses November 18. This works
 for CP, High, Low and a note's clock, including when filling in an older
 session. It follows your journal's study hours and display time zone.
@@ -138,12 +137,10 @@ known by the supplied time. High/Low entries do not replace your latest CP.
 
 ### Which period will my entry go into?
 
-Check the instrument, date and period on the entry sheet. Use the chooser
-beside the heading to switch between ON, 15R, A, B and RTH. Completed periods
-show their saved range for quicker High/Low corrections. After saving in a
-period you chose, or closing the sheet, it returns to that day's current/default
-period. An older date stays selected. The open sheet keeps its target if the
-clock alone moves into another period.
+With **Automatic by time**, the picker shows the period that matches your
+observation time. To set it yourself, choose ON, 15R, A, B or RTH. If the time
+belongs to another period, the app tells you which one and keeps your draft.
+After a backdated save, the app returns to the selected day's default period.
 
 ### Why is the calendar button blue on some days?
 
@@ -159,10 +156,9 @@ earlier saves.
 
 ### Can I adjust the time or enter a historical price?
 
-Yes. Tap the time on the right of the price field and check the period. ON
-chooses the matching overnight date automatically; for other periods, check
-the date too. Historical entries need a valid historical time. For High/Low,
-the **known by** time does not claim the exact moment the extreme occurred.
+Yes. Tap the time on the right of the price field and enter when you saw the
+price. The date follows the selected session, including its previous evening.
+Use the calendar field to set the observation date yourself if needed.
 
 ### How do I enter or correct a period's range?
 

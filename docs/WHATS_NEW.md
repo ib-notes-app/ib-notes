@@ -1,5 +1,17 @@
 # What's new
 
+## November 23 — Record price picks the period
+
+Leave the period picker on **Automatic by time** and enter the price and when
+you saw it. The picker shows the matching period before you save. If you are
+recording during A and enter a 15R time, **CP** adds that point to the 15R path.
+You can still choose a period manually and use **High** or **Low** to edit its
+range. The time you entered stays put when you switch between CP, High and Low.
+
+In the RTH panel, **Review day** is larger and centered with space above the
+period status bar. The dashboard refreshes less often, and timed forecast
+refreshes pause when you leave the app and catch up when you return.
+
 ## November 18: overnight entries choose their date
 
 In **Record price → ON**, set the clock and enter the price. Evening times

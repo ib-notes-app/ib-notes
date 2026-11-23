@@ -37,10 +37,16 @@ export function workspaceWindows(session:JournalSession){
   return {ON:{start:clock.overnightStart(session.rthDate).toString(),end:open},'15R':{start:open,end:fifteen},
     A:{start:fifteen,end:a},B:{start:a,end:ib},RTH:{start:ib,end:close}};
 }
+export function workspaceEntryPhase(windows:ReturnType<typeof workspaceWindows>,observedAt:string,kind:WorkspaceEntry['kind']='CP'){
+ const time=ms(observedAt),close=ms(windows.RTH.end);
+ if(time>=close)return time===close&&kind!=='CP'?'RTH':null;
+ const phase=workspacePhases.find(name=>time>=ms(windows[name].start)&&time<ms(windows[name].end));
+ return phase??null;
+}
 export function workspaceClock(session:JournalSession,now:string){
   const clock=createSessionClock(session.market),windows=workspaceWindows(session),t=ms(now);
   const unavailable=session.calendarStatus==='CLOSED'||!clock.isPotentialRthDate(session.rthDate)||session.marketContextItems.some(item=>item.eventDate===session.rthDate&&item.holiday?.session==='closed');
-  const phase=workspacePhases.find(p=>t>=ms(windows[p].start)&&t<ms(windows[p].end))??null;
+  const phase=workspaceEntryPhase(windows,now);
   const historical=session.rthDate<clock.resolveLaunchRthDate(Temporal.Instant.from(now));
   const closed=!!session.close.finishedAt||t>=ms(windows.RTH.end)||unavailable;
   const current=!historical&&session.rthDate===clock.resolveLaunchRthDate(Temporal.Instant.from(now));
@@ -74,13 +80,6 @@ export function workspaceEntryTarget(session:JournalSession,phase:WorkspacePhase
   const w=workspaceWindows(session)[phase],t=Math.max(ms(w.start),Math.min(ms(now),ms(w.end)-1000));
   return {sessionId:session.id,journalId:session.journalId,rthDate:session.rthDate,instrument:session.instrument,phase,
     observedAt:Temporal.Instant.fromEpochMilliseconds(t).toString(),kind:'CP',price:''};
-}
-/** A completed-period High/Low is a correction of the closing range, not a CP. */
-export function workspacePriceEntryTarget(session:JournalSession,phase:WorkspacePhase,now:string):WorkspaceEntry{
-  const entry=workspaceEntryTarget(session,phase,now),window=workspaceWindows(session)[phase];
-  if(ms(now)<ms(window.end))return entry;
-  const range=workspaceRecordedRange(session,phase);
-  return {...entry,kind:'High',observedAt:window.end,price:range.high===null?'':workspaceFormatPrice(range.high,session.market.tickSize)};
 }
 /** Automatic entry time follows the clock only within the frozen active target. */
 export function workspaceEntryNow(session:JournalSession,phase:WorkspacePhase,now:string):string|null{
@@ -137,16 +136,19 @@ export function applyWorkspaceEntry(session:JournalSession,entry:WorkspaceEntry,
   }
   const state=workspaceClock(session,now),w=state.windows[entry.phase],t=ms(entry.observedAt);
   if(state.unavailable)throw Error('This date is marked closed. Use Context or Review to correct the session calendar.');
+  if(t>ms(now))throw Error('An observation cannot be in the future.');
+  if(t>ms(state.windows.RTH.end))throw Error('This time is after the selected session closes. Choose a time within this session.');
   // A range can be known by its closing boundary, as in the existing period
   // editor. A CP at that instant belongs to the following phase instead.
   if(t<ms(w.start)||t>ms(w.end)||(entry.kind==='CP'&&t===ms(w.end))){
+    const actual=workspaceEntryPhase(state.windows,entry.observedAt,entry.kind);
+    if(actual&&actual!==entry.phase)throw Error(`That time belongs to ${actual}. Choose ${actual} or Automatic in the period picker, or change the time.`);
     if(entry.phase==='ON'){
       const stamp=(at:string)=>new Intl.DateTimeFormat('en-US',{timeZone:session.displayTimeZone,month:'short',day:'numeric',hour:'numeric',minute:'2-digit',timeZoneName:'short'}).format(new Date(at));
       throw Error(`ON for ${session.rthDate} runs from ${stamp(w.start)} to ${stamp(w.end)}. Choose a time within that overnight window.`);
     }
     throw Error('This time is outside the selected phase. Change the phase or observation time.');
   }
-  if(t>ms(now))throw Error('An observation cannot be in the future.');
   const note=entry.note?.trim()??'';
   const event=entry.eventId?session.marketContextItems.find(i=>i.id===entry.eventId&&!i.holiday):null;
   if(entry.eventId&&!event)throw Error('This event is no longer available. Choose another event for the note.');
@@ -174,6 +176,10 @@ export function applyWorkspaceEntry(session:JournalSession,entry:WorkspaceEntry,
     return next;
   }
   const high=entry.kind==='High';
+  const rangeConflict=(cp:JournalSession['cpObservations'][number])=>{
+    const time=new Intl.DateTimeFormat('en-US',{timeZone:session.displayTimeZone,hour:'numeric',minute:'2-digit',second:'2-digit'}).format(new Date(cp.observedAt));
+    return Error(`${entry.phase} must include recorded CPs, including ${workspaceFormatPrice(cp.price,session.market.tickSize)} at ${time}. Choose CP to add a price point, or use Entries to correct that recorded price.`);
+  };
   const addRangeNote=(next:JournalSession)=>note?withSessionNote(next,entry.phase==='ON'?'ON':entry.phase==='RTH'?'RTH':'IB',note,entry.observedAt,now,w.start,
     // Range-known-by times can equal their closing boundary; no exact extreme is inferred.
     Temporal.Instant.from(w.end).add({seconds:1}).toString(),{kind:'checkpoint',targetId:entry.phase==='ON'?'overnight':entry.phase==='15R'?'15r':entry.phase==='A'?'a-period':entry.phase==='B'?'b-period':'rth',...(event?{eventId:event.id}:{}),label:`${entry.phase} ${entry.kind} ${workspaceFormatPrice(price,session.market.tickSize)}`}):next;
@@ -184,7 +190,8 @@ export function applyWorkspaceEntry(session:JournalSession,entry:WorkspaceEntry,
     if(update.high!==null&&update.low!==null&&update.high<update.low)throw Error('High must be at or above Low.');
     const start=entry.phase==='A'?state.windows['15R'].start:w.start;
     const known=session.cpObservations.filter(cp=>ms(cp.observedAt)>=ms(start)&&ms(cp.observedAt)<ms(w.end));
-    if(known.some(cp=>update.high!==null&&cp.price>update.high||update.low!==null&&cp.price<update.low))throw Error('The range must include recorded CPs. Use Entries to correct a mistaken price.');
+    const conflict=known.find(cp=>update.high!==null&&cp.price>update.high||update.low!==null&&cp.price<update.low);
+    if(conflict)throw rangeConflict(conflict);
     const complete=update.high!==null&&update.low!==null;
     if(entry.phase==='ON')return addRangeNote(withOvernightUpdate(session,{...update,rthOpen:session.overnight.rthOpen,confirm:complete},now));
     if(entry.phase==='RTH'){
@@ -200,7 +207,8 @@ export function applyWorkspaceEntry(session:JournalSession,entry:WorkspaceEntry,
     session[entry.phase==='15R'?'fifteenMinuteHistory':entry.phase==='A'?'aPeriodHistory':'bPeriodHistory'].some(r=>ms(r.observedAt??r.recordedAt)>t);
   const backfill=laterPrice||laterRange;
   const known=session.cpObservations.filter(cp=>ms(cp.observedAt)>=ms(entry.phase==='A'?state.windows['15R'].start:w.start)&&ms(cp.observedAt)<ms(w.end)&&(!backfill||ms(cp.observedAt)<=t));
-  if(high&&known.some(cp=>cp.price>price)||!high&&known.some(cp=>cp.price<price))throw Error('The range must include recorded CPs. Use Day timeline to correct a mistaken observation.');
+  const conflict=known.find(cp=>high?cp.price>price:cp.price<price);
+  if(conflict)throw rangeConflict(conflict);
   if(entry.phase==='ON'){
     if(backfill){
       let next=withPreOpenUpdate(session,{contractStatus:session.contractStatus,contract:session.contract,

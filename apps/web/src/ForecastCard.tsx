@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+import {useVisibleRefresh} from './useVisibleRefresh';
 import { firstRecordedIbBreak, compareForecast, compareForecastUpdates, deriveSessionIbRead, deriveSessionOvernightRead, deriveCurrentIbCode, deriveLockPositionReference, deriveBestFitOutlook, buildForecastTraining,deriveRangeComparisons,
   deriveLiveMarketMemory, describeMarketMemory, fbdCompatibility, type ContextBatch, type FbdBatch, type HistoricalLow,
   latestPreOpenSnapshot, formatPriceNumber, deriveRecordedRthRange, type ForecastEstimate,
@@ -103,15 +104,7 @@ export function useCurrentForecast(session: JournalSession, historical: Historic
       .catch(() => { if (active) setLowsReady(lowKey); /* Manual context remains usable. */ });
     return () => { active = false; };
   }, [inputs.repository, inputs.lowBatches, lowKey]);
-  useEffect(() => {
-    if (closed || inputs.snapshotAt) return;
-    const refresh = () => setClockTick(tick => tick + 1);
-    const timer = window.setInterval(refresh, 30_000);
-    window.addEventListener('focus', refresh);
-    document.addEventListener('visibilitychange', refresh);
-    return () => { window.clearInterval(timer); window.removeEventListener('focus', refresh);
-      document.removeEventListener('visibilitychange', refresh); };
-  }, [closed, inputs.snapshotAt]);
+  useVisibleRefresh(()=>setClockTick(tick=>tick+1),30_000,!closed&&!inputs.snapshotAt);
   const examples = useMemo(() => closed ? [] : buildForecastTraining(historical.filter(row => (row.journalId ?? 'es') === session.journalId), [],
     journalClock(session.market).previousPotentialRthDate), [historical, session.journalId, marketKey, closed]);
   const readWindow = useMemo(() => {

@@ -1,33 +1,33 @@
 {
-  "buildId": "public-blank-20261118T135059414Z",
+  "buildId": "public-blank-20261123T154019188Z",
   "distribution": "public-blank",
-  "status": "Early public version; overnight price entries choose the matching date automatically.",
+  "status": "Early public version with automatic period selection and fewer idle refreshes.",
   "appUrl": "https://ib-notes-app.github.io/ib-notes/",
   "archive": "downloads/IB-Notes-blank-slate.zip",
-  "archiveBytes": 7835577,
-  "archiveSha256": "3544219688a361d5ebb787c55936fe2b5b386818b75536be78a4daed2010dacc",
+  "archiveBytes": 7837359,
+  "archiveSha256": "efab3f8cfa2afcea81f59593ac8a49c88b612f9b422eaeffa0f70fd717027bac",
   "bundledMarketHistory": false,
   "bundledJournalRecords": false,
   "bundledExamples": false,
   "automaticNewsLookup": false,
   "historicalForecasts": "Unavailable without suitable user-supplied learning history.",
   "dataStorage": "Local SQLite in the browser; no journal synchronization.",
-  "preparedAt": "2026-11-18",
+  "preparedAt": "2026-11-23",
   "changes": [
-    "ON chooses the observation date from the selected overnight window when you change its clock.",
-    "CP, High, Low and note clocks use the matching date, including for older sessions.",
-    "Out-of-window ON times show the overnight date/time bounds. Saved CP entry still returns to now.",
-    "Existing entries and study hours stay intact. No market data is included."
+    "Record price chooses the period from the observation time, with manual selection still available.",
+    "Backdated CP adds to the recorded path. Manual range edits preserve an entered time.",
+    "Review day is larger and centered in RTH, with space above the period status.",
+    "The dashboard refreshes less often, and main timed forecast refreshes pause while the app is hidden."
   ],
   "verification": {
     "cleanPublicSourceBuild": "Passed",
-    "approvedPhoneFocusedTests": 54,
-    "approvedPhoneEntryDateBrowserChecks": 1,
-    "approvedPhoneSafeUpdateChecks": 2,
-    "publicPackageBrowserChecks": 1,
+    "focusedPrivateRecordPriceTests": 62,
+    "privateEntryJourneys": 6,
+    "privateOfflineUpdateJourneys": 2,
+    "privateRthLayoutCheck": "Passed at 320 and 390 CSS pixels",
+    "publicPackageBrowserChecks": 2,
     "sourceAndDownloadsAudit": "Passed",
-    "legacyNavigationChecks": "Prior popup-dependent navigation limitations remain disclosed; not rerun for this date correction.",
-    "livePublicOrigin": "Verification retained in local release record after deployment.",
+    "physicalPhoneBatteryMeasurement": "Pending",
     "physicalPublicOriginInstall": "Pending"
   }
 }

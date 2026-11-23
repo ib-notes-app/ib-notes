@@ -72,6 +72,7 @@ import {DayTimeline,type DayTimelineMemory} from './DayTimeline';
 import {failurePatternLabel} from './levelRoles';
 import type {SessionTimelineItem} from './dayTimelineModel';
 // SPDX-License-Identifier: MPL-2.0
+import {useVisibleRefresh} from './useVisibleRefresh';
 import { formatPriceNumber, roundPriceToTick } from "@ib-field-notes/domain";
 
 import { Temporal } from "@js-temporal/polyfill";
@@ -2602,7 +2603,7 @@ function HistoryPanel({
   const { template: ES_TEMPLATE } = useJournalClock();
   const currentDate=useCurrentRthDate();
   const [reviewNow,setReviewNow]=useState(()=>Temporal.Now.instant().toString());
-  useEffect(()=>{if(!active)return;const refresh=()=>setReviewNow(Temporal.Now.instant().toString());refresh();const timer=window.setInterval(refresh,30000);window.addEventListener('focus',refresh);return()=>{clearInterval(timer);window.removeEventListener('focus',refresh);};},[active]);
+  useVisibleRefresh(()=>setReviewNow(Temporal.Now.instant().toString()),30000,active);
   const reports=useMemo(()=>new Map(sessions.map(s=>[s.id,reviewIssues(s,reviewNow)])),[sessions,reviewNow]);
   const [mode, setMode] = useState<"days" | "weeks" | "months" | "years">("days");
   const [query, setQuery] = useState("");
@@ -4173,7 +4174,9 @@ export function App() {
     const completed=Temporal.Instant.compare(openedAt,clock.windows[phase].end)>=0;
     return <><WorkspaceRangeEditor key={`${session.id}:${phase}`} formId={formId} rangeAt={rangeAt} timeZone={session.displayTimeZone} phase={phase} completed={completed} focusField={focusField??issue?.focus} attention={fieldAttention} showCommentary={phase!=='RTH'} openPrice={phase==='ON'&&completed?session.overnight.rthOpen:undefined} high={range.high} low={range.low} note={phase==='B'?session.bPeriod.note:phase==='A'?session.aPeriod.note:phase==='15R'?session.fifteenMinute.note:phase==='ON'?forming?.note:null} onSave={save}/>
       {phase==='B'&&<details><summary>B snapshot</summary><BSnapshotForm snapshot={session.bSnapshots.at(-1)??null} inheritedRange={effectiveAPeriod??session.aPeriod} onSave={update=>save(update,undefined,true)}/></details>}
-      {phase==='RTH'&&!fromDayReview&&<DayReviewButton session={session} onClick={()=>{window.addEventListener('popstate',()=>openWorkspace('close'),{once:true});done();}}/>}</>;
+      {phase==='RTH'&&!fromDayReview&&<div className="workspace-rth-review-action">
+        <DayReviewButton session={session} onClick={()=>{window.addEventListener('popstate',()=>openWorkspace('close'),{once:true});done();}}/>
+      </div>}</>;
   }
   async function correctWorkspaceObservation(phase:WorkspacePhase,id:string,rth:boolean,update:RthObservationUpdate,time:string,editFinalized:boolean):Promise<string|null>{
     if(!session||!repositoryRef.current)return 'The journal is still opening.';

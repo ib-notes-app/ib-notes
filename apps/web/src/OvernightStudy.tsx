@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+import {useVisibleRefresh} from './useVisibleRefresh';
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Temporal } from '@js-temporal/polyfill';
 import { deriveOvernightStudy, onForecastInput, onBandNames, ON_BANDS, compareOnOpening, formatPriceNumber,
@@ -70,12 +71,7 @@ export function OvernightStudyProvider({session,repository,priceBatches,news,act
   scope.current=scopeKey;
   const merged=useMemo(()=>[...new Map([...(session?.onForecastUpdates??[]),...(rows.id===scopeKey?rows.rows:[])].map(r=>[r.id,r])).values()],
     [scopeKey,session?.onForecastUpdates,rows]);
-  useEffect(()=>{
-    if(!active||!liveOn||readOnly)return;
-    const refresh=()=>setTick(t=>t+1),timer=window.setInterval(refresh,30000);
-    window.addEventListener('focus',refresh);document.addEventListener('visibilitychange',refresh);
-    return()=>{clearInterval(timer);window.removeEventListener('focus',refresh);document.removeEventListener('visibilitychange',refresh);};
-  },[active,liveOn,readOnly]);
+  useVisibleRefresh(()=>setTick(t=>t+1),30000,active&&liveOn&&!readOnly);
   useEffect(()=>{
     if(!active||!session||!repository)return;
     let alive=true;
