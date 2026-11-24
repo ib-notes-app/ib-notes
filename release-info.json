@@ -1,33 +1,29 @@
 {
-  "buildId": "public-blank-20261123T154019188Z",
+  "buildId": "public-blank-20261124T150059217Z",
   "distribution": "public-blank",
-  "status": "Early public version with automatic period selection and fewer idle refreshes.",
+  "status": "Record price follows the live period in Automatic mode.",
   "appUrl": "https://ib-notes-app.github.io/ib-notes/",
   "archive": "downloads/IB-Notes-blank-slate.zip",
-  "archiveBytes": 7837359,
-  "archiveSha256": "efab3f8cfa2afcea81f59593ac8a49c88b612f9b422eaeffa0f70fd717027bac",
+  "archiveBytes": 7837679,
+  "archiveSha256": "c26c46353579a2f29d705502703dad7ddb9423f22f3723ef450b44114e9b7637",
   "bundledMarketHistory": false,
   "bundledJournalRecords": false,
   "bundledExamples": false,
   "automaticNewsLookup": false,
   "historicalForecasts": "Unavailable without suitable user-supplied learning history.",
   "dataStorage": "Local SQLite in the browser; no journal synchronization.",
-  "preparedAt": "2026-11-23",
+  "preparedAt": "2026-11-24",
   "changes": [
-    "Record price chooses the period from the observation time, with manual selection still available.",
-    "Backdated CP adds to the recorded path. Manual range edits preserve an entered time.",
-    "Review day is larger and centered in RTH, with space above the period status.",
-    "The dashboard refreshes less often, and main timed forecast refreshes pause while the app is hidden."
+    "An open Automatic Record price sheet advances with the current period and retains a typed price.",
+    "Save uses the current observation time in Automatic mode. An explicitly chosen timestamp or period keeps its target."
   ],
   "verification": {
     "cleanPublicSourceBuild": "Passed",
-    "focusedPrivateRecordPriceTests": 62,
-    "privateEntryJourneys": 6,
+    "focusedPrivateUnitTests": 41,
+    "privateEntryJourneys": 4,
     "privateOfflineUpdateJourneys": 2,
-    "privateRthLayoutCheck": "Passed at 320 and 390 CSS pixels",
-    "publicPackageBrowserChecks": 2,
-    "sourceAndDownloadsAudit": "Passed",
-    "physicalPhoneBatteryMeasurement": "Pending",
-    "physicalPublicOriginInstall": "Pending"
+    "physicalPublicOriginInstall": "Pending",
+    "publicPackageBrowserChecks": 4,
+    "sourceAndDownloadsAudit": "Passed"
   }
 }

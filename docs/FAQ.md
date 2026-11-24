@@ -138,7 +138,8 @@ known by the supplied time. High/Low entries do not replace your latest CP.
 ### Which period will my entry go into?
 
 With **Automatic by time**, the picker shows the period that matches your
-observation time. To set it yourself, choose ON, 15R, A, B or RTH. If the time
+observation time. An open sheet follows the live period and keeps your typed
+price. To set it yourself, choose ON, 15R, A, B or RTH. If the time
 belongs to another period, the app tells you which one and keeps your draft.
 After a backdated save, the app returns to the selected day's default period.
 

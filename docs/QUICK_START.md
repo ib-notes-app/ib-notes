@@ -30,6 +30,9 @@ That's it. The sheet stays open so you can record another price without extra
 taps. **Cancel/Close** leaves the sheet; earlier successful saves stay saved.
 Choose **High** or **Low** to record the period extremes instead of CP.
 
+In **Automatic by time**, the open sheet follows the live period and keeps
+your typed price. A time or period you choose manually stays pinned.
+
 To add an earlier price, tap the time and enter when you saw it. The picker
 shows the period it belongs to. You can also choose ON, 15R, A, B or RTH
 manually. A completed period shows **Past prices** and its saved range.

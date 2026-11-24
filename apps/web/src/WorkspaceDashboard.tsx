@@ -236,6 +236,9 @@ export function WorkspacePriceSheet({session,initial,onSave,onClose,onContinueCu
   },[dateText,timeText,session.displayTimeZone]);
   const routedPhase=observationAt?workspaceEntryPhase(liveClock.windows,observationAt,draftEntry.kind):null;
   const entry=automatic&&routedPhase?{...draftEntry,phase:routedPhase}:draftEntry;
+  const clockTarget=automatic?'auto':entry.phase;
+  const hasOldRangePrefill=(phase:WorkspacePhase|null)=>phase!==null&&phase!==entry.phase&&
+    entry.kind!=='CP'&&!!entry.price&&priceDrafts.current[entry.kind]===undefined;
   const phaseWindow=liveClock.windows[entry.phase];
   const recordedRange=useMemo(()=>workspaceRecordedRange(session,entry.phase),[session,entry.phase]);
   const selectKind=(kind:WorkspaceEntry['kind'])=>{
@@ -253,7 +256,8 @@ export function WorkspacePriceSheet({session,initial,onSave,onClose,onContinueCu
   const showResultsFirst=resultsFirst&&!editingPeriod;
   const periodStatusLine=<div className="workspace-period-status" data-confirmed={periodStatus.confirmed} role="status">{periodStatus.confirmed?'✓ Saved · Closed · Confirmed':periodStatus.ended?periodStatus.range.high===null||periodStatus.range.low===null?'Period ended · Range incomplete':'Period ended · Range awaiting confirmation':periodStatus.saved?'Saved · Period in progress':'Period in progress'}</div>;
   const confirmingPeriod=Date.parse(openedAt)>=Date.parse(phaseWindow.end);
-  const continuePhase=liveClock.current&&!liveClock.closed&&liveClock.phase!==entry.phase&&Temporal.Instant.compare(Temporal.Instant.from(liveNow),phaseWindow.end)>=0?liveClock.phase:null;
+  const continuePhase=(!automatic||timeWasEdited.current)&&liveClock.current&&!liveClock.closed&&
+    liveClock.phase!==entry.phase&&Date.parse(liveNow)>=Date.parse(phaseWindow.end)?liveClock.phase:null;
   const historical=Temporal.Instant.compare(openedAt,phaseWindow.end)>=0;
   const timeLabel=entry.kind==='CP'?'Price observed at':`${entry.kind} known by`;
   const dayGuarded=!!session.close.finishedAt&&!(mode==='period'&&deriveSessionMissingFields(session).length>0)&&!editingFinalized&&view!=='share'&&view!=='events'&&view!=='period';
@@ -306,28 +310,39 @@ export function WorkspacePriceSheet({session,initial,onSave,onClose,onContinueCu
   const openNote=()=>{
     noteClockWasManual.current=timeWasEdited.current;
     // A fresh note captures now; reopening a draft preserves its chosen instant.
-    const at=!entry.note?.trim()&&!timeWasEdited.current?workspaceEntryNow(session,entry.phase,Temporal.Now.instant().toString()):null;
-    if(at){const stamp=workspaceEntryTimeFields(at,session.displayTimeZone);setDateText(stamp.date);setTimeText(stamp.time);}
+    const at=!entry.note?.trim()&&!timeWasEdited.current?workspaceEntryNow(session,clockTarget,Temporal.Now.instant().toString()):null;
+    if(at)refreshLiveStamp(at);
     // A note describes this entry's captured instant, even while the user writes.
     timeWasEdited.current=true;setError(null);setSaved(null);
     window.history.pushState({...window.history.state,ibPriceNote:reviewHistoryId},'',window.location.href);setView('note');
   };
   const backFromNote=(restoreClock=true)=>{if(restoreClock&&!entry.note?.trim())timeWasEdited.current=noteClockWasManual.current;if(window.history.state?.ibPriceNote===reviewHistoryId)window.history.back();else setView('price');};
   const zone=new Intl.DateTimeFormat('en-US',{timeZone:session.displayTimeZone,timeZoneName:'short'}).formatToParts(new Date(initial.observedAt)).find(p=>p.type==='timeZoneName')?.value;
+  function refreshLiveStamp(at:string){
+    // A typed price can follow the clock. A previous period's suggested edge cannot.
+    if(automatic&&hasOldRangePrefill(workspaceEntryPhase(liveClock.windows,at))){
+      setEntry(old=>({...old,price:''}));
+    }
+    const next=workspaceEntryTimeFields(at,session.displayTimeZone);
+    setDateText(next.date);setTimeText(next.time);
+  }
   useEffect(()=>{
     if(view!=='price'||guarded||busy||editingStamp||timeWasEdited.current)return;
-    const at=workspaceEntryNow(session,entry.phase,Temporal.Now.instant().toString());
-    if(!at)return;
-    const next=workspaceEntryTimeFields(at,session.displayTimeZone);setDateText(next.date);setTimeText(next.time);
-  },[liveNow,session,entry.phase,view,guarded,busy,editingStamp]);
+    const at=workspaceEntryNow(session,clockTarget,Temporal.Now.instant().toString());
+    if(at)refreshLiveStamp(at);
+  },[liveNow,session,entry.phase,clockTarget,view,guarded,busy,editingStamp]);
   useEffect(()=>{if(view==='price'&&!guarded&&!busy)input.current?.focus({preventScroll:true});},[view,guarded,busy]);
   const saveEntry=async()=>{
     if(submitting.current)return;submitting.current=true;setBusy(true);setError(null);
     try{
-      const automaticAt=!timeWasEdited.current?workspaceEntryNow(session,entry.phase,Temporal.Now.instant().toString()):null;
+      const automaticAt=!timeWasEdited.current?workspaceEntryNow(session,clockTarget,Temporal.Now.instant().toString()):null;
       const observedAt=automaticAt??workspaceEntryTimeInstant(dateText,timeText,session.displayTimeZone);
       const phase=automatic?workspaceEntryPhase(liveClock.windows,observedAt,entry.kind):entry.phase;
       if(!phase)throw Error('This time is outside the selected session or at its close. Choose an observation time within the session.');
+      if(automaticAt&&automatic&&hasOldRangePrefill(phase)){
+        refreshLiveStamp(automaticAt);
+        throw Error(`Enter the ${phase} ${entry.kind.toLowerCase()} before saving.`);
+      }
       const completedRangeEdit=mode==='price'&&!automatic&&!!entry.price.trim()&&entry.kind!=='CP'&&
         Temporal.Instant.compare(observedAt,phaseWindow.end)===0;
       const message=await onSave({...entry,phase,observedAt,editFinalized:editingFinalized,completedRangeEdit});

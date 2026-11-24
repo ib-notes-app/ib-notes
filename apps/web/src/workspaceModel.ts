@@ -81,10 +81,10 @@ export function workspaceEntryTarget(session:JournalSession,phase:WorkspacePhase
   return {sessionId:session.id,journalId:session.journalId,rthDate:session.rthDate,instrument:session.instrument,phase,
     observedAt:Temporal.Instant.fromEpochMilliseconds(t).toString(),kind:'CP',price:''};
 }
-/** Automatic entry time follows the clock only within the frozen active target. */
-export function workspaceEntryNow(session:JournalSession,phase:WorkspacePhase,now:string):string|null{
+/** Follow the active session. An explicitly chosen period keeps its own window. */
+export function workspaceEntryNow(session:JournalSession,phase:WorkspacePhase|'auto',now:string):string|null{
  const clock=workspaceClock(session,now);
- return clock.current&&!clock.closed&&clock.phase===phase
+ return clock.current&&!clock.closed&&clock.phase!==null&&(phase==='auto'||clock.phase===phase)
   ?Temporal.Instant.from(now).round({smallestUnit:'second',roundingMode:'floor'}).toString():null;
 }
 /** Standalone CPs reuse existing attached session notes; post-IB CPs keep their inline note. */

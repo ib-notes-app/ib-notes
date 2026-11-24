@@ -1,5 +1,11 @@
 # What's new
 
+## November 24 — Record price follows the live period
+
+Leave **Record price** open in **Automatic by time** and it switches periods
+as the session advances. Your typed price stays in the field, and **Save**
+uses the current time. A time or period you choose manually stays pinned.
+
 ## November 23 — Record price picks the period
 
 Leave the period picker on **Automatic by time** and enter the price and when

@@ -2,6 +2,11 @@
 
 [Open IB Notes](https://ib-notes-app.github.io/ib-notes/) · [What changed](WHATS_NEW.md)
 
+The November 24 update lets an open Record price sheet in Automatic mode
+follow the live period while preserving the typed price. The package was
+checked across ON through RTH, including a 15R entry with a manually chosen
+time that stayed in 15R after A began.
+
 Record price now chooses the period from the observation time. The public
 package passed phone-sized checks for backfilling a 15R price from A, routing a
 previous-evening ON price, preserving saved observation times, and switching
