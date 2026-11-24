@@ -7,6 +7,7 @@ const MAP_MINIMUM_LARGE_MOVE_TICKS = 12;
 const MAP_LARGE_MOVE_SHARE_OF_PRICE_SPAN = 0.1;
 const MAP_RTH_PATH_START = 48;
 const MAP_RTH_PATH_END = 94;
+const MAP_RTH_MINIMUM_SPAN_MS = 60 * 60 * 1_000;
 
 type MapObservation = JournalSession["cpObservations"][number];
 
@@ -59,15 +60,17 @@ export function mapMoveThreshold(tickSize: number, span: number): number {
 }
 
 /** Shared compressed timeline: 15R / A / B each occupy 15%, with RTH after 45%. */
-export function mapObservationX(observedMs: number, boundaries: number[], firstRth: number | null, lastRth: number | null): number {
+export function mapObservationX(observedMs: number, boundaries: number[], lastRth: number | null, closeMs: number): number {
   const [open, fifteen, a, ib] = boundaries;
   if (observedMs <= ib) {
     if (observedMs < fifteen) return 15 * (observedMs - open) / (fifteen - open);
     if (observedMs < a) return 15 + 15 * (observedMs - fifteen) / (a - fifteen);
     return 30 + 15 * (observedMs - a) / (ib - a);
   }
-  if (firstRth === null || lastRth === null || firstRth === lastRth) return MAP_RTH_PATH_START;
-  const progress = (observedMs - firstRth) / (lastRth - firstRth);
+  // Keep the early RTH zoom stable, then fit a longer path as entries accumulate.
+  const initialSpan = Math.min(MAP_RTH_MINIMUM_SPAN_MS, closeMs - ib);
+  const span = Math.max(1, initialSpan, (lastRth ?? observedMs) - ib);
+  const progress = (observedMs - ib) / span;
   return Math.min(MAP_RTH_PATH_END, Math.max(MAP_RTH_PATH_START,
     MAP_RTH_PATH_START + progress * (MAP_RTH_PATH_END - MAP_RTH_PATH_START)));
 }

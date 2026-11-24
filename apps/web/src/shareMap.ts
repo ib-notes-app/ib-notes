@@ -59,6 +59,7 @@ export function buildShareMap(session: JournalSession, options: {
   const checkpoints = session.market.checkpoints;
   const at = (local: string) => clock.checkpointInstant(session.rthDate, local).epochMilliseconds;
   const boundaries = [checkpoints.overnightLock, checkpoints.fifteenMinuteLock, checkpoints.aLock, checkpoints.ibLock].map(at);
+  const closeMs = at(checkpoints.studyClose);
   const finalIb = deriveSessionFinalIb(session);
   const a = carryRangeEdgesForward(session.aPeriod, session.fifteenMinute);
   const b = carryRangeEdgesForward(session.bPeriod, session.fifteenMinute, a, ...session.bSnapshots);
@@ -82,7 +83,7 @@ export function buildShareMap(session: JournalSession, options: {
   const start = primary ? boundaries[0] : clock.overnightStart(session.rthDate).epochMilliseconds;
   const observations = session.cpObservations.filter(point => {
     const time = Date.parse(point.observedAt);
-    return time >= start && time <= at(checkpoints.studyClose);
+    return time >= start && time <= closeMs;
   }).sort((left, right) => left.observedAt.localeCompare(right.observedAt));
   const latest = observations.at(-1);
   const current = options.includeCurrentOrClose ? latest : undefined;
@@ -111,11 +112,10 @@ export function buildShareMap(session: JournalSession, options: {
   const displayed = options.includePath
     ? primary ? [...observations.filter(point => Date.parse(point.observedAt) <= boundaries[3]), ...rth] : observations
     : current ? [current] : [];
-  const firstRth = rth[0] ? Date.parse(rth[0].observedAt) : null;
   const lastRth = rth.at(-1) ? Date.parse(rth.at(-1)!.observedAt) : null;
   const pointPercent = (instant: string) => {
     const time = Date.parse(instant);
-    if (primary) return normalize(mapObservationX(time, boundaries, firstRth, lastRth));
+    if (primary) return normalize(mapObservationX(time, boundaries, lastRth, closeMs));
     const first = Date.parse(observations[0].observedAt), last = Date.parse(observations.at(-1)!.observedAt);
     return first === last ? 6 : 6 + 88 * (time - first) / (last - first);
   };

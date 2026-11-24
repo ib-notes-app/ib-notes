@@ -2,6 +2,10 @@
 
 [Open IB Notes](https://ib-notes-app.github.io/ib-notes/) · [What changed](WHATS_NEW.md)
 
+The early RTH chart update passed a phone-sized check with two recorded prices
+in the first eight minutes. The Structure map and share card placed those
+points at the same positions, and the card exported as a PNG.
+
 The November 24 update lets an open Record price sheet in Automatic mode
 follow the live period while preserving the typed price. The package was
 checked across ON through RTH, including a 15R entry with a manually chosen

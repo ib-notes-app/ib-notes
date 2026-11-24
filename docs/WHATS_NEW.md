@@ -1,5 +1,11 @@
 # What's new
 
+## November 24 — Early RTH prices stay near the start of the chart
+
+The Structure map and share cards give early RTH prices room to read without
+stretching a short price path across the chart. RTH stays in one section,
+and the scale adjusts as you record a longer path.
+
 ## November 24 — Record price follows the live period
 
 Leave **Record price** open in **Automatic by time** and it switches periods

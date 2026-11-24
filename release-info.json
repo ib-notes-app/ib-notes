@@ -1,11 +1,11 @@
 {
-  "buildId": "public-blank-20261124T150059217Z",
+  "buildId": "public-blank-20261124T154356763Z",
   "distribution": "public-blank",
-  "status": "Record price follows the live period in Automatic mode.",
+  "status": "Early RTH points have steadier chart spacing.",
   "appUrl": "https://ib-notes-app.github.io/ib-notes/",
   "archive": "downloads/IB-Notes-blank-slate.zip",
-  "archiveBytes": 7837679,
-  "archiveSha256": "c26c46353579a2f29d705502703dad7ddb9423f22f3723ef450b44114e9b7637",
+  "archiveBytes": 7837745,
+  "archiveSha256": "2a50067c629d230b2699a470c41e88653f5b78c6cc5e20ee3fdad0280da68b3e",
   "bundledMarketHistory": false,
   "bundledJournalRecords": false,
   "bundledExamples": false,
@@ -14,16 +14,15 @@
   "dataStorage": "Local SQLite in the browser; no journal synchronization.",
   "preparedAt": "2026-11-24",
   "changes": [
-    "An open Automatic Record price sheet advances with the current period and retains a typed price.",
-    "Save uses the current observation time in Automatic mode. An explicitly chosen timestamp or period keeps its target."
+    "Structure and share cards give the first RTH hour a stable time scale, then fit the longer recorded path as it grows."
   ],
   "verification": {
     "cleanPublicSourceBuild": "Passed",
-    "focusedPrivateUnitTests": 41,
-    "privateEntryJourneys": 4,
+    "focusedPrivateUnitTests": 36,
+    "privateEarlyRthBrowserChecks": 1,
     "privateOfflineUpdateJourneys": 2,
     "physicalPublicOriginInstall": "Pending",
-    "publicPackageBrowserChecks": 4,
+    "publicPackageBrowserChecks": 1,
     "sourceAndDownloadsAudit": "Passed"
   }
 }

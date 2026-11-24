@@ -1118,16 +1118,13 @@ function StructureMap({
     largeMoveThreshold,
   );
   const plottedObservations = [...formationObservations, ...rthObservations];
-  const firstRthObservationMs = rthObservations.length > 0
-    ? Temporal.Instant.from(rthObservations[0].observedAt).epochMilliseconds
-    : null;
   const lastRthObservationMs = rthObservations.length > 0
     ? Temporal.Instant.from(rthObservations.at(-1)!.observedAt).epochMilliseconds
     : null;
   const xFor = (observedAt: string) => mapObservationX(
     Temporal.Instant.from(observedAt).epochMilliseconds,
     [formationStartMs, fifteenLockMs, aLockMs, ibLockMs],
-    firstRthObservationMs, lastRthObservationMs,
+    lastRthObservationMs, studyCloseMs,
   );
   const pathPoints = plottedObservations.map((observation) => ({
     ...observation,
