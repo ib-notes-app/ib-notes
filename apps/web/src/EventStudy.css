@@ -3,6 +3,7 @@
 .event-ranges { background:#202b38; border:1px solid #566c83; border-radius:16px; padding:14px; min-width:0; }
 .events-workspace > header,.event-capture > .event-form-toolbar { display:flex; gap:10px; align-items:center; justify-content:space-between; flex-wrap:wrap; }
 .events-workspace > header { margin:0 0 14px; padding:0; }
+.event-workspace-controls { display:flex; flex-wrap:wrap; gap:8px; }
 .events-workspace h3,.event-ranges h3,.event-capture h3 { margin:0; color:#f3b5d2; font-size:1.0625rem; }
 .events-workspace p,.event-capture p { margin:5px 0; font-size:.8125rem; line-height:1.45; color:#bfccda; }
 .events-workspace article { padding:16px; margin-block:12px; background:#202c39; border:1px solid #4a6179; border-radius:16px; }

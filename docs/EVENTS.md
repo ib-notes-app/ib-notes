@@ -19,6 +19,21 @@ An ongoing window can be ended with **End now**. Check your configured time zone
 Windows that span two dates show both dates on shared cards.
 Opening Events does not record a price or reopen a finalized day.
 
+## Set holiday hours
+
+1. Open the date you want to adjust.
+2. Tap **Record price → + Event → Holiday**, then enter the holiday name.
+3. Under **Trading hours**, choose **Early close** and enter the close time in
+   the time zone shown. Tap **Save holiday** to return to your price draft.
+
+**Review day** becomes available at that time. Set the hours separately for each
+date. To correct them, reopen **+ Event → Edit holiday**. On a day marked
+**Market closed**, open **Structure → Manage events → Edit holiday**.
+
+The holiday label appears in **Day timeline** alongside the day's recorded
+highs and lows. Holiday entries cover the whole day. Use the date to find them
+in Review. The **Event days** filter is for timed events.
+
 ## What gets tracked?
 
 CP observations with times inside the window contribute to its **recorded high,

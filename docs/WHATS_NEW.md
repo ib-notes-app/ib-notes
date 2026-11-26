@@ -1,5 +1,11 @@
 # What's new
 
+## November 26 — Set holiday hours from Record price
+
+Open the date, then tap **Record price → + Event → Holiday** to record the
+holiday and set an early close. **Review day** becomes available at the saved
+time, and the holiday appears in **Day timeline**. [Holiday instructions](EVENTS.md#set-holiday-hours)
+
 ## November 24 — Early RTH prices stay near the start of the chart
 
 The Structure map and share cards give early RTH prices room to read without

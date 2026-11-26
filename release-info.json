@@ -1,28 +1,28 @@
 {
-  "buildId": "public-blank-20261124T154356763Z",
+  "buildId": "public-blank-20261126T160131500Z",
   "distribution": "public-blank",
-  "status": "Early RTH points have steadier chart spacing.",
+  "status": "Set holiday hours from Record price.",
   "appUrl": "https://ib-notes-app.github.io/ib-notes/",
   "archive": "downloads/IB-Notes-blank-slate.zip",
-  "archiveBytes": 7837745,
-  "archiveSha256": "2a50067c629d230b2699a470c41e88653f5b78c6cc5e20ee3fdad0280da68b3e",
+  "archiveBytes": 7839173,
+  "archiveSha256": "3444de396fa69ab4750966a61c932e8f13d2c9bb497cd9fa0a382ce0445aec46",
   "bundledMarketHistory": false,
   "bundledJournalRecords": false,
   "bundledExamples": false,
   "automaticNewsLookup": false,
   "historicalForecasts": "Unavailable without suitable user-supplied learning history.",
   "dataStorage": "Local SQLite in the browser; no journal synchronization.",
-  "preparedAt": "2026-11-24",
+  "preparedAt": "2026-11-26",
   "changes": [
-    "Structure and share cards give the first RTH hour a stable time scale, then fit the longer recorded path as it grows."
+    "Set or edit holiday hours through Record price and + Event.",
+    "Review day uses the saved early close, and Day timeline shows the holiday label."
   ],
   "verification": {
     "cleanPublicSourceBuild": "Passed",
-    "focusedPrivateUnitTests": 36,
-    "privateEarlyRthBrowserChecks": 1,
-    "privateOfflineUpdateJourneys": 2,
+    "focusedPrivateUnitTests": 41,
+    "privateBrowserChecks": 5,
     "physicalPublicOriginInstall": "Pending",
-    "publicPackageBrowserChecks": 1,
+    "publicPackageBrowserChecks": 3,
     "sourceAndDownloadsAudit": "Passed"
   }
 }

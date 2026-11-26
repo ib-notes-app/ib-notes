@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
-import {useEffect,useId,useRef,useState} from 'react';
+import {useEffect,useId,useRef,useState,type ReactNode} from 'react';
 import {Temporal} from '@js-temporal/polyfill';
 import {deriveEventWindowRange,eventObservationWindow,eventWindowsAt,studyEventChoices,type JournalSession,type MarketContextItem,type MarketContextUpdate} from '@ib-field-notes/domain';
 import {workspaceClock,workspaceFormatPrice} from './workspaceModel';
@@ -36,7 +36,11 @@ export function EventRangeSummary({session,item,now}:{session:JournalSession;ite
 export function EventRanges({session,onOpen}:{session:JournalSession;onOpen?:()=>void}){
  const [now,setNow]=useState(()=>Temporal.Now.instant().toString());
  useEffect(()=>{const tick=()=>setNow(Temporal.Now.instant().toString());tick();const id=setInterval(tick,1000);return()=>clearInterval(id);},[]);
- const events=session.marketContextItems.filter(i=>!i.holiday);if(!events.length)return null;
+ const events=session.marketContextItems.filter(i=>!i.holiday);
+ if(!events.length){
+  const hasHoliday=session.marketContextItems.some(i=>i.holiday&&i.eventDate===session.rthDate);
+  return hasHoliday&&onOpen?<section className="event-ranges" aria-label="Holiday hours"><h3>Holiday hours</h3><button type="button" onClick={onOpen}>Manage events</button></section>:null;
+ }
  return <section className="event-ranges" aria-label="Event windows"><h3>Event windows</h3>{events.map(item=><details key={item.id}><summary>{item.name} · {eventClock(item.eventAt,session.displayTimeZone)}</summary><EventRangeSummary session={session} item={item} now={now}/>{item.note&&<p>{item.note}</p>}{session.rthObservations.filter(p=>p.eventId===item.id&&p.note).map(p=><p key={p.id}>{p.note}</p>)}{session.sessionNotes.filter(n=>(n.link?.kind==='event'&&n.link.targetId===item.id||n.link?.eventId===item.id)).map(n=><p key={n.id}>{n.text}</p>)}</details>)}{onOpen&&<button type="button" onClick={onOpen}>Manage events</button>}</section>;
 }
 export function EventEntryTag({session,at,onOpen,disabled=false}:{session:JournalSession;at:string|null;onOpen?:()=>void;disabled?:boolean}){
@@ -77,17 +81,55 @@ export function EventCaptureForm({session,item,onSave,onCancel,onBusy}:{session:
   {error&&<p role="alert">{error}</p>}
  </form>;
 }
-export function EventsWorkspace({session,onSave,onRemove,onUndo,undoAvailable,onContext,onBusy,onSaved}:{session:JournalSession;onSave:(update:MarketContextUpdate,time:string,id:string|null)=>Promise<string|null>;onRemove:(id:string)=>Promise<string|null>;onUndo:()=>Promise<string|null>;undoAvailable:boolean;onContext?:()=>void;onBusy?:(busy:boolean)=>void;onSaved?:()=>void}){
- const [editing,setEditing]=useState<MarketContextItem|null|undefined>(),[error,setError]=useState<string|null>(null),[busy,setBusy]=useState(false),[saved,setSaved]=useState(''),[now,setNow]=useState(()=>Temporal.Now.instant().toString());
+type EventEditor = {
+ item:MarketContextItem|null;
+ onSave:(update:MarketContextUpdate,time:string)=>Promise<string|null>;
+ onCancel:()=>void;
+ onBusy?:(busy:boolean)=>void;
+};
+
+export function EventsWorkspace({session,onSave,onRemove,onUndo,undoAvailable,onContext,onBusy,onSaved,renderHoliday}:{session:JournalSession;onSave:(update:MarketContextUpdate,time:string,id:string|null)=>Promise<string|null>;onRemove:(id:string)=>Promise<string|null>;onUndo:()=>Promise<string|null>;undoAvailable:boolean;onContext?:()=>void;onBusy?:(busy:boolean)=>void;onSaved?:(message:string)=>void;renderHoliday:(editor:EventEditor)=>ReactNode}){
+ const [editing,setEditing]=useState<{kind:'event'|'holiday';item:MarketContextItem|null}|null>(null),[error,setError]=useState<string|null>(null),[busy,setBusy]=useState(false),[saved,setSaved]=useState(''),[now,setNow]=useState(()=>Temporal.Now.instant().toString());
  useEffect(()=>{const id=setInterval(()=>setNow(Temporal.Now.instant().toString()),1000);return()=>clearInterval(id);},[]);
  const perform=async(action:()=>Promise<string|null>,message:string)=>{if(busy)return;setBusy(true);onBusy?.(true);try{const error=await action();setError(error);if(!error)setSaved(message);}catch(e){setError(e instanceof Error?e.message:'Unable to save.');}finally{setBusy(false);onBusy?.(false);}};
- if(editing!==undefined)return <EventCaptureForm key={editing?.id??'new'} session={session} item={editing} onBusy={onBusy} onCancel={()=>setEditing(undefined)} onSave={async(update,time)=>{const error=await onSave(update,time,editing?.id??null);if(!error){setEditing(undefined);setSaved('Event saved.');onSaved?.();}return error;}}/>;
+ if(editing){
+  const editor:EventEditor={
+   item:editing.item,
+   onBusy,
+   onCancel:()=>setEditing(null),
+   onSave:async(update,time)=>{
+    const error=await onSave(update,time,editing.item?.id??null);
+    if(!error){
+     const message=editing.kind==='holiday'?'Holiday saved.':'Event saved.';
+     setEditing(null);setSaved(message);onSaved?.(message);
+    }
+    return error;
+   },
+  };
+  return editing.kind==='holiday'?renderHoliday(editor):<EventCaptureForm key={editing.item?.id??'new'} session={session} {...editor}/>;
+ }
  const events=session.marketContextItems.filter(i=>!i.holiday);
- return <section className="events-workspace" aria-label="Session events"><header><div><h3>Session events</h3><p>{events.length} {events.length===1?'event':'events'} recorded</p></div><button className="workspace-save" type="button" disabled={busy} onClick={()=>setEditing(null)}>＋ Add event</button></header>
+ const holidays=session.marketContextItems.filter(i=>i.holiday&&i.eventDate===session.rthDate);
+ return <section className="events-workspace" aria-label="Session events"><header><div><h3>Session events</h3><p>{events.length} {events.length===1?'event':'events'} recorded</p></div><div className="event-workspace-controls">
+  {!holidays.length&&<button type="button" disabled={busy} onClick={()=>setEditing({kind:'holiday',item:null})}>Holiday</button>}
+  <button className="workspace-save" type="button" disabled={busy} onClick={()=>setEditing({kind:'event',item:null})}>＋ Add event</button>
+ </div></header>
   {error&&<p role="alert">{error}</p>}{(saved||undoAvailable)&&<p role="status">{saved||'Recent event change'}{undoAvailable&&<button type="button" disabled={busy} onClick={()=>void perform(onUndo,'Change undone.')}>Undo</button>}</p>}
+  {holidays.map(item=>{
+   const holiday=item.holiday!;
+   const hours=holiday.session==='early_close'
+    ? holiday.closeAt?`Early close · ${eventClock(holiday.closeAt,session.displayTimeZone)}`:'Early close · Time needed'
+    : holiday.session==='closed'?'Market closed':'Regular hours';
+   return <article key={item.id}><h4>{item.name}<small>{hours}</small></h4>
+    <div className="event-actions">
+     <button type="button" disabled={busy} onClick={()=>setEditing({kind:'holiday',item})}>Edit holiday</button>
+     <button type="button" disabled={busy} aria-label={`Remove holiday ${item.name}`} onClick={()=>void perform(()=>onRemove(item.id),'Holiday removed.')}>Remove</button>
+    </div>
+   </article>;
+  })}
   {!events.length&&<div className="event-empty"><strong>No events recorded yet</strong><p>Add CPI, FOMC or your own event. Choose a time and tracking window; keep your observations and notes together.</p></div>}
   {events.map(item=>{const range=deriveEventWindowRange(session,item,now);return <article key={item.id}><h4>{item.name} <small>{eventClock(item.eventAt,session.displayTimeZone)}</small></h4><EventRangeSummary session={session} item={item} now={now}/>{item.note&&<div className="event-saved-note"><h5>Event notes</h5><p>{item.note}</p></div>}
-   <div className="event-actions"><button type="button" disabled={busy} onClick={()=>setEditing(item)}>Edit event</button>{range?.state==='recording'&&<button type="button" disabled={busy} onClick={()=>void perform(()=>onSave({name:item.name,eventDate:Temporal.Instant.from(item.eventAt).toZonedDateTimeISO(session.displayTimeZone).toPlainDate().toString(),note:item.note,observationWindow:{startAt:range.window.startAt,endAt:Temporal.Now.instant().toString(),recordedAt:now}},Temporal.Instant.from(item.eventAt).toZonedDateTimeISO(session.displayTimeZone).toPlainTime().toString({smallestUnit:'second'}),item.id),'Event window ended.')}>End now</button>}<button type="button" disabled={busy} aria-label={`Remove event ${item.name}`} onClick={()=>void perform(()=>onRemove(item.id),'Event removed.')}>Remove</button></div>
+   <div className="event-actions"><button type="button" disabled={busy} onClick={()=>setEditing({kind:'event',item})}>Edit event</button>{range?.state==='recording'&&<button type="button" disabled={busy} onClick={()=>void perform(()=>onSave({name:item.name,eventDate:Temporal.Instant.from(item.eventAt).toZonedDateTimeISO(session.displayTimeZone).toPlainDate().toString(),note:item.note,observationWindow:{startAt:range.window.startAt,endAt:Temporal.Now.instant().toString(),recordedAt:now}},Temporal.Instant.from(item.eventAt).toZonedDateTimeISO(session.displayTimeZone).toPlainTime().toString({smallestUnit:'second'}),item.id),'Event window ended.')}>End now</button>}<button type="button" disabled={busy} aria-label={`Remove event ${item.name}`} onClick={()=>void perform(()=>onRemove(item.id),'Event removed.')}>Remove</button></div>
   </article>;})}{onContext&&<button type="button" disabled={busy} onClick={onContext}>Day context &amp; holidays</button>}
  </section>;
 }

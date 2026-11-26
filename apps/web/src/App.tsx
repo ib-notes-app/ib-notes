@@ -4077,15 +4077,20 @@ export function App() {
     try{
       await pendingForecastWriteRef.current;await awaitForecastUpdateWrites();const current=await repositoryRef.current.getSession(target.id)??target;
       if(current.journalId!==target.journalId||current.createdAt!==target.createdAt)throw Error('This day changed. Reopen its events before saving.');
-      const at=Temporal.Now.instant().toString(),eventAt=calendarInstant(update.eventDate,time,target.displayTimeZone).toString(),window=workspaceWindows(target);
-      if(update.eventDate!==target.rthDate&&(Date.parse(eventAt)<Date.parse(window.ON.start)||Date.parse(eventAt)>Date.parse(window.RTH.end)))throw Error('Keep this event on the selected session date or within its overnight/session hours.');
+      const at=Temporal.Now.instant().toString();
+      const eventAt=update.holiday?holidayDayStart(update.eventDate,update.holiday.timeZone):calendarInstant(update.eventDate,time,current.displayTimeZone).toString();
+      if(update.eventDate!==current.rthDate){
+        const window=workspaceWindows(current);
+        if(update.holiday)throw Error('Set holiday hours on the date they apply to.');
+        if(Date.parse(eventAt)<Date.parse(window.ON.start)||Date.parse(eventAt)>Date.parse(window.RTH.end))throw Error('Keep this event on the selected session date or within its overnight/session hours.');
+      }
       let next=itemId?withCorrectedMarketContextItem(current,itemId,update,eventAt,at):withMarketContextItem(current,update,eventAt,at);
       next={...next,forecastCoverage:{...next.forecastCoverage,news:next.marketContextItems.length?'reviewed':'unknown'}};
       await repositoryRef.current.saveSession(next);updateEventSession(next);
       const item=itemId?next.marketContextItems.find(i=>i.id===itemId):next.marketContextItems.find(i=>!current.marketContextItems.some(old=>old.id===i.id));
       if(item){const undo={sessionId:next.id,createdAt:next.createdAt,itemId:item.id,created:!itemId,historyId:itemId?next.marketContextHistory.at(-1)?.id??null:null};workspaceEventUndoRef.current=undo;setWorkspaceEventUndo(undo);}
       return null;
-    }catch(e){return e instanceof Error?e.message:'Unable to save. Your event is preserved.';}finally{workspaceSaving.current=false;}
+    }catch(e){return e instanceof Error?e.message:'Unable to save. Your changes are preserved.';}finally{workspaceSaving.current=false;}
   }
   async function changeWorkspaceEvent(target:JournalSession,itemId:string|null,undo=false):Promise<string|null>{
     if(!repositoryRef.current)return 'The journal is still opening.';
@@ -4101,9 +4106,10 @@ export function App() {
       const previousChange=undo?null:{sessionId:next.id,createdAt:next.createdAt,itemId:itemId!,created:false,historyId:next.marketContextHistory.at(-1)!.id};workspaceEventUndoRef.current=previousChange;setWorkspaceEventUndo(previousChange);return null;
     }catch(e){return e instanceof Error?e.message:'Unable to save. Your event is preserved.';}finally{workspaceSaving.current=false;}
   }
-  function workspaceEventsContent(target:JournalSession,onBusy?:(busy:boolean)=>void,onSaved?:(undo:()=>Promise<string|null>)=>void){
+  function workspaceEventsContent(target:JournalSession,onBusy?:(busy:boolean)=>void,onSaved?:(undo:()=>Promise<string|null>,message:string)=>void){
     return <EventsWorkspace key={target.id} session={target} onSave={(update,time,id)=>saveWorkspaceEvent(target,update,time,id)} onRemove={id=>changeWorkspaceEvent(target,id)}
-      onUndo={()=>changeWorkspaceEvent(target,null,true)} undoAvailable={workspaceEventUndo?.sessionId===target.id} onBusy={onBusy} onSaved={onSaved?()=>onSaved(()=>changeWorkspaceEvent(target,null,true)):undefined}
+      onUndo={()=>changeWorkspaceEvent(target,null,true)} undoAvailable={workspaceEventUndo?.sessionId===target.id} onBusy={onBusy} onSaved={onSaved?message=>onSaved(()=>changeWorkspaceEvent(target,null,true),message):undefined}
+      renderHoliday={editor=><div className="context-capture-card"><HolidayContextForm session={target} sessionOnly {...editor}/></div>}
       onContext={onBusy?undefined:()=>openWorkspace('context')}/>;
   }
   async function saveWorkspacePeriod(phase:WorkspacePhase,update:FifteenMinuteUpdate&{rthOpen?:number|null},done:()=>void,editFinalized:boolean,observedAt?:string,snapshot=false):Promise<string|null>{
@@ -8497,15 +8503,16 @@ function MarketContextForm(props:{session:JournalSession;item:MarketContextItem|
   return !props.compact||props.initialHoliday||props.item?.holiday?<HolidayContextForm {...props}/>:<EventCaptureForm {...props}/>;
 }
 
-function HolidayContextForm({ session, item, initialHoliday = false, onSave, onCancel }: {
+function HolidayContextForm({ session, item, initialHoliday = false, sessionOnly = false, onSave, onCancel, onBusy }: {
   session: JournalSession; item: MarketContextItem | null;
-  initialHoliday?: boolean;
+  initialHoliday?: boolean; sessionOnly?: boolean;
   onSave: (update: MarketContextUpdate, localTime: string) => Promise<string | null>;
   onCancel: () => void;
+  onBusy?: (busy: boolean) => void;
 }) {
   const displayed = item ? Temporal.Instant.from(item.eventAt).toZonedDateTimeISO(session.displayTimeZone) : null;
   const [name, setName] = useState(item?.name ?? "");
-  const [holiday, setHoliday] = useState(Boolean(item?.holiday) || !item && initialHoliday);
+  const [holiday, setHoliday] = useState(sessionOnly || Boolean(item?.holiday) || !item && initialHoliday);
   const [holidaySession, setHolidaySession] = useState<HolidayContext['session']>(item?.holiday?.session ?? 'regular');
   const [lowVolume, setLowVolume] = useState(item?.holiday?.lowVolume ?? false);
   const [closeTime, setCloseTime] = useState(item?.holiday?.closeAt ? formatObservationTime(item.holiday.closeAt, session.displayTimeZone) : '');
@@ -8515,28 +8522,39 @@ function HolidayContextForm({ session, item, initialHoliday = false, onSave, onC
   const [noteOpen, setNoteOpen] = useState(Boolean(item?.note));
   const [busy, setBusy] = useState(false), [error, setError] = useState<string | null>(null);
 
-  return <form className="market-context-form context-capture-form" aria-label={item ? "Edit news or event" : "Add news or event"} onSubmit={async event => {
+  return <form className="market-context-form context-capture-form" aria-label={sessionOnly ? item ? 'Edit holiday' : 'Add holiday' : item ? "Edit news or event" : "Add news or event"} onSubmit={async event => {
     event.preventDefault(); if (busy) return;
-    setBusy(true); setError(null);
-    try { setError(await onSave({ name, eventDate, note, ...(holiday ? { holiday: {
-      timeZone: item?.holiday?.timeZone ?? session.market.canonicalTimeZone, session: holidaySession, lowVolume,
-      closeAt: holidaySession === 'early_close' && closeTime ? calendarInstant(eventDate, closeTime, session.displayTimeZone).toString() : null,
-    } } : {}) }, localTime)); }
+    setBusy(true); onBusy?.(true); setError(null);
+    try {
+      const closeAt = holiday && holidaySession === 'early_close' && closeTime ? calendarInstant(eventDate, closeTime, session.displayTimeZone).toString() : null;
+      if (sessionOnly && closeAt) {
+        const regular = workspaceWindows({...session, marketContextItems: []});
+        if (Temporal.Instant.compare(closeAt, regular['15R'].start) <= 0 || Temporal.Instant.compare(closeAt, regular.RTH.end) >= 0) {
+          const zone = session.displayTimeZone;
+          const open = formatClockTime(formatObservationTime(regular['15R'].start, zone));
+          const close = formatClockTime(formatObservationTime(regular.RTH.end, zone));
+          throw Error(`Enter a closing time after ${open} and before ${close}.`);
+        }
+      }
+      setError(await onSave({ name, eventDate, note, ...(holiday ? { holiday: {
+        timeZone: item?.holiday?.timeZone ?? session.market.canonicalTimeZone, session: holidaySession, lowVolume, closeAt,
+      } } : {}) }, localTime));
+    }
     catch (cause) { setError(cause instanceof Error ? cause.message : String(cause)); }
-    finally { setBusy(false); }
+    finally { setBusy(false); onBusy?.(false); }
   }}>
     <header className="capture-form-heading"><h2>{holiday ? item ? 'Edit holiday' : 'Holiday' : item ? "Edit news or event" : "News or event"}</h2>
       <button type="button" disabled={busy} onClick={onCancel}>Cancel</button></header>
-    <div className="context-kind-choice" role="group" aria-label="Context type">
+    {!sessionOnly&&<div className="context-kind-choice" role="group" aria-label="Context type">
       <button type="button" aria-pressed={!holiday} onClick={() => setHoliday(false)}>News / event</button>
       <button type="button" aria-pressed={holiday} onClick={() => setHoliday(true)}>Holiday</button>
-    </div>
+    </div>}
     <label><span>{holiday ? 'Holiday name' : 'Event'}</span><input required value={name} placeholder={holiday ? 'Columbus Day, Thanksgiving…' : "CPI, FOMC, earnings…"} onChange={event => setName(event.target.value)} /></label>
     <div className="capture-field-row">
-      <label className="context-picker-field"><span>Date</span>
+      {sessionOnly ? <div className="holiday-all-day"><span>Session date</span><time dateTime={eventDate} className="context-picker-readout">{formatCalendarDate(eventDate)}</time></div> : <label className="context-picker-field"><span>Date</span>
         <span className="context-picker-readout" aria-hidden="true">{eventDate ? formatCalendarDate(eventDate) : "Choose date"}</span>
         <input className="native-picker-overlay" aria-label="Date" type="date" required value={eventDate} onChange={event => setEventDate(event.target.value)} />
-      </label>
+      </label>}
       {holiday ? <div className="holiday-all-day"><span>Duration</span><strong>All day</strong></div> : <label className="context-picker-field"><span>Time · {sessionTimeZoneLabel(session)}</span>
         <span className="context-picker-readout" aria-hidden="true">{localTime ? formatClockTime(localTime) : "Choose time"}</span>
         <input className="native-picker-overlay" aria-label="Time" type="time" required value={localTime} onChange={event => setLocalTime(event.target.value)} />
@@ -8546,16 +8564,16 @@ function HolidayContextForm({ session, item, initialHoliday = false, onSave, onC
       <label><span>Trading hours</span><select value={holidaySession} onChange={event => setHolidaySession(event.target.value as HolidayContext['session'])}>
         <option value="regular">Regular hours</option><option value="early_close">Early close</option><option value="closed">Market closed</option>
       </select></label>
-      {holidaySession === 'early_close' && <label><span>Close time · {sessionTimeZoneLabel(session)} <small>optional</small></span>
-        <input aria-label="Holiday close time" type="time" value={closeTime} onChange={event => setCloseTime(event.target.value)} /></label>}
+      {holidaySession === 'early_close' && <label><span>Close time · {sessionTimeZoneLabel(session)} {!sessionOnly&&<small>optional</small>}</span>
+        <input aria-label="Holiday close time" type="time" required={sessionOnly} value={closeTime} onChange={event => setCloseTime(event.target.value)} /></label>}
       <label className="holiday-low-volume"><input type="checkbox" checked={lowVolume} onChange={event => setLowVolume(event.target.checked)} /><span>Low volume</span></label>
-      <p className="context-hint">Day context for your journal. Trading hours here do not change the instrument's session clock.</p>
+      <p className="context-hint">Early close sets the RTH cutoff for this date.</p>
     </div>}
     <details className="capture-optional" open={noteOpen} onToggle={event => setNoteOpen(event.currentTarget.open)}><summary>Add a note <small>optional</small></summary>
       <label><span>Event note</span><textarea rows={3} value={note} onChange={event => setNote(event.target.value)} /></label>
     </details>
     {error && <p role="alert" className="form-error">{error}</p>}
-    <button className="primary-action" type="submit" disabled={busy}>{busy ? "Saving…" : item ? "Save correction" : holiday ? 'Save holiday' : "Save event"}</button>
+    <button className="primary-action" type="submit" disabled={busy}>{busy ? "Saving…" : sessionOnly ? 'Save holiday' : item ? "Save correction" : holiday ? 'Save holiday' : "Save event"}</button>
   </form>;
 }
 
