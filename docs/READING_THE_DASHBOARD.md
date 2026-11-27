@@ -254,6 +254,14 @@ updates the day and weekly summary without a second RTH confirmation. A day can
 have complete high/low ranges without a stream of CP observations. Missing
 closing prices and unobserved movement still remain unknown.
 
+### Fix prices outside a range
+
+If a recorded price sits above the high or below the low you entered, the
+period editor highlights that field and lists each conflicting price with its
+date and time. Tap **Edit price** to correct a mistaken price right there.
+If the prices are correct, use the offered high or low to include them.
+Tap **Confirm range** once the range includes your recorded prices.
+
 ## A short daily loop
 
 **Record price → Structure → Forecast → back to recording.** Open Levels when

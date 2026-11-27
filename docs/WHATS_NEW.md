@@ -1,5 +1,12 @@
 # What's new
 
+## November 27 — See which prices block a range
+
+When a recorded price falls outside the range you entered, the period screen
+shows the price, date, time and affected high or low. Review every conflict
+in one place. Tap **Edit price** to correct an entry, or use the recorded
+high or low if it is correct. Your range draft stays open. [Range review guide](READING_THE_DASHBOARD.md#fix-prices-outside-a-range)
+
 ## November 26 — Set holiday hours from Record price
 
 Open the date, then tap **Record price → + Event → Holiday** to record the

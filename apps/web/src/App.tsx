@@ -8,7 +8,7 @@ import {WorkspaceRangeEditor,WorkspacePhaseRecords,WorkspaceEntryNoteEditor,type
 import {PHONE_TEST,phoneState,phoneStates} from './phoneTestMode';
 import {useWorkspaceNavigation} from './WorkspaceNavigation';
 import {periodMapRead} from './periodMapRead';
-import {workspaceDayTone} from './workspaceModel';
+import {workspaceDayTone,workspaceEntryPhase,workspaceRangeConflicts,type WorkspaceRangeConflict} from './workspaceModel';
 import {workspaceAutoClosePeriods} from './workspacePeriodStatus';
 import {PeriodSummary} from './PeriodSummary';
 import {WorkspaceDashboard,WorkspaceLevelCache,WorkspacePriceSheet,useWorkspaceActivePhase,type WorkspaceDestination} from './WorkspaceDashboard';
@@ -4132,9 +4132,14 @@ export function App() {
       if(locked&&(update.high===null||update.low===null))throw Error('Enter both the high and low to confirm this period.');
       if(locked&&update.high!==null&&update.low!==null&&update.high<update.low)throw Error('High must be at or above Low.');
       if(locked){
-        const start=phase==='A'?clock.windows['15R'].start:window.start;
-        const prices=current.cpObservations.filter(price=>Date.parse(price.observedAt)>=Date.parse(start)&&Date.parse(price.observedAt)<Date.parse(window.end));
-        if(prices.some(price=>update.high!==null&&price.price>update.high||update.low!==null&&price.price<update.low))throw Error('The confirmed range must include this period’s recorded prices. Correct a mistaken entry in Entries first.');
+        const conflicts=workspaceRangeConflicts(current,phase,update);
+        if(conflicts.length){
+          setSession(selected=>selected?.id===current.id?current:selected);
+          const {edge,observation}=conflicts[0]!;
+          const time=new Intl.DateTimeFormat('en-US',{timeZone:current.displayTimeZone,month:'short',day:'numeric',hour:'numeric',minute:'2-digit',timeZoneName:'short'}).format(new Date(observation.observedAt));
+          const price=workspaceFormatPrice(observation.price,current.market.tickSize);
+          throw Error(`${price} at ${time} is ${edge==='low'?'below':'above'} the ${phase} ${edge}. Review the ${conflicts.length===1?'recorded price':`${conflicts.length} recorded prices`} outside the range.`);
+        }
       }
       if(Temporal.Instant.compare(at,window.start)<0||Temporal.Instant.compare(at,window.end)>0||Temporal.Instant.compare(at,now)>0)throw Error("Keep the range time within the selected phase and no later than now.");
       const checkpoint=phase==='15R'?current.fifteenMinute:phase==='A'?current.aPeriod:phase==='B'?current.bPeriod:null;
@@ -4175,13 +4180,20 @@ export function App() {
     if(phase==='RTH'&&issues.pendingFinalRange){fieldAttention.high??='Save these final daily prices to complete the day.';fieldAttention.low??='Save these final daily prices to complete the day.';}
     if(issue){if(range.high===null||phase==='RTH')fieldAttention.high??=phase==='RTH'?'Save the final daily range; shown prices are a prefill.':'High not recorded · Enter if known.';if(range.low===null||phase==='RTH')fieldAttention.low??=phase==='RTH'?'Save the final daily range; shown prices are a prefill.':'Low not recorded · Enter if known.';}
     const completed=Temporal.Instant.compare(openedAt,clock.windows[phase].end)>=0;
-    return <><WorkspaceRangeEditor key={`${session.id}:${phase}`} formId={formId} rangeAt={rangeAt} timeZone={session.displayTimeZone} phase={phase} completed={completed} focusField={focusField??issue?.focus} attention={fieldAttention} showCommentary={phase!=='RTH'} openPrice={phase==='ON'&&completed?session.overnight.rthOpen:undefined} high={range.high} low={range.low} note={phase==='B'?session.bPeriod.note:phase==='A'?session.aPeriod.note:phase==='15R'?session.fifteenMinute.note:phase==='ON'?forming?.note:null} onSave={save}/>
+    return <><WorkspaceRangeEditor key={`${session.id}:${phase}`} session={session} formId={formId} rangeAt={rangeAt} timeZone={session.displayTimeZone} phase={phase} completed={completed} focusField={focusField??issue?.focus} attention={fieldAttention} showCommentary={phase!=='RTH'} openPrice={phase==='ON'&&completed?session.overnight.rthOpen:undefined} high={range.high} low={range.low} note={phase==='B'?session.bPeriod.note:phase==='A'?session.aPeriod.note:phase==='15R'?session.fifteenMinute.note:phase==='ON'?forming?.note:null} onSave={save}
+      onCorrect={async(conflict,price)=>{
+        const observationPhase=workspaceEntryPhase(clock.windows,conflict.observation.observedAt);
+        if(!observationPhase)return 'This price is outside the session. Open Day timeline to review its recorded time.';
+        onBusy(true);
+        try{return await correctWorkspaceObservation(observationPhase,conflict.rthId??conflict.observation.id,!!conflict.rthId,{price},null,editFinalized,conflict);}
+        finally{onBusy(false);}
+      }}/>
       {phase==='B'&&<details><summary>B snapshot</summary><BSnapshotForm snapshot={session.bSnapshots.at(-1)??null} inheritedRange={effectiveAPeriod??session.aPeriod} onSave={update=>save(update,undefined,true)}/></details>}
       {phase==='RTH'&&!fromDayReview&&<div className="workspace-rth-review-action">
         <DayReviewButton session={session} onClick={()=>{window.addEventListener('popstate',()=>openWorkspace('close'),{once:true});done();}}/>
       </div>}</>;
   }
-  async function correctWorkspaceObservation(phase:WorkspacePhase,id:string,rth:boolean,update:RthObservationUpdate,time:string,editFinalized:boolean):Promise<string|null>{
+  async function correctWorkspaceObservation(phase:WorkspacePhase,id:string,rth:boolean,update:{price:number;note?:string|null},time:string|null,editFinalized:boolean,conflict?:WorkspaceRangeConflict):Promise<string|null>{
     if(!session||!repositoryRef.current)return 'The journal is still opening.';
     if(workspaceSaving.current)return 'An entry is already being saved.';
     workspaceSaving.current=true;
@@ -4189,10 +4201,14 @@ export function App() {
       await awaitForecastUpdateWrites();let current=await repositoryRef.current.getSession(session.id)??session;
       if(current.close.finishedAt){if(!editFinalized)throw Error('Choose Edit finalized period first.');current={...current,close:{...current.close,finishedAt:null,pathComplete:false}};}
       workspacePrice(String(update.price),current.market.tickSize);
-      const at=sessionObservationInstant(current.rthDate,time,current.displayTimeZone).toString(),window=workspaceWindows(current)[phase];
+      const rthRecord=rth?current.rthObservations.find(item=>item.id===id):undefined;
+      const recorded=rth?rthRecord:current.cpObservations.find(item=>item.id===id);
+      if(!recorded)throw Error('This price was removed. Reopen the period to refresh the entries.');
+      if(conflict&&(recorded.observedAt!==conflict.observation.observedAt||recorded.price!==conflict.observation.price))throw Error('This price was changed. Reopen the period to see the current value.');
+      const at=time===null?recorded.observedAt:sessionObservationInstant(current.rthDate,time,current.displayTimeZone).toString(),windows=workspaceWindows(current),window=windows[phase];
       if(Temporal.Instant.compare(at,window.start)<0||Temporal.Instant.compare(at,window.end)>=0)throw Error('Keep this observation within the selected phase.');
       const now=Temporal.Now.instant().toString();if(Temporal.Instant.compare(at,now)>0)throw Error('An observation cannot be in the future.');
-      let next=rth?withCorrectedRthObservation(current,id,update,at,now,workspaceWindows(current).RTH.start,workspaceWindows(current).RTH.end):withCorrectedStandaloneCpObservation(current,id,update.price,at,now);
+      let next=rth?withCorrectedRthObservation(current,id,{price:update.price,note:update.note===undefined?rthRecord?.note??null:update.note},at,now,windows.RTH.start,windows.RTH.end):withCorrectedStandaloneCpObservation(current,id,update.price,at,now);
       if(!rth&&update.note!==undefined)next=withWorkspaceCpNote(next,id,update.note??'',phase,now);
       await repositoryRef.current.saveSession(next);setSession(selected=>selected?.id===next.id?next:selected);setMessage('');setWorkspaceNotice('Observation corrected.');return null;
     }catch(error){return error instanceof Error?error.message:'Unable to save. Your input is preserved.';}

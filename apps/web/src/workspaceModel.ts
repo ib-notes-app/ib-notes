@@ -3,7 +3,7 @@ import {Temporal} from '@js-temporal/polyfill';
 import {createSessionClock} from '@ib-field-notes/session-templates';
 import {formatPriceNumber,roundPriceToTick,deriveRecordedRthRange,carryRangeEdgesForward,latestPreOpenSnapshot,withStandaloneCpObservation,withRthObservation,
   withFifteenMinuteRange,withAPeriodUpdate,withBPeriodUpdate,withPreOpenUpdate,withOvernightUpdate,withRthRangeCorrection,
-  withRemovedStandaloneCpObservation,withRemovedRthObservation,withSessionNote,withCorrectedSessionNote,withRemovedSessionNote,type JournalSession,type SignificantLevel} from '@ib-field-notes/domain';
+  withRemovedStandaloneCpObservation,withRemovedRthObservation,withSessionNote,withCorrectedSessionNote,withRemovedSessionNote,type CpObservation,type JournalSession,type SignificantLevel} from '@ib-field-notes/domain';
 import {reconcileFormingPriceRanges,reconcileOvernightRangeHistory} from '@ib-field-notes/domain';
 import {groupNearbyAreas} from './levelAreas';
 import {nearbyLevelScope} from './nearbyZoneRead';
@@ -124,6 +124,31 @@ export function workspaceRecordedRange(session:JournalSession,phase:WorkspacePha
   if(phase==='A')return a;
   if(phase==='B')return carryRangeEdgesForward(session.bPeriod,session.fifteenMinute,a,...session.bSnapshots);
   return deriveRecordedRthRange(session);
+}
+
+export type WorkspaceRangeConflict = {
+  observation:CpObservation;
+  edge:'high'|'low';
+  rthId:string|undefined;
+};
+
+/** Match the evidence used to confirm this period, including 15R prices in A. */
+export function workspaceRangeConflicts(session:JournalSession,phase:WorkspacePhase,range:{high:number|null;low:number|null}):WorkspaceRangeConflict[]{
+  const {high,low}=range;
+  if((high===null&&low===null)||(high!==null&&!Number.isFinite(high))||(low!==null&&!Number.isFinite(low))||(high!==null&&low!==null&&high<low))return [];
+  const windows=workspaceWindows(session);
+  const start=ms(phase==='A'?windows['15R'].start:windows[phase].start),end=ms(windows[phase].end);
+  const rthIds=new Map(session.rthObservations.map(item=>[item.cpObservationId,item.id]));
+  return session.cpObservations.flatMap<WorkspaceRangeConflict>(observation=>{
+    const at=Date.parse(observation.observedAt);
+    if(!(at>=start&&at<end))return [];
+    const edge=low!==null&&observation.price<low?'low':high!==null&&observation.price>high?'high':null;
+    return edge?[{observation,edge,rthId:rthIds.get(observation.id)}]:[];
+  }).sort((a,b)=>{
+    if(a.edge!==b.edge)return a.edge==='low'?-1:1;
+    const difference=a.observation.price-b.observation.price;
+    return (a.edge==='low'?difference:-difference)||Date.parse(a.observation.observedAt)-Date.parse(b.observation.observedAt)||a.observation.id.localeCompare(b.observation.id);
+  });
 }
 /** Existing journal commands, with strict input validation at the preview boundary.
  * High/Low are range-as-of edits, never timestamped CP or exact extreme occurrences. */

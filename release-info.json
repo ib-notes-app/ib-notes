@@ -1,28 +1,27 @@
 {
-  "buildId": "public-blank-20261126T160131500Z",
+  "buildId": "public-blank-20261127T155347883Z",
   "distribution": "public-blank",
-  "status": "Set holiday hours from Record price.",
+  "status": "See and correct all prices outside a completed range.",
   "appUrl": "https://ib-notes-app.github.io/ib-notes/",
   "archive": "downloads/IB-Notes-blank-slate.zip",
-  "archiveBytes": 7839173,
-  "archiveSha256": "3444de396fa69ab4750966a61c932e8f13d2c9bb497cd9fa0a382ce0445aec46",
+  "archiveBytes": 7843204,
+  "archiveSha256": "9f957cc2d08ba256affb50b364fc7b0436ce64de6e54ca377c760e3c07b5416b",
   "bundledMarketHistory": false,
   "bundledJournalRecords": false,
   "bundledExamples": false,
   "automaticNewsLookup": false,
   "historicalForecasts": "Unavailable without suitable user-supplied learning history.",
   "dataStorage": "Local SQLite in the browser; no journal synchronization.",
-  "preparedAt": "2026-11-26",
+  "preparedAt": "2026-11-27",
   "changes": [
-    "Set or edit holiday hours through Record price and + Event.",
-    "Review day uses the saved early close, and Day timeline shows the holiday label."
+    "The period range editor lists each conflicting price with its date and time and supports inline corrections."
   ],
   "verification": {
     "cleanPublicSourceBuild": "Passed",
-    "focusedPrivateUnitTests": 41,
-    "privateBrowserChecks": 5,
+    "focusedPrivateUnitTests": 49,
+    "privateBrowserChecks": 2,
     "physicalPublicOriginInstall": "Pending",
-    "publicPackageBrowserChecks": 3,
+    "publicPackageBrowserChecks": 1,
     "sourceAndDownloadsAudit": "Passed"
   }
 }
